@@ -1,6 +1,8 @@
-import { useEffect, useState, useId } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { useEffect, useState, useId, useCallback } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from "react-leaflet";
 import L from "leaflet";
+import { Locate, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import "leaflet/dist/leaflet.css";
 
 // Fix for default marker icons in React-Leaflet
@@ -19,6 +21,16 @@ L.Icon.Default.mergeOptions({
 // Custom green marker for courts
 const courtIcon = new L.Icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
+  shadowUrl: markerShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+// Blue marker for user location
+const userIcon = new L.Icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
   shadowUrl: markerShadow,
   iconSize: [25, 41],
   iconAnchor: [12, 41],
@@ -51,6 +63,85 @@ function MapController({ center, zoom }: { center: [number, number]; zoom: numbe
   }, [center, zoom, map]);
   
   return null;
+}
+
+// Locate control component
+function LocateControl({ 
+  onLocate 
+}: { 
+  onLocate: (position: [number, number]) => void;
+}) {
+  const map = useMap();
+  const [isLocating, setIsLocating] = useState(false);
+
+  const handleLocate = useCallback(() => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        map.flyTo([latitude, longitude], 15, { duration: 1.5 });
+        onLocate([latitude, longitude]);
+        setIsLocating(false);
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        alert("Unable to get your location. Please check your permissions.");
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, [map, onLocate]);
+
+  return (
+    <div className="leaflet-top leaflet-right" style={{ marginTop: "10px", marginRight: "10px" }}>
+      <div className="leaflet-control">
+        <Button
+          variant="secondary"
+          size="icon"
+          onClick={handleLocate}
+          disabled={isLocating}
+          className="bg-background shadow-md hover:bg-secondary"
+        >
+          {isLocating ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Locate className="w-4 h-4" />
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// User location marker
+function UserMarker({ position }: { position: [number, number] | null }) {
+  if (!position) return null;
+  
+  return (
+    <>
+      <Circle
+        center={position}
+        radius={50}
+        pathOptions={{ 
+          color: "hsl(217, 91%, 60%)", 
+          fillColor: "hsl(217, 91%, 60%)", 
+          fillOpacity: 0.2 
+        }}
+      />
+      <Marker position={position} icon={userIcon}>
+        <Popup>
+          <div className="p-1">
+            <h3 className="font-semibold text-sm">Your Location</h3>
+          </div>
+        </Popup>
+      </Marker>
+    </>
+  );
 }
 
 // Separate component for markers to avoid context issues
@@ -91,9 +182,14 @@ export function CourtMap({
 }: CourtMapProps) {
   const mapId = useId();
   const [isMounted, setIsMounted] = useState(false);
+  const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
+  }, []);
+
+  const handleLocate = useCallback((position: [number, number]) => {
+    setUserPosition(position);
   }, []);
 
   // Don't render map until component is mounted (fixes SSR/hydration issues)
@@ -119,6 +215,8 @@ export function CourtMap({
       />
       <MapController center={center} zoom={zoom} />
       <CourtMarkers courts={courts} onCourtSelect={onCourtSelect} />
+      <LocateControl onLocate={handleLocate} />
+      <UserMarker position={userPosition} />
     </MapContainer>
   );
 }

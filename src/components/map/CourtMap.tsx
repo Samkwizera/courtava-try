@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -42,7 +42,7 @@ interface CourtMapProps {
   zoom?: number;
 }
 
-// Component to handle map centering
+// Component to handle map centering - must be inside MapContainer
 function MapController({ center, zoom }: { center: [number, number]; zoom: number }) {
   const map = useMap();
   
@@ -53,25 +53,10 @@ function MapController({ center, zoom }: { center: [number, number]; zoom: numbe
   return null;
 }
 
-export function CourtMap({ 
-  courts, 
-  onCourtSelect, 
-  center = [-1.9403, 29.8739], // Kigali, Rwanda coordinates
-  zoom = 13 
-}: CourtMapProps) {
+// Separate component for markers to avoid context issues
+function CourtMarkers({ courts, onCourtSelect }: { courts: Court[]; onCourtSelect?: (court: Court) => void }) {
   return (
-    <MapContainer
-      center={center}
-      zoom={zoom}
-      className="w-full h-full rounded-xl overflow-hidden"
-      style={{ minHeight: "300px" }}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <MapController center={center} zoom={zoom} />
-      
+    <>
       {courts.map((court) => (
         <Marker
           key={court.id}
@@ -94,6 +79,44 @@ export function CourtMap({
           </Popup>
         </Marker>
       ))}
+    </>
+  );
+}
+
+export function CourtMap({ 
+  courts, 
+  onCourtSelect, 
+  center = [-1.9403, 30.0588], // Kigali, Rwanda coordinates
+  zoom = 13 
+}: CourtMapProps) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Don't render map until component is mounted (fixes SSR/hydration issues)
+  if (!isMounted) {
+    return (
+      <div className="w-full h-full rounded-xl overflow-hidden bg-muted flex items-center justify-center" style={{ minHeight: "300px" }}>
+        <span className="text-muted-foreground">Loading map...</span>
+      </div>
+    );
+  }
+
+  return (
+    <MapContainer
+      center={center}
+      zoom={zoom}
+      className="w-full h-full rounded-xl overflow-hidden"
+      style={{ minHeight: "300px" }}
+    >
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      <MapController center={center} zoom={zoom} />
+      <CourtMarkers courts={courts} onCourtSelect={onCourtSelect} />
     </MapContainer>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useId } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -89,6 +89,7 @@ export function CourtMap({
   center = [-1.9403, 30.0588], // Kigali, Rwanda coordinates
   zoom = 13 
 }: CourtMapProps) {
+  const mapId = useId();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -106,6 +107,7 @@ export function CourtMap({
 
   return (
     <MapContainer
+      key={mapId}
       center={center}
       zoom={zoom}
       className="w-full h-full rounded-xl overflow-hidden"

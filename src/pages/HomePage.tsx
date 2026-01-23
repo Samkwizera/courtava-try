@@ -7,51 +7,52 @@ import { GameCard } from "@/components/cards/GameCard";
 import courtavaLogo from "@/assets/courtava-logo.png";
 import { Link } from "react-router-dom";
 
-// Mock data
+// Kigali courts data
 const nearbyCourts = [
   {
-    name: "Downtown Community Court",
-    address: "123 Main St, Downtown",
-    distance: "0.3 mi",
-    rating: 4.8,
-    reviewCount: 124,
-    playersNow: 6,
-    surface: "outdoor" as const,
+    name: "Kigali Arena Courts",
+    address: "KG 7 Ave, Kigali",
+    distance: "0.3 km",
+    rating: 4.9,
+    reviewCount: 156,
+    playersNow: 8,
+    surface: "indoor" as const,
     amenities: { lights: true, water: true, parking: true },
   },
   {
-    name: "Riverside Park Courts",
-    address: "456 River Rd",
-    distance: "0.8 mi",
-    rating: 4.5,
-    reviewCount: 89,
+    name: "Amahoro Stadium Courts",
+    address: "KG 200 St, Remera",
+    distance: "1.2 km",
+    rating: 4.7,
+    reviewCount: 203,
+    playersNow: 6,
     surface: "outdoor" as const,
-    amenities: { lights: true, water: false, parking: true },
+    amenities: { lights: true, water: true, parking: true },
   },
 ];
 
 const upcomingGames = [
   {
-    title: "Morning Run - 5v5",
-    courtName: "Downtown Community Court",
+    title: "Evening Run - 5v5",
+    courtName: "Kigali Arena Courts",
     date: "Today",
     time: "6:00 PM",
     format: "5v5" as const,
     skillLevel: "Intermediate" as const,
     currentPlayers: 8,
     maxPlayers: 10,
-    hostName: "Marcus J.",
+    hostName: "Jean-Claude M.",
   },
   {
-    title: "Casual 3v3",
-    courtName: "Riverside Park Courts",
-    date: "Tomorrow",
+    title: "Weekend 3v3",
+    courtName: "Amahoro Stadium Courts",
+    date: "Saturday",
     time: "10:00 AM",
     format: "3v3" as const,
     skillLevel: "Beginner" as const,
     currentPlayers: 4,
     maxPlayers: 6,
-    hostName: "Sarah K.",
+    hostName: "Grace U.",
   },
 ];
 
@@ -92,7 +93,7 @@ export default function HomePage() {
         {/* Location pill */}
         <button className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary rounded-full text-sm">
           <MapPin className="w-4 h-4 text-primary" />
-          <span className="font-medium">Downtown</span>
+          <span className="font-medium">Kigali, Rwanda</span>
           <ChevronRight className="w-4 h-4 text-muted-foreground" />
         </button>
       </header>

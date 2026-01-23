@@ -11,13 +11,16 @@ import CourtsPage from "@/pages/CourtsPage";
 import GamesPage from "@/pages/GamesPage";
 import PlayersPage from "@/pages/PlayersPage";
 import ProfilePage from "@/pages/ProfilePage";
+import InstallPage from "@/pages/InstallPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Check if this is the first visit
+// Check if this is the first visit or if on install page
 const hasSeenSplash = () => {
   if (typeof window !== "undefined") {
+    // Don't show splash on install page
+    if (window.location.pathname === "/install") return true;
     return sessionStorage.getItem("courtava_splash_seen") === "true";
   }
   return false;
@@ -46,6 +49,7 @@ const App = () => {
               <Route path="/players" element={<PlayersPage />} />
               <Route path="/profile" element={<ProfilePage />} />
             </Route>
+            <Route path="/install" element={<InstallPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

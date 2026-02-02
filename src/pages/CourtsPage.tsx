@@ -1,8 +1,10 @@
 import { MapPin, Search, Filter, List, Map as MapIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { CourtCard } from "@/components/cards/CourtCard";
 import { CourtMap } from "@/components/map/CourtMap";
+import { CourtFilters, CourtFiltersState } from "@/components/courts/CourtFilters";
 import { cn } from "@/lib/utils";
 
 // Courts in Kigali, Rwanda with real locations
@@ -14,6 +16,7 @@ const courts = [
     lat: -1.9355,
     lng: 30.0928,
     distance: "0.3 km",
+    distanceNum: 0.3,
     rating: 4.9,
     reviewCount: 156,
     playersNow: 8,
@@ -27,6 +30,7 @@ const courts = [
     lat: -1.9537,
     lng: 30.1044,
     distance: "1.2 km",
+    distanceNum: 1.2,
     rating: 4.7,
     reviewCount: 203,
     playersNow: 6,
@@ -40,6 +44,7 @@ const courts = [
     lat: -1.9712,
     lng: 30.0456,
     distance: "2.5 km",
+    distanceNum: 2.5,
     rating: 4.5,
     reviewCount: 89,
     surface: "outdoor" as const,
@@ -52,6 +57,7 @@ const courts = [
     lat: -1.9834,
     lng: 30.1123,
     distance: "3.1 km",
+    distanceNum: 3.1,
     rating: 4.3,
     reviewCount: 67,
     playersNow: 4,
@@ -65,6 +71,7 @@ const courts = [
     lat: -1.9189,
     lng: 30.0612,
     distance: "4.0 km",
+    distanceNum: 4.0,
     rating: 4.6,
     reviewCount: 112,
     surface: "outdoor" as const,
@@ -77,6 +84,7 @@ const courts = [
     lat: -1.9445,
     lng: 30.0789,
     distance: "1.8 km",
+    distanceNum: 1.8,
     rating: 4.4,
     reviewCount: 78,
     surface: "outdoor" as const,
@@ -94,16 +102,55 @@ const mapCourts = courts.map((court) => ({
   playersNow: court.playersNow,
 }));
 
+const defaultFilters: CourtFiltersState = {
+  surfaces: [],
+  amenities: { lights: false, water: false, parking: false },
+  sortBy: "distance",
+};
+
 export default function CourtsPage() {
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCourt, setSelectedCourt] = useState<string | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filters, setFilters] = useState<CourtFiltersState>(defaultFilters);
 
-  const filteredCourts = courts.filter(
-    (court) =>
-      court.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      court.address.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const activeFilterCount =
+    filters.surfaces.length +
+    Object.values(filters.amenities).filter(Boolean).length;
+
+  const filteredCourts = useMemo(() => {
+    let result = courts.filter(
+      (court) =>
+        court.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        court.address.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    // Filter by surface type
+    if (filters.surfaces.length > 0) {
+      result = result.filter((court) => filters.surfaces.includes(court.surface));
+    }
+
+    // Filter by amenities
+    if (filters.amenities.lights) {
+      result = result.filter((court) => court.amenities.lights);
+    }
+    if (filters.amenities.water) {
+      result = result.filter((court) => court.amenities.water);
+    }
+    if (filters.amenities.parking) {
+      result = result.filter((court) => court.amenities.parking);
+    }
+
+    // Sort
+    if (filters.sortBy === "distance") {
+      result = [...result].sort((a, b) => a.distanceNum - b.distanceNum);
+    } else {
+      result = [...result].sort((a, b) => b.rating - a.rating);
+    }
+
+    return result;
+  }, [searchQuery, filters]);
 
   return (
     <div className="min-h-screen bg-background safe-top">
@@ -129,8 +176,13 @@ export default function CourtsPage() {
                 className="w-full h-10 pl-9 pr-4 rounded-xl bg-secondary border-none text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
-            <Button variant="secondary" size="icon">
+            <Button variant="secondary" size="icon" className="relative" onClick={() => setFiltersOpen(true)}>
               <Filter className="w-4 h-4" />
+              {activeFilterCount > 0 && (
+                <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]">
+                  {activeFilterCount}
+                </Badge>
+              )}
             </Button>
           </div>
 
@@ -218,6 +270,14 @@ export default function CourtsPage() {
           </div>
         </div>
       )}
+
+      {/* Filters Sheet */}
+      <CourtFilters
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        filters={filters}
+        onFiltersChange={setFilters}
+      />
     </div>
   );
 }

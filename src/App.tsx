@@ -8,6 +8,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { SplashScreen } from "@/components/SplashScreen";
 import HomePage from "@/pages/HomePage";
 import { BackendEnvErrorScreen } from "@/components/BackendEnvErrorScreen";
+import { ThemeProvider } from "@/hooks/useTheme";
 
 // Lazy-load anything that (directly or indirectly) imports the backend client,
 // so the app can render a helpful message if env vars aren't available yet.
@@ -49,40 +50,42 @@ const App = () => {
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
 
-        {!hasBackendEnv ? (
-          <BackendEnvErrorScreen />
-        ) : (
-          <Suspense fallback={null}>
-            <AuthProvider>
-              <BrowserRouter>
-                <Suspense fallback={null}>
-                  <Routes>
-                    <Route element={<AppLayout />}>
-                      <Route path="/" element={<HomePage />} />
-                      <Route path="/courts" element={<CourtsPage />} />
-                      <Route path="/courts/:id" element={<CourtDetailsPage />} />
-                      <Route path="/games" element={<GamesPage />} />
-                      <Route path="/players" element={<PlayersPage />} />
-                      <Route path="/profile" element={<ProfilePage />} />
-                    </Route>
-                    <Route path="/auth" element={<AuthPage />} />
-                    <Route path="/install" element={<InstallPage />} />
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Suspense>
-              </BrowserRouter>
-            </AuthProvider>
-          </Suspense>
-        )}
-      </TooltipProvider>
-    </QueryClientProvider>
+          {!hasBackendEnv ? (
+            <BackendEnvErrorScreen />
+          ) : (
+            <Suspense fallback={null}>
+              <AuthProvider>
+                <BrowserRouter>
+                  <Suspense fallback={null}>
+                    <Routes>
+                      <Route element={<AppLayout />}>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/courts" element={<CourtsPage />} />
+                        <Route path="/courts/:id" element={<CourtDetailsPage />} />
+                        <Route path="/games" element={<GamesPage />} />
+                        <Route path="/players" element={<PlayersPage />} />
+                        <Route path="/profile" element={<ProfilePage />} />
+                      </Route>
+                      <Route path="/auth" element={<AuthPage />} />
+                      <Route path="/install" element={<InstallPage />} />
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Suspense>
+                </BrowserRouter>
+              </AuthProvider>
+            </Suspense>
+          )}
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 };
 

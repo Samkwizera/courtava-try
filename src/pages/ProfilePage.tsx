@@ -7,9 +7,13 @@ import {
   MapPin,
   Award,
   Star,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
 
 const userProfile = {
@@ -36,6 +40,13 @@ const recentActivity = [
 ];
 
 export default function ProfilePage() {
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+
+  const toggleTheme = () => {
+    setTheme(isDark ? "light" : "dark");
+  };
+
   return (
     <div className="min-h-screen bg-background safe-top">
       {/* Header */}
@@ -174,6 +185,19 @@ export default function ProfilePage() {
       {/* Quick Actions */}
       <section className="px-4 py-4 pb-8">
         <div className="flex flex-col gap-2">
+          {/* Dark Mode Toggle */}
+          <div className="flex items-center justify-between p-3 bg-card rounded-xl shadow-card border border-border">
+            <div className="flex items-center gap-3">
+              {isDark ? (
+                <Moon className="w-5 h-5 text-primary" />
+              ) : (
+                <Sun className="w-5 h-5 text-primary" />
+              )}
+              <span className="font-medium text-foreground">Dark Mode</span>
+            </div>
+            <Switch checked={isDark} onCheckedChange={toggleTheme} />
+          </div>
+
           {[
             { label: "My Games", icon: Calendar },
             { label: "My Connections", icon: Users },

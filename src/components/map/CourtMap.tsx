@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from "react-le
 import L from "leaflet";
 import { Locate, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CheckIn } from "@/hooks/useCheckIns";
 import "leaflet/dist/leaflet.css";
 
 // Fix for default marker icons in React-Leaflet
@@ -38,6 +39,33 @@ const userIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
+// Create avatar marker icon (Snapchat-style)
+const createAvatarIcon = (name: string, color: string = "#FF6B00") => {
+  const initial = (name || "U")[0].toUpperCase();
+  
+  const svgIcon = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 60" width="40" height="48">
+      <defs>
+        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+        </filter>
+      </defs>
+      <circle cx="25" cy="22" r="18" fill="${color}" filter="url(#shadow)"/>
+      <polygon points="25,55 15,35 35,35" fill="${color}"/>
+      <circle cx="25" cy="22" r="15" fill="white"/>
+      <text x="25" y="28" text-anchor="middle" font-size="16" font-weight="bold" fill="${color}">${initial}</text>
+    </svg>
+  `;
+  
+  return L.divIcon({
+    html: svgIcon,
+    className: "avatar-marker",
+    iconSize: [40, 48],
+    iconAnchor: [20, 48],
+    popupAnchor: [0, -48],
+  });
+};
+
 interface Court {
   id: string;
   name: string;
@@ -52,9 +80,11 @@ interface CourtMapProps {
   onCourtSelect?: (court: Court) => void;
   center?: [number, number];
   zoom?: number;
+  checkIns?: CheckIn[];
+  onAvatarClick?: (courtId: string) => void;
 }
 
-// Component to handle map centering - must be inside MapContainer
+// Component to handle map centering
 function MapController({ center, zoom }: { center: [number, number]; zoom: number }) {
   const map = useMap();
   
@@ -174,11 +204,77 @@ function CourtMarkers({ courts, onCourtSelect }: { courts: Court[]; onCourtSelec
   );
 }
 
+// Checked-in user avatars (Snapchat-style)
+function CheckedInAvatars({ 
+  checkIns, 
+  courts,
+  onAvatarClick 
+}: { 
+  checkIns: CheckIn[];
+  courts: Court[];
+  onAvatarClick?: (courtId: string) => void;
+}) {
+  // Group check-ins by court and offset positions slightly
+  const checkInsByCourtWithPositions = checkIns.map((checkIn, index) => {
+    const court = courts.find(c => c.id === checkIn.court_id);
+    if (!court) return null;
+
+    // Count how many users at this court
+    const courtCheckIns = checkIns.filter(c => c.court_id === checkIn.court_id);
+    const positionIndex = courtCheckIns.findIndex(c => c.id === checkIn.id);
+
+    // Offset positions in a circle around the court
+    const angleStep = (2 * Math.PI) / Math.max(courtCheckIns.length, 1);
+    const angle = positionIndex * angleStep;
+    const radius = 0.0008; // Small offset in lat/lng
+
+    return {
+      ...checkIn,
+      lat: court.lat + Math.cos(angle) * radius,
+      lng: court.lng + Math.sin(angle) * radius,
+    };
+  }).filter(Boolean);
+
+  // Avatar colors for variety
+  const colors = ["#FF6B00", "#10B981", "#6366F1", "#EC4899", "#F59E0B"];
+
+  return (
+    <>
+      {checkInsByCourtWithPositions.map((checkIn, index) => {
+        if (!checkIn) return null;
+        
+        const displayName = checkIn.profile?.display_name || "Player";
+        const color = colors[index % colors.length];
+        
+        return (
+          <Marker
+            key={checkIn.id}
+            position={[checkIn.lat, checkIn.lng]}
+            icon={createAvatarIcon(displayName, color)}
+            eventHandlers={{
+              click: () => onAvatarClick?.(checkIn.court_id),
+            }}
+          >
+            <Popup>
+              <div className="p-1 text-center">
+                <p className="font-semibold text-sm">{displayName}</p>
+                <p className="text-xs text-gray-500">Playing now</p>
+              </div>
+            </Popup>
+          </Marker>
+        );
+      })}
+    </>
+  );
+}
+
 export function CourtMap({ 
   courts, 
   onCourtSelect, 
-  center = [-1.9403, 30.0588], // Kigali, Rwanda coordinates
-  zoom = 13 
+  center = [-1.9403, 30.0588],
+  zoom = 13,
+  checkIns = [],
+  onAvatarClick,
 }: CourtMapProps) {
   const mapId = useId();
   const [isMounted, setIsMounted] = useState(false);
@@ -192,7 +288,6 @@ export function CourtMap({
     setUserPosition(position);
   }, []);
 
-  // Don't render map until component is mounted (fixes SSR/hydration issues)
   if (!isMounted) {
     return (
       <div className="w-full h-full rounded-xl overflow-hidden bg-muted flex items-center justify-center" style={{ minHeight: "300px" }}>
@@ -215,6 +310,7 @@ export function CourtMap({
       />
       <MapController center={center} zoom={zoom} />
       <CourtMarkers courts={courts} onCourtSelect={onCourtSelect} />
+      <CheckedInAvatars checkIns={checkIns} courts={courts} onAvatarClick={onAvatarClick} />
       <LocateControl onLocate={handleLocate} />
       <UserMarker position={userPosition} />
     </MapContainer>

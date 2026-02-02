@@ -6,7 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { CourtCard } from "@/components/cards/CourtCard";
 import { CourtMap } from "@/components/map/CourtMap";
 import { CourtFilters, CourtFiltersState } from "@/components/courts/CourtFilters";
+import { CheckInSheet } from "@/components/courts/CheckInSheet";
 import { courts } from "@/data/courts";
+import { useCheckIns } from "@/hooks/useCheckIns";
 import { cn } from "@/lib/utils";
 
 // Map courts to format expected by CourtMap
@@ -27,11 +29,14 @@ const defaultFilters: CourtFiltersState = {
 
 export default function CourtsPage() {
   const navigate = useNavigate();
+  const { checkIns } = useCheckIns();
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCourt, setSelectedCourt] = useState<string | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<CourtFiltersState>(defaultFilters);
+  const [checkInSheetOpen, setCheckInSheetOpen] = useState(false);
+  const [checkInCourtId, setCheckInCourtId] = useState<string | null>(null);
 
   const activeFilterCount =
     filters.surfaces.length +
@@ -159,6 +164,11 @@ export default function CourtsPage() {
               center={[-1.9403, 30.0588]} // Kigali center
               zoom={13}
               onCourtSelect={(court) => setSelectedCourt(court.id)}
+              checkIns={checkIns}
+              onAvatarClick={(courtId) => {
+                setCheckInCourtId(courtId);
+                setCheckInSheetOpen(true);
+              }}
             />
           </div>
 
@@ -198,6 +208,17 @@ export default function CourtsPage() {
         filters={filters}
         onFiltersChange={setFilters}
       />
+
+      {/* Check-in Sheet */}
+      {checkInCourtId && (
+        <CheckInSheet
+          open={checkInSheetOpen}
+          onOpenChange={setCheckInSheetOpen}
+          courtId={checkInCourtId}
+          courtName={courts.find(c => c.id === checkInCourtId)?.name || "Court"}
+          checkedInUsers={checkIns.filter(c => c.court_id === checkInCourtId)}
+        />
+      )}
     </div>
   );
 }

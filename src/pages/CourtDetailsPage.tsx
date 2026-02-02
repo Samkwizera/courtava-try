@@ -1,15 +1,22 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Star, MapPin, Users, Sun, Droplets, Car, Navigation, Share2, Heart } from "lucide-react";
+import { ArrowLeft, Star, MapPin, Users, Sun, Droplets, Car, Navigation, Share2, Heart, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { getCourtById } from "@/data/courts";
+import { useAuth } from "@/hooks/useAuth";
+import { useCheckIns } from "@/hooks/useCheckIns";
 
 export default function CourtDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { checkIns, myCheckIn, checkIn, checkOut } = useCheckIns();
   const court = getCourtById(id || "");
+  
+  const courtCheckIns = checkIns.filter(c => c.court_id === id);
+  const isCheckedInHere = myCheckIn?.court_id === id;
 
   if (!court) {
     return (
@@ -179,12 +186,56 @@ export default function CourtDetailsPage() {
         </div>
       </div>
 
+      {/* Checked-in users section */}
+      {courtCheckIns.length > 0 && (
+        <div className="px-4 pb-4">
+          <Separator className="mb-4" />
+          <h3 className="text-sm font-semibold text-foreground mb-3">
+            Players here now ({courtCheckIns.length})
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {courtCheckIns.map((checkIn) => (
+              <div
+                key={checkIn.id}
+                className="flex items-center gap-2 bg-secondary px-3 py-2 rounded-full"
+              >
+                <Avatar className="w-6 h-6">
+                  <AvatarFallback className="text-xs bg-primary text-primary-foreground">
+                    {(checkIn.profile?.display_name || "U")[0].toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium">
+                  {checkIn.profile?.display_name || "Player"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Fixed bottom action bar */}
       <div className="fixed bottom-16 left-0 right-0 bg-background border-t border-border p-4 z-30">
-        <Button className="w-full" size="lg" onClick={handleGetDirections}>
-          <Navigation className="w-5 h-5 mr-2" />
-          Get Directions
-        </Button>
+        <div className="flex gap-3">
+          {!user ? (
+            <Button className="flex-1" size="lg" onClick={() => navigate("/auth")}>
+              <LogIn className="w-5 h-5 mr-2" />
+              Sign in to Check In
+            </Button>
+          ) : isCheckedInHere ? (
+            <Button variant="secondary" className="flex-1" size="lg" onClick={() => checkOut()}>
+              Check Out
+            </Button>
+          ) : (
+            <Button variant="outline" className="flex-1" size="lg" onClick={() => checkIn(id!)}>
+              <MapPin className="w-5 h-5 mr-2" />
+              Check In
+            </Button>
+          )}
+          <Button className="flex-1" size="lg" onClick={handleGetDirections}>
+            <Navigation className="w-5 h-5 mr-2" />
+            Directions
+          </Button>
+        </div>
       </div>
     </div>
   );

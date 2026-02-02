@@ -8,6 +8,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { SplashScreen } from "@/components/SplashScreen";
 import HomePage from "@/pages/HomePage";
 import CourtsPage from "@/pages/CourtsPage";
+import CourtDetailsPage from "@/pages/CourtDetailsPage";
 import GamesPage from "@/pages/GamesPage";
 import PlayersPage from "@/pages/PlayersPage";
 import ProfilePage from "@/pages/ProfilePage";
@@ -45,6 +46,7 @@ const App = () => {
             <Route element={<AppLayout />}>
               <Route path="/" element={<HomePage />} />
               <Route path="/courts" element={<CourtsPage />} />
+              <Route path="/courts/:id" element={<CourtDetailsPage />} />
               <Route path="/games" element={<GamesPage />} />
               <Route path="/players" element={<PlayersPage />} />
               <Route path="/profile" element={<ProfilePage />} />

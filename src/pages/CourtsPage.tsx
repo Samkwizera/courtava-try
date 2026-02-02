@@ -140,20 +140,23 @@ export default function CourtsPage() {
             <MapPin className="w-4 h-4" />
             <span>{filteredCourts.length} courts in Kigali</span>
           </div>
-          {filteredCourts.map((court) => (
-            <CourtCard
-              key={court.id}
-              name={court.name}
-              address={court.address}
-              distance={court.distance}
-              rating={court.rating}
-              reviewCount={court.reviewCount}
-              playersNow={court.playersNow}
-              surface={court.surface}
-              amenities={court.amenities}
-              onClick={() => navigate(`/courts/${court.id}`)}
-            />
-          ))}
+          {filteredCourts.map((court) => {
+            const liveCount = checkIns.filter((c) => c.court_id === court.id).length;
+            return (
+              <CourtCard
+                key={court.id}
+                name={court.name}
+                address={court.address}
+                distance={court.distance}
+                rating={court.rating}
+                reviewCount={court.reviewCount}
+                playersNow={liveCount}
+                surface={court.surface}
+                amenities={court.amenities}
+                onClick={() => navigate(`/courts/${court.id}`)}
+              />
+            );
+          })}
         </div>
       ) : (
         <div className="relative h-[calc(100vh-200px)]">
@@ -175,27 +178,30 @@ export default function CourtsPage() {
           {/* Floating court cards */}
           <div className="absolute bottom-4 left-0 right-0 px-4 z-[1000]">
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-              {filteredCourts.slice(0, 3).map((court) => (
-                <div
-                  key={court.id}
-                  className={cn(
-                    "min-w-[280px] transition-transform",
-                    selectedCourt === court.id && "scale-[1.02]"
-                  )}
-                >
-                  <CourtCard
-                    name={court.name}
-                    address={court.address}
-                    distance={court.distance}
-                    rating={court.rating}
-                    reviewCount={court.reviewCount}
-                    playersNow={court.playersNow}
-                    surface={court.surface}
-                    amenities={court.amenities}
-                    onClick={() => navigate(`/courts/${court.id}`)}
-                  />
-                </div>
-              ))}
+              {filteredCourts.slice(0, 3).map((court) => {
+                const liveCount = checkIns.filter((c) => c.court_id === court.id).length;
+                return (
+                  <div
+                    key={court.id}
+                    className={cn(
+                      "min-w-[280px] transition-transform",
+                      selectedCourt === court.id && "scale-[1.02]"
+                    )}
+                  >
+                    <CourtCard
+                      name={court.name}
+                      address={court.address}
+                      distance={court.distance}
+                      rating={court.rating}
+                      reviewCount={court.reviewCount}
+                      playersNow={liveCount}
+                      surface={court.surface}
+                      amenities={court.amenities}
+                      onClick={() => navigate(`/courts/${court.id}`)}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

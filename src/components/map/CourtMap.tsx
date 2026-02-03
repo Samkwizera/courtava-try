@@ -82,6 +82,7 @@ interface CourtMapProps {
   zoom?: number;
   checkIns?: CheckIn[];
   onAvatarClick?: (courtId: string) => void;
+  selectedCourtId?: string | null;
 }
 
 // Component to handle map centering
@@ -91,6 +92,22 @@ function MapController({ center, zoom }: { center: [number, number]; zoom: numbe
   useEffect(() => {
     map.setView(center, zoom);
   }, [center, zoom, map]);
+  
+  return null;
+}
+
+// Component to fly to selected court
+function FlyToSelectedCourt({ courts, selectedCourtId }: { courts: Court[]; selectedCourtId?: string | null }) {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (selectedCourtId) {
+      const court = courts.find(c => c.id === selectedCourtId);
+      if (court) {
+        map.flyTo([court.lat, court.lng], 15, { duration: 0.8 });
+      }
+    }
+  }, [selectedCourtId, courts, map]);
   
   return null;
 }
@@ -275,6 +292,7 @@ export function CourtMap({
   zoom = 13,
   checkIns = [],
   onAvatarClick,
+  selectedCourtId,
 }: CourtMapProps) {
   const mapId = useId();
   const [isMounted, setIsMounted] = useState(false);
@@ -309,6 +327,7 @@ export function CourtMap({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <MapController center={center} zoom={zoom} />
+      <FlyToSelectedCourt courts={courts} selectedCourtId={selectedCourtId} />
       <CourtMarkers courts={courts} onCourtSelect={onCourtSelect} />
       <CheckedInAvatars checkIns={checkIns} courts={courts} onAvatarClick={onAvatarClick} />
       <LocateControl onLocate={handleLocate} />

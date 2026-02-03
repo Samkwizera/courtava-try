@@ -172,6 +172,7 @@ export default function CourtsPage() {
                 setCheckInCourtId(courtId);
                 setCheckInSheetOpen(true);
               }}
+              selectedCourtId={selectedCourt}
             />
           </div>
 

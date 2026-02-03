@@ -1,5 +1,6 @@
 import { Search, Filter, MapPin, Plus, Users2 } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlayerCard } from "@/components/cards/PlayerCard";
 import { CommunityCard } from "@/components/cards/CommunityCard";
@@ -7,6 +8,7 @@ import { CreateCommunitySheet } from "@/components/communities/CreateCommunitySh
 import { useCommunities } from "@/hooks/useCommunities";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 
 const players = [
   {
@@ -62,10 +64,24 @@ const skillFilters = ["All", "Beginner", "Intermediate", "Advanced", "Competitiv
 type Tab = "players" | "communities";
 
 export default function PlayersPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("players");
   const [activeFilter, setActiveFilter] = useState("All");
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
+
+  const handleCreateClick = () => {
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to create a community.",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+    setCreateSheetOpen(true);
+  };
 
   const {
     communities,
@@ -172,12 +188,10 @@ export default function PlayersPage() {
                     : `${communities.length} communities`}
                 </span>
               </div>
-              {user && (
-                <Button size="sm" onClick={() => setCreateSheetOpen(true)}>
-                  <Plus className="w-4 h-4 mr-1" />
-                  Create
-                </Button>
-              )}
+              <Button size="sm" onClick={handleCreateClick}>
+                <Plus className="w-4 h-4 mr-1" />
+                Create
+              </Button>
             </div>
 
             {communitiesLoading ? (
@@ -190,12 +204,10 @@ export default function PlayersPage() {
                 <p className="text-muted-foreground mb-4">
                   No communities yet. Be the first to create one!
                 </p>
-                {user && (
-                  <Button onClick={() => setCreateSheetOpen(true)}>
-                    <Plus className="w-4 h-4 mr-1" />
-                    Create Community
-                  </Button>
-                )}
+                <Button onClick={handleCreateClick}>
+                  <Plus className="w-4 h-4 mr-1" />
+                  Create Community
+                </Button>
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">

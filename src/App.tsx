@@ -9,6 +9,7 @@ import { SplashScreen } from "@/components/SplashScreen";
 import HomePage from "@/pages/HomePage";
 import { BackendEnvErrorScreen } from "@/components/BackendEnvErrorScreen";
 import { ThemeProvider } from "@/hooks/useTheme";
+import { RequireAuth } from "@/components/auth/RequireAuth";
 
 // Lazy-load anything that (directly or indirectly) imports the backend client,
 // so the app can render a helpful message if env vars aren't available yet.
@@ -65,7 +66,7 @@ const App = () => {
                 <BrowserRouter>
                   <Suspense fallback={null}>
                     <Routes>
-                      <Route element={<AppLayout />}>
+                      <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
                         <Route path="/" element={<HomePage />} />
                         <Route path="/courts" element={<CourtsPage />} />
                         <Route path="/courts/:id" element={<CourtDetailsPage />} />

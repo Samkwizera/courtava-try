@@ -1,4 +1,4 @@
-import { MapPin, Search, Filter, List, Map as MapIcon, X } from "lucide-react";
+import { MapPin, Search, Filter, List, Map as MapIcon, X, Plus } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,19 +7,12 @@ import { CourtCard } from "@/components/cards/CourtCard";
 import { CourtMap } from "@/components/map/CourtMap";
 import { CourtFilters, CourtFiltersState } from "@/components/courts/CourtFilters";
 import { CheckInSheet } from "@/components/courts/CheckInSheet";
-import { courts } from "@/data/courts";
+import { AddCourtSheet } from "@/components/courts/AddCourtSheet";
+import { courts as staticCourts } from "@/data/courts";
 import { useCheckIns } from "@/hooks/useCheckIns";
+import { useCourts } from "@/hooks/useCourts";
+import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
-
-// Map courts to format expected by CourtMap
-const mapCourts = courts.map((court) => ({
-  id: court.id,
-  name: court.name,
-  address: court.address,
-  lat: court.lat,
-  lng: court.lng,
-  playersNow: court.playersNow,
-}));
 
 const defaultFilters: CourtFiltersState = {
   surfaces: [],
@@ -29,7 +22,9 @@ const defaultFilters: CourtFiltersState = {
 
 export default function CourtsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { checkIns } = useCheckIns();
+  const { dbCourts } = useCourts();
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCourt, setSelectedCourt] = useState<string | null>(null);
@@ -37,13 +32,51 @@ export default function CourtsPage() {
   const [filters, setFilters] = useState<CourtFiltersState>(defaultFilters);
   const [checkInSheetOpen, setCheckInSheetOpen] = useState(false);
   const [checkInCourtId, setCheckInCourtId] = useState<string | null>(null);
+  const [addCourtOpen, setAddCourtOpen] = useState(false);
+
+  // Combine static courts with database courts
+  const allCourts = useMemo(() => {
+    const dbCourtsFormatted = dbCourts.map((court) => ({
+      id: court.id,
+      name: court.name,
+      address: court.address,
+      lat: court.lat,
+      lng: court.lng,
+      distance: "N/A",
+      distanceNum: 999,
+      rating: 0,
+      reviewCount: 0,
+      playersNow: 0,
+      surface: court.surface as "outdoor" | "indoor" | "cement",
+      amenities: {
+        lights: court.lights,
+        water: court.water,
+        parking: court.parking,
+      },
+      images: [],
+      reviews: [],
+    }));
+    return [...staticCourts, ...dbCourtsFormatted];
+  }, [dbCourts]);
+
+  // Map courts for CourtMap component
+  const mapCourts = useMemo(() => 
+    allCourts.map((court) => ({
+      id: court.id,
+      name: court.name,
+      address: court.address,
+      lat: court.lat,
+      lng: court.lng,
+      playersNow: court.playersNow,
+    })),
+  [allCourts]);
 
   const activeFilterCount =
     filters.surfaces.length +
     Object.values(filters.amenities).filter(Boolean).length;
 
   const filteredCourts = useMemo(() => {
-    let result = courts.filter(
+    let result = allCourts.filter(
       (court) =>
         court.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         court.address.toLowerCase().includes(searchQuery.toLowerCase())
@@ -73,7 +106,7 @@ export default function CourtsPage() {
     }
 
     return result;
-  }, [searchQuery, filters]);
+  }, [allCourts, searchQuery, filters]);
 
   return (
     <div className="min-h-screen bg-background safe-top">
@@ -82,9 +115,20 @@ export default function CourtsPage() {
         <div className="px-4 py-3">
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-xl font-bold text-foreground">Find Courts</h1>
-            <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
-              📍 Kigali, Rwanda
-            </span>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={() => setAddCourtOpen(true)}
+                className="gap-1"
+              >
+                <Plus className="w-4 h-4" />
+                Add
+              </Button>
+              <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
+                📍 Kigali
+              </span>
+            </div>
           </div>
 
           {/* Search bar */}
@@ -226,10 +270,13 @@ export default function CourtsPage() {
           open={checkInSheetOpen}
           onOpenChange={setCheckInSheetOpen}
           courtId={checkInCourtId}
-          courtName={courts.find(c => c.id === checkInCourtId)?.name || "Court"}
+          courtName={allCourts.find(c => c.id === checkInCourtId)?.name || "Court"}
           checkedInUsers={checkIns.filter(c => c.court_id === checkInCourtId)}
         />
       )}
+
+      {/* Add Court Sheet */}
+      <AddCourtSheet open={addCourtOpen} onOpenChange={setAddCourtOpen} />
     </div>
   );
 }

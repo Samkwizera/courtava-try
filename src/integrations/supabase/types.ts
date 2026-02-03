@@ -123,6 +123,59 @@ export type Database = {
           },
         ]
       }
+      courts: {
+        Row: {
+          address: string
+          created_at: string
+          created_by: string | null
+          id: string
+          lat: number
+          lights: boolean
+          lng: number
+          name: string
+          parking: boolean
+          surface: string
+          updated_at: string
+          water: boolean
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lat: number
+          lights?: boolean
+          lng: number
+          name: string
+          parking?: boolean
+          surface?: string
+          updated_at?: string
+          water?: boolean
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lat?: number
+          lights?: boolean
+          lng?: number
+          name?: string
+          parking?: boolean
+          surface?: string
+          updated_at?: string
+          water?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

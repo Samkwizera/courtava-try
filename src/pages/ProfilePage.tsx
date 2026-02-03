@@ -73,11 +73,18 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background safe-top">
+    <div className="min-h-screen bg-background safe-top pb-24">
       {/* Header */}
       <header className="px-4 py-3 flex items-center justify-between border-b border-border">
         <h1 className="text-xl font-bold text-foreground">Profile</h1>
-        <Button variant="ghost" size="icon">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleQuickAction("Settings");
+          }}
+        >
           <Settings className="w-5 h-5" />
         </Button>
       </header>
@@ -91,6 +98,13 @@ export default function ProfilePage() {
               variant="secondary"
               size="icon-sm"
               className="absolute bottom-2 right-2 bg-card/80"
+              onClick={(e) => {
+                e.stopPropagation();
+                toast({
+                  title: "Edit Banner",
+                  description: "Banner editing coming soon!",
+                });
+              }}
             >
               <Edit2 className="w-4 h-4" />
             </Button>
@@ -116,7 +130,17 @@ export default function ProfilePage() {
                   )}
                 </div>
               </div>
-              <Button variant="outline" size="sm">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toast({
+                    title: "Edit Profile",
+                    description: "Profile editing coming soon!",
+                  });
+                }}
+              >
                 Edit Profile
               </Button>
             </div>
@@ -174,12 +198,12 @@ export default function ProfilePage() {
       {/* Availability */}
       <section className="px-4 py-2">
         <h3 className="text-sm font-semibold text-foreground mb-2">Availability</h3>
-        <div className="flex gap-2">
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-1">
           {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
             <div
               key={day}
               className={cn(
-                "w-10 h-10 rounded-lg flex items-center justify-center text-xs font-medium",
+                "w-10 h-10 rounded-lg flex items-center justify-center text-xs font-medium shrink-0",
                 userProfile.availability.includes(day)
                   ? "bg-primary text-primary-foreground"
                   : "bg-secondary text-muted-foreground"
@@ -208,7 +232,7 @@ export default function ProfilePage() {
       </section>
 
       {/* Quick Actions */}
-      <section className="px-4 py-4 pb-8">
+      <section className="px-4 py-4">
         <div className="flex flex-col gap-2">
           {/* Dark Mode Toggle */}
           <div className="flex items-center justify-between p-3 bg-card rounded-xl shadow-card border border-border">

@@ -111,7 +111,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Avatar & Info */}
-          <div className="px-4 pb-4 -mt-10">
+          <div className="px-4 pb-4 -mt-10 relative z-10">
             <div className="w-20 h-20 rounded-2xl bg-secondary border-4 border-card flex items-center justify-center text-2xl font-bold text-secondary-foreground shadow-lg mb-3">
               A
             </div>

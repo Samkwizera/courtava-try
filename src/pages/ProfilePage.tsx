@@ -10,11 +10,13 @@ import {
   Moon,
   Sun,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 
 const userProfile = {
   name: "Alex Player",
@@ -40,11 +42,34 @@ const recentActivity = [
 ];
 
 export default function ProfilePage() {
+  const navigate = useNavigate();
   const { resolvedTheme, setTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
 
   const toggleTheme = () => {
     setTheme(isDark ? "light" : "dark");
+  };
+
+  const handleQuickAction = (label: string) => {
+    switch (label) {
+      case "My Games":
+        navigate("/games");
+        break;
+      case "My Connections":
+        navigate("/players");
+        break;
+      case "Favorite Courts":
+        navigate("/courts");
+        break;
+      case "Settings":
+        toast({
+          title: "Settings",
+          description: "Settings page coming soon!",
+        });
+        break;
+      default:
+        break;
+    }
   };
 
   return (
@@ -206,7 +231,12 @@ export default function ProfilePage() {
           ].map((item) => (
             <button
               key={item.label}
-              className="flex items-center justify-between p-3 bg-card rounded-xl shadow-card border border-border hover:bg-secondary/50 transition-colors"
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleQuickAction(item.label);
+              }}
+              className="flex items-center justify-between p-3 bg-card rounded-xl shadow-card border border-border hover:bg-secondary/50 transition-colors cursor-pointer"
             >
               <div className="flex items-center gap-3">
                 <item.icon className="w-5 h-5 text-primary" />

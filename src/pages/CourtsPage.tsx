@@ -175,35 +175,27 @@ export default function CourtsPage() {
             />
           </div>
 
-          {/* Floating court cards */}
-          <div className="absolute bottom-4 left-0 right-0 px-4 z-[1000]">
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-              {filteredCourts.slice(0, 3).map((court) => {
-                const liveCount = checkIns.filter((c) => c.court_id === court.id).length;
-                return (
-                  <div
-                    key={court.id}
-                    className={cn(
-                      "min-w-[280px] transition-transform",
-                      selectedCourt === court.id && "scale-[1.02]"
-                    )}
-                  >
-                    <CourtCard
-                      name={court.name}
-                      address={court.address}
-                      distance={court.distance}
-                      rating={court.rating}
-                      reviewCount={court.reviewCount}
-                      playersNow={liveCount}
-                      surface={court.surface}
-                      amenities={court.amenities}
-                      onClick={() => navigate(`/courts/${court.id}`)}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          {/* Show court card only when a marker is clicked */}
+          {selectedCourt && (() => {
+            const court = filteredCourts.find(c => c.id === selectedCourt);
+            if (!court) return null;
+            const liveCount = checkIns.filter((c) => c.court_id === court.id).length;
+            return (
+              <div className="absolute bottom-4 left-4 right-4 z-[1000]">
+                <CourtCard
+                  name={court.name}
+                  address={court.address}
+                  distance={court.distance}
+                  rating={court.rating}
+                  reviewCount={court.reviewCount}
+                  playersNow={liveCount}
+                  surface={court.surface}
+                  amenities={court.amenities}
+                  onClick={() => navigate(`/courts/${court.id}`)}
+                />
+              </div>
+            );
+          })()}
         </div>
       )}
 

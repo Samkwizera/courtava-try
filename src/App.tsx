@@ -10,9 +10,18 @@ import HomePage from "@/pages/HomePage";
 import { BackendEnvErrorScreen } from "@/components/BackendEnvErrorScreen";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { RequireAuth } from "@/components/auth/RequireAuth";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
-// Lazy-load anything that (directly or indirectly) imports the backend client,
-// so the app can render a helpful message if env vars aren't available yet.
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div
+      className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin"
+      aria-hidden
+    />
+  </div>
+);
+
+// Lazy-load anything that imports the backend client until we know env exists.
 const AuthProvider = lazy(() => import("@/hooks/useAuth").then((m) => ({ default: m.AuthProvider })));
 const CourtsPage = lazy(() => import("@/pages/CourtsPage"));
 const CourtDetailsPage = lazy(() => import("@/pages/CourtDetailsPage"));
@@ -27,10 +36,13 @@ const queryClient = new QueryClient();
 
 // Check if this is the first visit or if on install page
 const hasSeenSplash = () => {
-  if (typeof window !== "undefined") {
-    // Don't show splash on install page
-    if (window.location.pathname === "/install") return true;
-    return sessionStorage.getItem("courtava_splash_seen") === "true";
+  try {
+    if (typeof window !== "undefined") {
+      if (window.location.pathname === "/install") return true;
+      return sessionStorage.getItem("courtava_splash_seen") === "true";
+    }
+  } catch {
+    // sessionStorage may throw in private mode
   }
   return false;
 };
@@ -47,25 +59,30 @@ const App = () => {
 
   const handleSplashComplete = () => {
     setShowSplash(false);
-    sessionStorage.setItem("courtava_splash_seen", "true");
+    try {
+      sessionStorage.setItem("courtava_splash_seen", "true");
+    } catch {
+      /* ignore */
+    }
   };
 
   return (
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+    <ErrorBoundary>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
 
-          {!hasBackendEnv ? (
-            <BackendEnvErrorScreen />
-          ) : (
-            <Suspense fallback={null}>
-              <AuthProvider>
-                <BrowserRouter>
-                  <Suspense fallback={null}>
-                    <Routes>
+            {!hasBackendEnv ? (
+              <BackendEnvErrorScreen />
+            ) : (
+              <Suspense fallback={<PageLoader />}>
+                <AuthProvider>
+                  <BrowserRouter>
+                    <Suspense fallback={<PageLoader />}>
+                      <Routes>
                       <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
                         <Route path="/" element={<HomePage />} />
                         <Route path="/courts" element={<CourtsPage />} />
@@ -77,16 +94,17 @@ const App = () => {
                       <Route path="/auth" element={<AuthPage />} />
                       <Route path="/install" element={<InstallPage />} />
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </Suspense>
-                </BrowserRouter>
-              </AuthProvider>
-            </Suspense>
-          )}
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Suspense>
+                  </BrowserRouter>
+                </AuthProvider>
+              </Suspense>
+            )}
+          </TooltipProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 };
 

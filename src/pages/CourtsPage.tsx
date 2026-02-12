@@ -8,11 +8,9 @@ import { CourtMap } from "@/components/map/CourtMap";
 import { CourtFilters, CourtFiltersState } from "@/components/courts/CourtFilters";
 import { CheckInSheet } from "@/components/courts/CheckInSheet";
 import { AddCourtSheet } from "@/components/courts/AddCourtSheet";
-import { courts as staticCourts } from "@/data/courts";
 import { useCheckIns } from "@/hooks/useCheckIns";
 import { useCourts } from "@/hooks/useCourts";
 import { useAuth } from "@/hooks/useAuth";
-import { cn } from "@/lib/utils";
 
 const defaultFilters: CourtFiltersState = {
   surfaces: [],
@@ -34,9 +32,9 @@ export default function CourtsPage() {
   const [checkInCourtId, setCheckInCourtId] = useState<string | null>(null);
   const [addCourtOpen, setAddCourtOpen] = useState(false);
 
-  // Combine static courts with database courts
+  // Use only database courts
   const allCourts = useMemo(() => {
-    const dbCourtsFormatted = dbCourts.map((court) => ({
+    return dbCourts.map((court) => ({
       id: court.id,
       name: court.name,
       address: court.address,
@@ -53,23 +51,8 @@ export default function CourtsPage() {
         water: court.water,
         parking: court.parking,
       },
-      images: [],
-      reviews: [],
     }));
-    return [...staticCourts, ...dbCourtsFormatted];
   }, [dbCourts]);
-
-  // Map courts for CourtMap component
-  const mapCourts = useMemo(() => 
-    allCourts.map((court) => ({
-      id: court.id,
-      name: court.name,
-      address: court.address,
-      lat: court.lat,
-      lng: court.lng,
-      playersNow: court.playersNow,
-    })),
-  [allCourts]);
 
   const activeFilterCount =
     filters.surfaces.length +
@@ -107,6 +90,18 @@ export default function CourtsPage() {
 
     return result;
   }, [allCourts, searchQuery, filters]);
+
+  // Map courts for CourtMap component (uses filtered results for consistency)
+  const mapCourts = useMemo(() => 
+    filteredCourts.map((court) => ({
+      id: court.id,
+      name: court.name,
+      address: court.address,
+      lat: court.lat,
+      lng: court.lng,
+      playersNow: court.playersNow,
+    })),
+  [filteredCourts]);
 
   return (
     <div className="min-h-screen bg-background safe-top">
@@ -203,9 +198,9 @@ export default function CourtsPage() {
           })}
         </div>
       ) : (
-        <div className="relative h-[calc(100vh-200px)]">
+        <div className="relative h-[calc(100vh-200px)] min-h-[400px]">
           {/* Interactive Map */}
-          <div className="w-full h-full">
+          <div className="absolute inset-0">
             <CourtMap
               courts={mapCourts}
               center={[-1.9403, 30.0588]} // Kigali center

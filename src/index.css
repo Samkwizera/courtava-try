@@ -211,4 +211,30 @@
   .avatar-marker:hover svg {
     transform: scale(1.1);
   }
+
+  /* Mapbox court popup - match app theme */
+  .court-mapbox-popup .mapboxgl-popup-content {
+    @apply bg-card text-card-foreground border border-border rounded-xl shadow-card p-0 overflow-hidden;
+  }
+
+  .court-mapbox-popup .mapboxgl-popup-tip {
+    @apply border-t-card border-x-transparent;
+  }
+
+  .court-mapbox-popup .mapboxgl-popup-close-button {
+    @apply text-muted-foreground hover:text-foreground text-lg;
+  }
+
+  /* Mapbox Geocoder - match app theme */
+  .mapboxgl-ctrl-geocoder {
+    @apply rounded-xl border border-border shadow-card;
+  }
+
+  .mapboxgl-ctrl-geocoder--input {
+    @apply text-foreground placeholder:text-muted-foreground;
+  }
+
+  .mapboxgl-ctrl-geocoder .mapboxgl-ctrl-geocoder--pin-right > * {
+    @apply text-muted-foreground;
+  }
 }

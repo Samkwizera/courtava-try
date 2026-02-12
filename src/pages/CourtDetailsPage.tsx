@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { getCourtById } from "@/data/courts";
+import { useCourts } from "@/hooks/useCourts";
 import { useAuth } from "@/hooks/useAuth";
 import { useCheckIns } from "@/hooks/useCheckIns";
 
@@ -12,11 +12,20 @@ export default function CourtDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { dbCourts, isLoading } = useCourts();
   const { checkIns, myCheckIn, checkIn, checkOut } = useCheckIns();
-  const court = getCourtById(id || "");
-  
-  const courtCheckIns = checkIns.filter(c => c.court_id === id);
+
+  const court = dbCourts.find((c) => c.id === id);
+  const courtCheckIns = checkIns.filter((c) => c.court_id === id);
   const isCheckedInHere = myCheckIn?.court_id === id;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      </div>
+    );
+  }
 
   if (!court) {
     return (
@@ -64,29 +73,22 @@ export default function CourtDetailsPage() {
         </div>
       </header>
 
-      {/* Photo gallery */}
-      <div className="relative">
-        <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide">
-          {court.photos.map((photo, index) => (
-            <div key={index} className="min-w-full snap-center">
-              <img
-                src={photo}
-                alt={`${court.name} photo ${index + 1}`}
-                className="w-full h-56 object-cover"
-              />
+      {/* Court image placeholder */}
+      <div className="relative h-48 bg-gradient-to-br from-court-green-light to-secondary">
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="w-24 h-16 rounded-md bg-court-surface border-2 border-court-green/30 relative">
+            <div className="absolute inset-x-0 top-1/2 h-0.5 bg-court-green/30" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-5 h-5 rounded-full border-2 border-court-green/40" />
             </div>
-          ))}
+          </div>
         </div>
-        <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
-          {court.photos.length} photos
-        </div>
-        
-        {/* Live players indicator */}
-        {court.playersNow && court.playersNow > 0 && (
+
+        {courtCheckIns.length > 0 && (
           <div className="absolute top-3 right-3">
             <Badge variant="live" className="flex items-center gap-1">
               <Users className="w-3 h-3" />
-              {court.playersNow} playing now
+              {courtCheckIns.length} playing now
             </Badge>
           </div>
         )}
@@ -94,7 +96,7 @@ export default function CourtDetailsPage() {
 
       {/* Main content */}
       <div className="px-4 py-4">
-        {/* Title and rating */}
+        {/* Title */}
         <div className="flex items-start justify-between gap-2 mb-2">
           <div>
             <h2 className="text-xl font-bold text-foreground">{court.name}</h2>
@@ -102,42 +104,27 @@ export default function CourtDetailsPage() {
               {court.surface}
             </Badge>
           </div>
-          <div className="flex items-center gap-1 shrink-0 bg-secondary px-2 py-1 rounded-lg">
-            <Star className="w-4 h-4 fill-court-orange text-court-orange" />
-            <span className="font-semibold">{court.rating.toFixed(1)}</span>
-            <span className="text-xs text-muted-foreground">
-              ({court.reviewCount})
-            </span>
-          </div>
         </div>
 
-        {/* Address and distance */}
+        {/* Address */}
         <div className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
           <MapPin className="w-4 h-4 shrink-0" />
           <span>{court.address}</span>
-          <span>• {court.distance}</span>
         </div>
-
-        {/* Description */}
-        {court.description && (
-          <p className="text-sm text-muted-foreground mb-4">
-            {court.description}
-          </p>
-        )}
 
         {/* Amenities */}
         <div className="mb-6">
           <h3 className="text-sm font-semibold text-foreground mb-3">Amenities</h3>
           <div className="flex flex-wrap gap-3">
-            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${court.amenities.lights ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${court.lights ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
               <Sun className="w-4 h-4" />
               <span className="text-sm">Lights</span>
             </div>
-            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${court.amenities.water ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${court.water ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
               <Droplets className="w-4 h-4" />
               <span className="text-sm">Water</span>
             </div>
-            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${court.amenities.parking ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${court.parking ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
               <Car className="w-4 h-4" />
               <span className="text-sm">Parking</span>
             </div>
@@ -145,67 +132,27 @@ export default function CourtDetailsPage() {
         </div>
 
         <Separator className="my-4" />
-
-        {/* Reviews */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-foreground">
-              Reviews ({court.reviews.length})
-            </h3>
-            <Button variant="ghost" size="sm">
-              Write a review
-            </Button>
-          </div>
-
-          <div className="space-y-4">
-            {court.reviews.map((review) => (
-              <div key={review.id} className="flex gap-3">
-                <Avatar className="w-10 h-10">
-                  <AvatarFallback className="bg-secondary text-xs">
-                    {review.author.split(" ").map(n => n[0]).join("")}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium">{review.author}</span>
-                    <span className="text-xs text-muted-foreground">{review.date}</span>
-                  </div>
-                  <div className="flex items-center gap-0.5 mb-1">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`w-3 h-3 ${i < review.rating ? 'fill-court-orange text-court-orange' : 'text-muted'}`}
-                      />
-                    ))}
-                  </div>
-                  <p className="text-sm text-muted-foreground">{review.comment}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* Checked-in users section */}
       {courtCheckIns.length > 0 && (
         <div className="px-4 pb-4">
-          <Separator className="mb-4" />
           <h3 className="text-sm font-semibold text-foreground mb-3">
             Players here now ({courtCheckIns.length})
           </h3>
           <div className="flex flex-wrap gap-2">
-            {courtCheckIns.map((checkIn) => (
+            {courtCheckIns.map((ci) => (
               <div
-                key={checkIn.id}
+                key={ci.id}
                 className="flex items-center gap-2 bg-secondary px-3 py-2 rounded-full"
               >
                 <Avatar className="w-6 h-6">
                   <AvatarFallback className="text-xs bg-primary text-primary-foreground">
-                    {(checkIn.profile?.display_name || "U")[0].toUpperCase()}
+                    {(ci.profile?.display_name || "U")[0].toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <span className="text-sm font-medium">
-                  {checkIn.profile?.display_name || "Player"}
+                  {ci.profile?.display_name || "Player"}
                 </span>
               </div>
             ))}

@@ -1,7 +1,7 @@
 import { MapPin, Clock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { courts } from "@/data/courts";
+import { useCourts } from "@/hooks/useCourts";
 
 interface CommunityCardProps {
   id: string;
@@ -25,7 +25,8 @@ export function CommunityCard({
   onJoin,
   onLeave,
 }: CommunityCardProps) {
-  const court = courtId ? courts.find((c) => c.id === courtId) : null;
+  const { dbCourts } = useCourts();
+  const court = courtId ? dbCourts.find((c) => c.id === courtId) : null;
 
   return (
     <div className="bg-card rounded-2xl border border-border p-4 shadow-card">

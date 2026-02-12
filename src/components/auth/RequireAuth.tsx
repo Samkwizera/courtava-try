@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2 } from "lucide-react";
 
 interface RequireAuthProps {
   children: ReactNode;
@@ -14,7 +13,10 @@ export function RequireAuth({ children }: RequireAuthProps) {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div
+          className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin"
+          aria-hidden
+        />
       </div>
     );
   }

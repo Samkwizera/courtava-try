@@ -1,35 +1,13 @@
 import { useState, useEffect } from "react";
-import { MapPin, Search, Bell, ChevronRight, Calendar, Users, TrendingUp } from "lucide-react";
+import { MapPin, Search, ChevronRight, Calendar, Users, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CourtCard } from "@/components/cards/CourtCard";
 import { GameCard } from "@/components/cards/GameCard";
 import courtavaLogo from "@/assets/courtava-logo.png";
-import { Link } from "react-router-dom";
-
-// Kigali courts data
-const nearbyCourts = [
-  {
-    name: "Kigali Arena Courts",
-    address: "KG 7 Ave, Kigali",
-    distance: "0.3 km",
-    rating: 4.9,
-    reviewCount: 156,
-    playersNow: 8,
-    surface: "indoor" as const,
-    amenities: { lights: true, water: true, parking: true },
-  },
-  {
-    name: "Amahoro Stadium Courts",
-    address: "KG 200 St, Remera",
-    distance: "1.2 km",
-    rating: 4.7,
-    reviewCount: 203,
-    playersNow: 6,
-    surface: "outdoor" as const,
-    amenities: { lights: true, water: true, parking: true },
-  },
-];
+import { Link, useNavigate } from "react-router-dom";
+import { useCourts } from "@/hooks/useCourts";
+import { useCheckIns } from "@/hooks/useCheckIns";
 
 const upcomingGames = [
   {
@@ -57,6 +35,9 @@ const upcomingGames = [
 ];
 
 export default function HomePage() {
+  const navigate = useNavigate();
+  const { dbCourts } = useCourts();
+  const { checkIns } = useCheckIns();
   const [greeting, setGreeting] = useState("Good morning");
 
   useEffect(() => {
@@ -80,12 +61,8 @@ export default function HomePage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/courts")}>
               <Search className="w-5 h-5" />
-            </Button>
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-court-orange rounded-full" />
             </Button>
           </div>
         </div>
@@ -137,11 +114,28 @@ export default function HomePage() {
           </Link>
         </div>
         <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-          {nearbyCourts.map((court, i) => (
-            <div key={i} className="min-w-[280px] max-w-[280px]">
-              <CourtCard {...court} />
-            </div>
-          ))}
+          {dbCourts.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4">No courts yet. Be the first to add one!</p>
+          ) : (
+            dbCourts.slice(0, 5).map((court) => {
+              const liveCount = checkIns.filter((c) => c.court_id === court.id).length;
+              return (
+                <div key={court.id} className="min-w-[280px] max-w-[280px]">
+                  <CourtCard
+                    name={court.name}
+                    address={court.address}
+                    distance="N/A"
+                    rating={0}
+                    reviewCount={0}
+                    playersNow={liveCount}
+                    surface={court.surface as "outdoor" | "indoor" | "cement"}
+                    amenities={{ lights: court.lights, water: court.water, parking: court.parking }}
+                    onClick={() => navigate(`/courts/${court.id}`)}
+                  />
+                </div>
+              );
+            })
+          )}
         </div>
       </section>
 

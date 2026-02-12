@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { courts } from "@/data/courts";
+import { useCourts } from "@/hooks/useCourts";
 
 interface CreateCommunitySheetProps {
   open: boolean;
@@ -39,6 +39,7 @@ export function CreateCommunitySheet({
   const [courtId, setCourtId] = useState("");
   const [schedule, setSchedule] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { dbCourts } = useCourts();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,7 +101,7 @@ export function CreateCommunitySheet({
                 <SelectValue placeholder="Select a court" />
               </SelectTrigger>
               <SelectContent>
-                {courts.map((court) => (
+                {dbCourts.map((court) => (
                   <SelectItem key={court.id} value={court.id}>
                     {court.name}
                   </SelectItem>

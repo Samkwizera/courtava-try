@@ -1,4 +1,4 @@
-import { MapPin, Search, Filter, List, Map as MapIcon, X, Plus } from "lucide-react";
+import { MapPin, Search, Filter, List, Map as MapIcon, X, Plus, Locate } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { AddCourtSheet } from "@/components/courts/AddCourtSheet";
 import { useCheckIns } from "@/hooks/useCheckIns";
 import { useCourts } from "@/hooks/useCourts";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserLocation, getDistanceKm, formatDistance } from "@/hooks/useUserLocation";
 
 const defaultFilters: CourtFiltersState = {
   surfaces: [],
@@ -23,6 +24,7 @@ export default function CourtsPage() {
   const { user } = useAuth();
   const { checkIns } = useCheckIns();
   const { dbCourts } = useCourts();
+  const { userLocation, isLocating, locationEnabled, requestLocation } = useUserLocation();
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCourt, setSelectedCourt] = useState<string | null>(null);
@@ -32,27 +34,38 @@ export default function CourtsPage() {
   const [checkInCourtId, setCheckInCourtId] = useState<string | null>(null);
   const [addCourtOpen, setAddCourtOpen] = useState(false);
 
-  // Use only database courts
+  // Use database courts with real distance when location is available
   const allCourts = useMemo(() => {
-    return dbCourts.map((court) => ({
-      id: court.id,
-      name: court.name,
-      address: court.address,
-      lat: court.lat,
-      lng: court.lng,
-      distance: "N/A",
-      distanceNum: 999,
-      rating: 0,
-      reviewCount: 0,
-      playersNow: 0,
-      surface: court.surface as "outdoor" | "indoor" | "cement",
-      amenities: {
-        lights: court.lights,
-        water: court.water,
-        parking: court.parking,
-      },
-    }));
-  }, [dbCourts]);
+    return dbCourts.map((court) => {
+      let distance = "N/A";
+      let distanceNum = 999;
+
+      if (userLocation) {
+        const km = getDistanceKm(userLocation.lat, userLocation.lng, court.lat, court.lng);
+        distance = formatDistance(km);
+        distanceNum = km;
+      }
+
+      return {
+        id: court.id,
+        name: court.name,
+        address: court.address,
+        lat: court.lat,
+        lng: court.lng,
+        distance,
+        distanceNum,
+        rating: 0,
+        reviewCount: 0,
+        playersNow: 0,
+        surface: court.surface as "outdoor" | "indoor" | "cement",
+        amenities: {
+          lights: court.lights,
+          water: court.water,
+          parking: court.parking,
+        },
+      };
+    });
+  }, [dbCourts, userLocation]);
 
   const activeFilterCount =
     filters.surfaces.length +
@@ -120,9 +133,16 @@ export default function CourtsPage() {
                 <Plus className="w-4 h-4" />
                 Add
               </Button>
-              <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
-                📍 Kigali
-              </span>
+              <Button
+                variant={locationEnabled ? "default" : "secondary"}
+                size="sm"
+                onClick={requestLocation}
+                disabled={isLocating}
+                className="gap-1"
+              >
+                <Locate className={`w-4 h-4 ${isLocating ? "animate-pulse" : ""}`} />
+                {isLocating ? "..." : locationEnabled ? "On" : "Location"}
+              </Button>
             </div>
           </div>
 
@@ -212,6 +232,10 @@ export default function CourtsPage() {
                 setCheckInSheetOpen(true);
               }}
               selectedCourtId={selectedCourt}
+              userLocation={userLocation}
+              isLocating={isLocating}
+              onRequestLocation={requestLocation}
+              locationEnabled={locationEnabled}
             />
           </div>
 

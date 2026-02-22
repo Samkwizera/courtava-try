@@ -26,6 +26,7 @@ const AuthProvider = lazy(() => import("@/hooks/useAuth").then((m) => ({ default
 const CourtsPage = lazy(() => import("@/pages/CourtsPage"));
 const CourtDetailsPage = lazy(() => import("@/pages/CourtDetailsPage"));
 const GamesPage = lazy(() => import("@/pages/GamesPage"));
+const CreateGamePage = lazy(() => import("@/pages/CreateGamePage"));
 const PlayersPage = lazy(() => import("@/pages/PlayersPage"));
 const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
 const InstallPage = lazy(() => import("@/pages/InstallPage"));
@@ -88,6 +89,7 @@ const App = () => {
                         <Route path="/courts" element={<CourtsPage />} />
                         <Route path="/courts/:id" element={<CourtDetailsPage />} />
                         <Route path="/games" element={<GamesPage />} />
+                        <Route path="/create-game" element={<CreateGamePage />} />
                         <Route path="/players" element={<PlayersPage />} />
                         <Route path="/profile" element={<ProfilePage />} />
                       </Route>

@@ -29,7 +29,7 @@ export function CommunityCard({
   const court = courtId ? dbCourts.find((c) => c.id === courtId) : null;
 
   return (
-    <div className="bg-card rounded-2xl border border-border p-4 shadow-card">
+    <div className="bg-card rounded-lg border border-border p-4">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-foreground truncate">{name}</h3>
@@ -48,13 +48,13 @@ export function CommunityCard({
       <div className="space-y-2 mb-4">
         {court && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <MapPin className="w-4 h-4 shrink-0 text-primary" />
+            <MapPin className="w-4 h-4 shrink-0 text-muted-foreground" />
             <span className="truncate">{court.name}</span>
           </div>
         )}
         {schedule && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Clock className="w-4 h-4 shrink-0 text-primary" />
+            <Clock className="w-4 h-4 shrink-0 text-muted-foreground" />
             <span>{schedule}</span>
           </div>
         )}

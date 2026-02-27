@@ -45,7 +45,7 @@ function ToggleOption({
       type="button"
       onClick={onClick}
       className={cn(
-        "px-5 py-2.5 rounded-full text-sm font-medium transition-all border",
+        "px-5 py-2.5 rounded-md text-sm font-medium transition-colors border",
         selected
           ? "bg-foreground text-background border-foreground"
           : "bg-background text-foreground border-border hover:bg-secondary"
@@ -162,8 +162,8 @@ export default function CreateGamePage() {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <div className="flex-1 flex flex-col items-center justify-center p-6">
-          <div className="bg-card rounded-2xl shadow-xl p-8 max-w-sm w-full text-center border border-border">
-            <div className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-4">
+          <div className="bg-card rounded-lg p-8 max-w-sm w-full text-center border border-border">
+            <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center mx-auto mb-4">
               <Check className="w-8 h-8 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-foreground mb-2">Game Created Successfully!</h2>
@@ -219,14 +219,14 @@ export default function CreateGamePage() {
                 placeholder="Game name"
                 value={gameName}
                 onChange={(e) => setGameName(e.target.value)}
-                className="h-14 text-base rounded-xl bg-secondary border-0"
+                className="h-14 text-base rounded-lg bg-muted border border-border"
                 maxLength={100}
               />
               <Input
                 placeholder="Game Description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="h-14 text-base rounded-xl bg-secondary border-0"
+                className="h-14 text-base rounded-lg bg-muted border border-border"
                 maxLength={200}
               />
             </div>
@@ -241,7 +241,7 @@ export default function CreateGamePage() {
             />
             <div className="flex-1 flex flex-col justify-center gap-6">
               <Select value={sport} onValueChange={setSport}>
-                <SelectTrigger className="h-14 text-base rounded-xl bg-secondary border-0">
+                <SelectTrigger className="h-14 text-base rounded-lg bg-muted border border-border">
                   <SelectValue placeholder="Choose sports" />
                 </SelectTrigger>
                 <SelectContent>
@@ -323,7 +323,7 @@ export default function CreateGamePage() {
             />
             <div className="flex-1 flex flex-col justify-center gap-4">
               <Select value={courtId} onValueChange={setCourtId}>
-                <SelectTrigger className="h-14 text-base rounded-xl bg-secondary border-0">
+                <SelectTrigger className="h-14 text-base rounded-lg bg-muted border border-border">
                   <SelectValue placeholder="Select a court" />
                 </SelectTrigger>
                 <SelectContent>
@@ -337,19 +337,19 @@ export default function CreateGamePage() {
 
               {selectedCourt && (
                 <div className="space-y-3">
-                  <div className="bg-secondary rounded-xl p-4">
+                  <div className="bg-muted rounded-lg p-4">
                     <p className="text-xs text-muted-foreground uppercase font-medium mb-1">Display Location</p>
                     <p className="font-medium text-foreground">{selectedCourt.name}</p>
                   </div>
-                  <div className="bg-secondary rounded-xl p-4">
+                  <div className="bg-muted rounded-lg p-4">
                     <p className="text-xs text-muted-foreground uppercase font-medium mb-1">Street Address</p>
                     <p className="font-medium text-foreground">{selectedCourt.address}</p>
                   </div>
                   <div className="flex items-center gap-2 justify-center">
-                    <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-                      <Check className="w-3 h-3 text-white" />
+                    <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                      <Check className="w-3 h-3 text-primary-foreground" />
                     </div>
-                    <span className="text-sm font-medium text-green-600">Location successfully selected</span>
+                    <span className="text-sm font-medium text-primary">Location successfully selected</span>
                   </div>
                 </div>
               )}
@@ -370,7 +370,7 @@ export default function CreateGamePage() {
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="h-14 text-base rounded-xl bg-secondary border-0"
+                  className="h-14 text-base rounded-lg bg-muted border border-border"
                   min={new Date().toISOString().split("T")[0]}
                 />
               </div>
@@ -380,7 +380,7 @@ export default function CreateGamePage() {
                   type="time"
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
-                  className="h-14 text-base rounded-xl bg-secondary border-0"
+                  className="h-14 text-base rounded-lg bg-muted border border-border"
                 />
               </div>
               <div>
@@ -394,7 +394,7 @@ export default function CreateGamePage() {
                       key={d}
                       onClick={() => setDuration(d)}
                       className={cn(
-                        "w-14 h-14 rounded-xl text-sm font-medium transition-all border",
+                        "w-14 h-14 rounded-lg text-sm font-medium transition-colors border",
                         duration === d
                           ? "bg-foreground text-background border-foreground"
                           : "bg-background text-foreground border-border hover:bg-secondary"
@@ -443,12 +443,12 @@ export default function CreateGamePage() {
               title="All done!"
               description="You've successfully created your game. Here's a summary of the details:"
             />
-            <div className="bg-card rounded-2xl border border-border shadow-card p-5 mb-4">
+            <div className="bg-card rounded-lg border border-border p-5 mb-4">
               <h3 className="text-xl font-bold text-foreground text-center mb-3">{gameName}</h3>
-              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
-                <Check className="w-6 h-6 text-green-600" />
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <Check className="w-6 h-6 text-primary" />
               </div>
-              <p className="text-sm text-green-600 font-medium text-center mb-4">All done!</p>
+              <p className="text-sm text-primary font-medium text-center mb-4">All done!</p>
 
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
@@ -499,7 +499,7 @@ export default function CreateGamePage() {
         <div className="py-4 pb-8">
           {step < TOTAL_STEPS ? (
             <Button
-              className="w-full h-14 text-base rounded-xl font-semibold"
+              className="w-full h-14 text-base rounded-lg font-medium"
               disabled={!canProceed()}
               onClick={handleNext}
             >
@@ -507,7 +507,7 @@ export default function CreateGamePage() {
             </Button>
           ) : (
             <Button
-              className="w-full h-14 text-base rounded-xl font-semibold bg-foreground text-background hover:bg-foreground/90"
+              className="w-full h-14 text-base rounded-lg font-medium"
               onClick={handlePublish}
               disabled={isAdding}
             >

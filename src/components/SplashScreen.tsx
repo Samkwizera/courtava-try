@@ -20,12 +20,12 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center gradient-hero transition-opacity duration-500 ${
+      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-primary transition-opacity duration-500 ${
         fadeOut ? "opacity-0" : "opacity-100"
       }`}
     >
       <div className="animate-fade-in flex flex-col items-center gap-4">
-        <div className="w-24 h-24 rounded-2xl bg-card shadow-lg flex items-center justify-center overflow-hidden">
+        <div className="w-24 h-24 rounded-xl bg-card flex items-center justify-center overflow-hidden">
           <img
             src={courtavaLogo}
             alt="Courtava"
@@ -41,12 +41,11 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       </div>
 
       {/* Loading indicator */}
-      <div className="absolute bottom-20 flex gap-1">
+      <div className="absolute bottom-20 flex gap-1.5">
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="w-2 h-2 rounded-full bg-primary-foreground/60 animate-bounce"
-            style={{ animationDelay: `${i * 0.15}s` }}
+            className="w-1.5 h-1.5 rounded-full bg-primary-foreground/40"
           />
         ))}
       </div>

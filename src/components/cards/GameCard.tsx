@@ -19,10 +19,10 @@ interface GameCardProps {
 }
 
 const skillColors = {
-  Beginner: "bg-green-100 text-green-700",
-  Intermediate: "bg-blue-100 text-blue-700",
-  Advanced: "bg-purple-100 text-purple-700",
-  Competitive: "bg-red-100 text-red-700",
+  Beginner: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+  Intermediate: "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+  Advanced: "bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300",
+  Competitive: "bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300",
 };
 
 export function GameCard({
@@ -46,7 +46,7 @@ export function GameCard({
   return (
     <div
       onClick={onClick}
-      className="bg-card rounded-2xl shadow-card p-4 border border-border transition-all duration-200 hover:shadow-lg cursor-pointer"
+      className="bg-card rounded-lg p-4 border border-border transition-colors hover:bg-muted/50 cursor-pointer"
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-3">
@@ -65,11 +65,11 @@ export function GameCard({
       {/* Date & Time */}
       <div className="flex items-center gap-4 mb-4">
         <div className="flex items-center gap-1.5 text-sm">
-          <Calendar className="w-4 h-4 text-primary" />
+          <Calendar className="w-4 h-4 text-muted-foreground" />
           <span className="font-medium">{date}</span>
         </div>
         <div className="flex items-center gap-1.5 text-sm">
-          <Clock className="w-4 h-4 text-primary" />
+          <Clock className="w-4 h-4 text-muted-foreground" />
           <span className="font-medium">{time}</span>
         </div>
       </div>
@@ -84,7 +84,7 @@ export function GameCard({
             </span>
           </div>
           {isAlmostFull && (
-            <span className="text-xs text-court-orange font-medium">
+            <span className="text-xs text-amber-600 font-medium">
               {spotsLeft} spot{spotsLeft > 1 ? "s" : ""} left!
             </span>
           )}
@@ -98,7 +98,7 @@ export function GameCard({
               isFull
                 ? "bg-muted-foreground"
                 : isAlmostFull
-                ? "bg-court-orange"
+                ? "bg-amber-500"
                 : "bg-primary"
             )}
             style={{ width: `${(currentPlayers / maxPlayers) * 100}%` }}

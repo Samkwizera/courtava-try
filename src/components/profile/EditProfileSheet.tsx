@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Profile, ProfileUpdate } from "@/hooks/useProfile";
 
 interface EditProfileSheetProps {
@@ -29,12 +30,13 @@ export function EditProfileSheet({
 }: EditProfileSheetProps) {
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [bio, setBio] = useState("");
 
-  // Sync form when profile changes or sheet opens
   useEffect(() => {
     if (profile && open) {
       setDisplayName(profile.display_name || "");
       setAvatarUrl(profile.avatar_url || "");
+      setBio(profile.bio || "");
     }
   }, [profile, open]);
 
@@ -45,6 +47,7 @@ export function EditProfileSheet({
     await onSave({
       display_name: displayName.trim(),
       avatar_url: avatarUrl.trim() || null,
+      bio: bio.trim() || null,
     });
 
     onOpenChange(false);
@@ -55,13 +58,13 @@ export function EditProfileSheet({
       <SheetContent side="bottom" className="rounded-t-2xl">
         <SheetHeader className="text-left mb-4">
           <SheetTitle>Edit Profile</SheetTitle>
-          <SheetDescription>Update your display name and avatar</SheetDescription>
+          <SheetDescription>Update your name, photo, and bio</SheetDescription>
         </SheetHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 pb-4">
-          {/* Avatar preview */}
+          {/* Avatar preview + URL */}
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-secondary border-2 border-border flex items-center justify-center text-xl font-bold text-secondary-foreground overflow-hidden shrink-0">
+            <div className="w-16 h-16 rounded-full bg-secondary border-2 border-border flex items-center justify-center text-xl font-bold text-secondary-foreground overflow-hidden shrink-0">
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
@@ -76,7 +79,7 @@ export function EditProfileSheet({
               )}
             </div>
             <div className="flex-1 space-y-1">
-              <Label htmlFor="avatar-url">Avatar URL</Label>
+              <Label htmlFor="avatar-url">Profile Picture URL</Label>
               <Input
                 id="avatar-url"
                 placeholder="https://example.com/photo.jpg"
@@ -87,8 +90,8 @@ export function EditProfileSheet({
           </div>
 
           {/* Display name */}
-          <div className="space-y-2">
-            <Label htmlFor="display-name">Display Name *</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="display-name">Name</Label>
             <Input
               id="display-name"
               placeholder="Your name"
@@ -98,7 +101,21 @@ export function EditProfileSheet({
             />
           </div>
 
-          {/* Submit */}
+          {/* Bio */}
+          <div className="space-y-1.5">
+            <Label htmlFor="bio">Bio</Label>
+            <Textarea
+              id="bio"
+              placeholder="Tell others about yourself..."
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              maxLength={200}
+              rows={3}
+              className="resize-none"
+            />
+            <p className="text-xs text-muted-foreground text-right">{bio.length}/200</p>
+          </div>
+
           <Button
             type="submit"
             className="w-full"

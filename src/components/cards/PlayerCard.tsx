@@ -42,11 +42,11 @@ export function PlayerCard({
   return (
     <div
       onClick={onClick}
-      className="bg-card rounded-2xl shadow-card p-4 border border-border transition-all duration-200 hover:shadow-lg cursor-pointer"
+      className="bg-card rounded-lg p-4 border border-border transition-colors hover:bg-muted/50 cursor-pointer"
     >
       {/* Header with avatar */}
       <div className="flex items-start gap-3 mb-3">
-        <div className="w-14 h-14 rounded-xl bg-secondary flex items-center justify-center overflow-hidden shrink-0">
+        <div className="w-14 h-14 rounded-lg bg-secondary flex items-center justify-center overflow-hidden shrink-0">
           {avatar ? (
             <img src={avatar} alt={name} className="w-full h-full object-cover" />
           ) : (

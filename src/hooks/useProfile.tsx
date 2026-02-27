@@ -7,6 +7,7 @@ export interface Profile {
   id: string;
   display_name: string | null;
   avatar_url: string | null;
+  bio: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -14,6 +15,7 @@ export interface Profile {
 export interface ProfileUpdate {
   display_name?: string | null;
   avatar_url?: string | null;
+  bio?: string | null;
 }
 
 export function useProfile() {
@@ -32,7 +34,6 @@ export function useProfile() {
         .single();
 
       if (error) {
-        // If profile doesn't exist yet, create it
         if (error.code === "PGRST116") {
           const { data: newProfile, error: insertError } = await supabase
             .from("profiles")
@@ -41,12 +42,18 @@ export function useProfile() {
             .single();
 
           if (insertError) throw insertError;
-          return newProfile as Profile;
+          return {
+            ...(newProfile as Omit<Profile, "bio">),
+            bio: (user.user_metadata?.bio as string | null) ?? null,
+          } as Profile;
         }
         throw error;
       }
 
-      return data as Profile;
+      return {
+        ...(data as Omit<Profile, "bio">),
+        bio: (user.user_metadata?.bio as string | null) ?? null,
+      } as Profile;
     },
     enabled: !!user,
   });
@@ -55,15 +62,31 @@ export function useProfile() {
     mutationFn: async (updates: ProfileUpdate) => {
       if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
-        .from("profiles")
-        .update(updates)
-        .eq("id", user.id)
-        .select()
-        .single();
+      const { bio, ...dbUpdates } = updates;
 
-      if (error) throw error;
-      return data as Profile;
+      const promises: Promise<unknown>[] = [];
+
+      if (Object.keys(dbUpdates).length > 0) {
+        promises.push(
+          supabase
+            .from("profiles")
+            .update(dbUpdates)
+            .eq("id", user.id)
+            .select()
+            .single()
+            .then(({ error }) => { if (error) throw error; })
+        );
+      }
+
+      if (bio !== undefined) {
+        promises.push(
+          supabase.auth.updateUser({ data: { bio } }).then(({ error }) => {
+            if (error) throw error;
+          })
+        );
+      }
+
+      await Promise.all(promises);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });

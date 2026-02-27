@@ -22,7 +22,7 @@ export default function GamesPage() {
 
   return (
     <div className="min-h-screen bg-background safe-top">
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+      <header className="sticky top-0 z-40 bg-background border-b border-border">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-xl font-bold text-foreground">Games</h1>
@@ -38,7 +38,7 @@ export default function GamesPage() {
               <input
                 type="text"
                 placeholder="Search games..."
-                className="w-full h-10 pl-9 pr-4 rounded-xl bg-secondary border-none text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full h-10 pl-9 pr-4 rounded-full bg-card border border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
               />
             </div>
             <Button variant="secondary" size="icon">
@@ -52,7 +52,7 @@ export default function GamesPage() {
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
                 className={cn(
-                  "px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors",
+                  "px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors",
                   activeFilter === filter
                     ? "bg-primary text-primary-foreground"
                     : "bg-secondary text-secondary-foreground hover:bg-secondary/80"

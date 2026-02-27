@@ -119,7 +119,7 @@ export default function CourtsPage() {
   return (
     <div className="min-h-screen bg-background safe-top">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+      <header className="sticky top-0 z-40 bg-background border-b border-border">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-xl font-bold text-foreground">Find Courts</h1>
@@ -155,7 +155,7 @@ export default function CourtsPage() {
                 placeholder="Search courts in Kigali..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 pl-9 pr-4 rounded-xl bg-secondary border-none text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full h-10 pl-9 pr-4 rounded-lg bg-muted border border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
               />
             </div>
             <Button variant="secondary" size="icon" className="relative" onClick={() => setFiltersOpen(true)}>

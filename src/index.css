@@ -4,56 +4,56 @@
 
 @layer base {
   :root {
-    /* Courtava Green Theme */
-    --background: 0 0% 98%;
-    --foreground: 150 10% 15%;
+    /* Courtava — Clean Black & White Theme (pickup. reference) */
+    --background: 0 0% 97%;
+    --foreground: 0 0% 9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 150 10% 15%;
+    --card-foreground: 0 0% 9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 150 10% 15%;
+    --popover-foreground: 0 0% 9%;
 
-    /* Primary - Vibrant Lime Green */
-    --primary: 90 70% 45%;
+    /* Primary - Near Black */
+    --primary: 0 0% 9%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Light Green */
-    --secondary: 90 40% 95%;
-    --secondary-foreground: 90 70% 30%;
+    /* Secondary - Light Gray */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 30%;
 
     /* Muted */
-    --muted: 90 20% 96%;
-    --muted-foreground: 150 10% 45%;
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 46%;
 
-    /* Accent - Dark Green */
-    --accent: 90 60% 35%;
+    /* Accent - Same as primary */
+    --accent: 0 0% 9%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 90 20% 90%;
-    --input: 90 20% 90%;
-    --ring: 90 70% 45%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 9%;
 
-    --radius: 1rem;
+    --radius: 0.5rem;
 
     /* Custom Courtava Colors */
-    --court-green: 90 70% 45%;
-    --court-green-dark: 90 60% 35%;
-    --court-green-light: 90 50% 92%;
-    --court-orange: 30 100% 50%;
-    --court-surface: 35 30% 85%;
+    --court-green: 152 44% 42%;
+    --court-green-dark: 152 35% 35%;
+    --court-green-light: 152 20% 95%;
+    --court-orange: 25 70% 50%;
+    --court-surface: 35 15% 88%;
 
-    /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(90 70% 45%) 0%, hsl(90 60% 35%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(90 20% 98%) 100%);
+    /* Gradients - solid colors, no gradients */
+    --gradient-hero: hsl(0 0% 9%);
+    --gradient-card: hsl(0 0% 100%);
 
-    /* Shadows */
-    --shadow-card: 0 4px 20px -4px hsl(90 30% 30% / 0.1);
-    --shadow-button: 0 4px 14px -2px hsl(90 70% 35% / 0.3);
-    --shadow-nav: 0 -4px 20px -4px hsl(0 0% 0% / 0.08);
+    /* Shadows - minimal */
+    --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+    --shadow-button: none;
+    --shadow-nav: 0 -1px 0 0 rgb(0 0 0 / 0.06);
 
     /* Sidebar (keep defaults) */
     --sidebar-background: 0 0% 98%;
@@ -67,37 +67,37 @@
   }
 
   .dark {
-    --background: 150 15% 8%;
-    --foreground: 90 20% 95%;
+    --background: 0 0% 7%;
+    --foreground: 0 0% 95%;
 
-    --card: 150 15% 12%;
-    --card-foreground: 90 20% 95%;
+    --card: 0 0% 11%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 150 15% 12%;
-    --popover-foreground: 90 20% 95%;
+    --popover: 0 0% 11%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 90 70% 50%;
-    --primary-foreground: 150 15% 8%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 9%;
 
-    --secondary: 150 20% 18%;
-    --secondary-foreground: 90 40% 85%;
+    --secondary: 0 0% 18%;
+    --secondary-foreground: 0 0% 85%;
 
-    --muted: 150 15% 18%;
-    --muted-foreground: 90 15% 60%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 90 60% 40%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 0 0% 100%;
+    --accent-foreground: 0 0% 9%;
 
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 150 15% 20%;
-    --input: 150 15% 20%;
-    --ring: 90 70% 50%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 0 0% 100%;
 
-    --court-green: 90 70% 50%;
-    --court-green-dark: 90 60% 40%;
-    --court-green-light: 90 30% 20%;
+    --court-green: 152 44% 50%;
+    --court-green-dark: 152 35% 40%;
+    --court-green-light: 152 20% 18%;
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -155,9 +155,9 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 
-  /* Glass effect */
+  /* Solid background (replaces glass effect) */
   .glass {
-    @apply bg-white/80 backdrop-blur-lg;
+    @apply bg-background;
   }
 
   /* Animations */
@@ -173,12 +173,7 @@
 
   @keyframes pulse-soft {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
-  }
-
-  @keyframes bounce-soft {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
+    50% { opacity: 0.85; }
   }
 
   .animate-fade-in {
@@ -191,10 +186,6 @@
 
   .animate-pulse-soft {
     animation: pulse-soft 2s ease-in-out infinite;
-  }
-
-  .animate-bounce-soft {
-    animation: bounce-soft 0.6s ease-in-out;
   }
 
   /* Snapchat-style avatar markers */

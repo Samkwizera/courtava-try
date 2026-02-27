@@ -94,7 +94,7 @@ export default function PlayersPage() {
   return (
     <div className="min-h-screen bg-background safe-top">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+      <header className="sticky top-0 z-40 bg-background border-b border-border">
         <div className="px-4 py-3">
           {/* Tab Toggle */}
           <div className="flex gap-2 mb-3">
@@ -128,7 +128,7 @@ export default function PlayersPage() {
                     ? "Search players..."
                     : "Search communities..."
                 }
-                className="w-full h-10 pl-9 pr-4 rounded-xl bg-secondary border-none text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full h-10 pl-9 pr-4 rounded-lg bg-muted border border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
               />
             </div>
             <Button variant="secondary" size="icon">
@@ -144,7 +144,7 @@ export default function PlayersPage() {
                   key={filter}
                   onClick={() => setActiveFilter(filter)}
                   className={cn(
-                    "px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors",
+                    "px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors",
                     activeFilter === filter
                       ? "bg-primary text-primary-foreground"
                       : "bg-secondary text-secondary-foreground hover:bg-secondary/80"

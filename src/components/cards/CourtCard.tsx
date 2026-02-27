@@ -34,10 +34,10 @@ export function CourtCard({
   return (
     <button
       onClick={onClick}
-      className="w-full text-left bg-card rounded-2xl shadow-card overflow-hidden transition-all duration-200 hover:shadow-lg active:scale-[0.99] border border-border"
+      className="w-full text-left bg-card rounded-lg overflow-hidden transition-colors hover:bg-muted/50 border border-border"
     >
       {/* Court Image */}
-      <div className="relative h-32 bg-gradient-to-br from-court-green-light to-secondary">
+      <div className="relative h-32 bg-muted">
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -46,10 +46,10 @@ export function CourtCard({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <div className="w-20 h-12 rounded-md bg-court-surface border-2 border-court-green/30 relative">
-              <div className="absolute inset-x-0 top-1/2 h-0.5 bg-court-green/30" />
+            <div className="w-20 h-12 rounded-md bg-muted-foreground/10 border border-muted-foreground/20 relative">
+              <div className="absolute inset-x-0 top-1/2 h-0.5 bg-muted-foreground/20" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-4 h-4 rounded-full border-2 border-court-green/40" />
+                <div className="w-4 h-4 rounded-full border border-muted-foreground/30" />
               </div>
             </div>
           </div>
@@ -78,7 +78,7 @@ export function CourtCard({
         <div className="flex items-start justify-between gap-2 mb-2">
           <h3 className="font-semibold text-foreground line-clamp-1">{name}</h3>
           <div className="flex items-center gap-1 shrink-0">
-            <Star className="w-4 h-4 fill-court-orange text-court-orange" />
+            <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
             <span className="text-sm font-medium">{rating.toFixed(1)}</span>
             <span className="text-xs text-muted-foreground">
               ({reviewCount})

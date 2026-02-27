@@ -6,7 +6,7 @@ export function AppLayout() {
   return (
     <div className="min-h-screen bg-background">
       <CheckInNotifier />
-      <main className="pb-20">
+      <main className="pb-28">
         <Outlet />
       </main>
       <BottomNav />

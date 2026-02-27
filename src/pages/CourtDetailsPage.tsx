@@ -56,7 +56,7 @@ export default function CourtDetailsPage() {
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header with back button */}
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+      <header className="sticky top-0 z-40 bg-background border-b border-border">
         <div className="flex items-center justify-between px-4 py-3">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
@@ -74,12 +74,12 @@ export default function CourtDetailsPage() {
       </header>
 
       {/* Court image placeholder */}
-      <div className="relative h-48 bg-gradient-to-br from-court-green-light to-secondary">
+      <div className="relative h-48 bg-muted">
         <div className="w-full h-full flex items-center justify-center">
-          <div className="w-24 h-16 rounded-md bg-court-surface border-2 border-court-green/30 relative">
-            <div className="absolute inset-x-0 top-1/2 h-0.5 bg-court-green/30" />
+          <div className="w-24 h-16 rounded-md bg-muted-foreground/10 border border-muted-foreground/20 relative">
+            <div className="absolute inset-x-0 top-1/2 h-0.5 bg-muted-foreground/20" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-5 h-5 rounded-full border-2 border-court-green/40" />
+              <div className="w-5 h-5 rounded-full border border-muted-foreground/30" />
             </div>
           </div>
         </div>
@@ -116,15 +116,15 @@ export default function CourtDetailsPage() {
         <div className="mb-6">
           <h3 className="text-sm font-semibold text-foreground mb-3">Amenities</h3>
           <div className="flex flex-wrap gap-3">
-            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${court.lights ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${court.lights ? "bg-muted text-foreground" : "bg-muted text-muted-foreground"}`}>
               <Sun className="w-4 h-4" />
               <span className="text-sm">Lights</span>
             </div>
-            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${court.water ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${court.water ? "bg-muted text-foreground" : "bg-muted text-muted-foreground"}`}>
               <Droplets className="w-4 h-4" />
               <span className="text-sm">Water</span>
             </div>
-            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${court.parking ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${court.parking ? "bg-muted text-foreground" : "bg-muted text-muted-foreground"}`}>
               <Car className="w-4 h-4" />
               <span className="text-sm">Parking</span>
             </div>

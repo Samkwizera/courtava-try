@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, ChevronRight, MapPin, Clock, Users, Star } from "lucide-react";
+import { Search, ChevronRight, MapPin, Clock, Users, Star, Dribbble, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CourtCard } from "@/components/cards/CourtCard";
 import courtavaLogo from "@/assets/courtava-logo.png";
@@ -12,11 +12,11 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
 const skillColors: Record<string, string> = {
-  Beginner: "bg-green-100 text-green-700",
-  Intermediate: "bg-blue-100 text-blue-700",
-  Advanced: "bg-purple-100 text-purple-700",
-  Expert: "bg-red-100 text-red-700",
-  Competitive: "bg-red-100 text-red-700",
+  Beginner: "bg-emerald-50 text-emerald-700",
+  Intermediate: "bg-blue-50 text-blue-700",
+  Advanced: "bg-violet-50 text-violet-700",
+  Expert: "bg-rose-50 text-rose-700",
+  Competitive: "bg-rose-50 text-rose-700",
 };
 
 const filters = ["All Time", "All Sports", "All Levels", "Sort by"];
@@ -52,7 +52,7 @@ export default function HomePage() {
           </div>
           <button
             onClick={() => navigate("/profile")}
-            className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center overflow-hidden border-2 border-border"
+            className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center overflow-hidden border border-border"
           >
             <span className="text-sm font-bold text-foreground">{initials}</span>
           </button>
@@ -66,24 +66,26 @@ export default function HomePage() {
             placeholder="Search games"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-12 pl-10 pr-4 rounded-xl bg-secondary border border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full h-11 pl-10 pr-4 rounded-full bg-card border border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           />
         </div>
 
         {/* Explore Games banner */}
-        <div className="bg-card rounded-2xl p-4 border border-border shadow-card flex items-center justify-between">
+        <div className="bg-card rounded-xl p-4 border border-border flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-foreground mb-1">Explore Games</h3>
+            <h3 className="font-bold text-foreground mb-1">Explore Games</h3>
             <p className="text-xs text-muted-foreground mb-3">Check out games happening in your area</p>
             <Button
               size="sm"
-              className="rounded-full bg-foreground text-background hover:bg-foreground/90 text-xs px-4"
+              className="text-xs px-5"
               onClick={() => navigate("/games")}
             >
               Check it out
             </Button>
           </div>
-          <div className="text-4xl">🏀</div>
+          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+              <Dribbble className="w-7 h-7 text-primary" />
+            </div>
         </div>
       </header>
 
@@ -92,7 +94,7 @@ export default function HomePage() {
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold text-foreground">Nearby Courts</h2>
           <Link to="/courts">
-            <Button variant="ghost" size="sm" className="text-primary text-xs">
+            <Button variant="ghost" size="sm" className="text-muted-foreground text-xs">
               See all
               <ChevronRight className="w-4 h-4" />
             </Button>
@@ -133,7 +135,7 @@ export default function HomePage() {
           {filters.map((filter) => (
             <button
               key={filter}
-              className="px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border border-border bg-background text-foreground hover:bg-secondary transition-colors"
+              className="px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border border-border bg-card text-foreground hover:bg-muted transition-colors"
             >
               {filter}
             </button>
@@ -145,7 +147,7 @@ export default function HomePage() {
           {games.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground mb-3">No games yet</p>
-              <Button onClick={() => navigate("/create-game")} className="rounded-full bg-foreground text-background">
+              <Button onClick={() => navigate("/create-game")}>
                 Create your first game
               </Button>
             </div>
@@ -153,12 +155,12 @@ export default function HomePage() {
             games.map((game) => (
               <div
                 key={game.id}
-                className="bg-card rounded-2xl border border-border shadow-card overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                className="bg-card rounded-xl border border-border overflow-hidden cursor-pointer hover:bg-muted/50 transition-colors"
                 onClick={() => navigate(`/games`)}
               >
                 {/* Court image placeholder */}
-                <div className="w-full h-44 bg-gradient-to-br from-secondary to-muted flex items-center justify-center">
-                  <span className="text-5xl">🏟️</span>
+                <div className="w-full h-44 bg-muted flex items-center justify-center rounded-t-xl">
+                  <LayoutGrid className="w-12 h-12 text-muted-foreground/30" strokeWidth={1} />
                 </div>
 
                 <div className="p-4">

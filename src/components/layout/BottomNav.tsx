@@ -1,10 +1,10 @@
-import { Home, MapPin, Plus, Users, User } from "lucide-react";
+import { Home, Map, Plus, Users, User } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const leftNavItems = [
   { to: "/", icon: Home, label: "Home" },
-  { to: "/courts", icon: MapPin, label: "Courts" },
+  { to: "/courts", icon: Map, label: "Courts" },
 ];
 
 const rightNavItems = [
@@ -25,48 +25,34 @@ export function BottomNav() {
         key={item.to}
         to={item.to}
         className={cn(
-          "flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-200",
+          "flex flex-col items-center justify-center flex-1 py-2 transition-colors",
           isActive
-            ? "text-primary"
+            ? "text-foreground"
             : "text-muted-foreground hover:text-foreground"
         )}
       >
-        <div
-          className={cn(
-            "p-1.5 rounded-lg transition-all duration-200",
-            isActive && "bg-secondary"
-          )}
-        >
-          <Icon
-            className={cn(
-              "w-5 h-5 transition-transform duration-200",
-              isActive && "scale-110"
-            )}
-            strokeWidth={isActive ? 2.5 : 2}
-          />
-        </div>
-        <span className={cn(
-          "text-[10px] font-medium transition-colors",
-          isActive && "font-semibold"
-        )}>
-          {item.label}
-        </span>
+        <Icon
+          className="w-6 h-6"
+          strokeWidth={isActive ? 2.5 : 1.5}
+        />
       </NavLink>
     );
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 glass shadow-nav safe-bottom border-t border-border">
-      <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
+    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-3rem)] max-w-sm">
+      <div className="flex items-center justify-around h-16 bg-card rounded-2xl shadow-xl border border-border/50">
         {leftNavItems.map(renderNavItem)}
 
-        {/* Center + button */}
-        <button
-          onClick={() => navigate("/create-game")}
-          className="flex items-center justify-center -mt-5 w-14 h-14 rounded-full bg-foreground text-background shadow-lg hover:opacity-90 transition-all active:scale-95"
-        >
-          <Plus className="w-6 h-6" strokeWidth={2.5} />
-        </button>
+        {/* Center create button - raised black circle */}
+        <div className="flex flex-col items-center justify-center flex-1">
+          <button
+            onClick={() => navigate("/create-game")}
+            className="-mt-6 w-14 h-14 rounded-full bg-foreground text-background flex items-center justify-center shadow-lg hover:bg-foreground/90 transition-colors"
+          >
+            <Plus className="w-7 h-7" strokeWidth={2.5} />
+          </button>
+        </div>
 
         {rightNavItems.map(renderNavItem)}
       </div>

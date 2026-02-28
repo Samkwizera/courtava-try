@@ -27,8 +27,8 @@ export function BottomNav() {
         className={cn(
           "flex flex-col items-center justify-center flex-1 py-2 transition-colors",
           isActive
-            ? "text-foreground"
-            : "text-muted-foreground hover:text-foreground"
+            ? "text-primary"
+            : "text-muted-foreground hover:text-primary"
         )}
       >
         <Icon
@@ -48,7 +48,7 @@ export function BottomNav() {
         <div className="flex flex-col items-center justify-center flex-1">
           <button
             onClick={() => navigate("/create-game")}
-            className="-mt-6 w-14 h-14 rounded-full bg-foreground text-background flex items-center justify-center shadow-lg hover:bg-foreground/90 transition-colors"
+            className="-mt-6 w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors"
           >
             <Plus className="w-7 h-7" strokeWidth={2.5} />
           </button>

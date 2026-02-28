@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* Courtava — Clean Black & White Theme (pickup. reference) */
+    /* Courtava — Dark Green & White Theme */
     --background: 0 0% 97%;
     --foreground: 0 0% 9%;
 
@@ -14,20 +14,20 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 9%;
 
-    /* Primary - Near Black */
-    --primary: 0 0% 9%;
+    /* Primary - Dark Green */
+    --primary: 143 55% 22%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Light Gray */
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 30%;
+    /* Secondary - Light Green Tint */
+    --secondary: 143 20% 94%;
+    --secondary-foreground: 143 40% 20%;
 
     /* Muted */
     --muted: 0 0% 95%;
     --muted-foreground: 0 0% 46%;
 
-    /* Accent - Same as primary */
-    --accent: 0 0% 9%;
+    /* Accent - Dark Green */
+    --accent: 143 55% 22%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
@@ -35,19 +35,19 @@
 
     --border: 0 0% 90%;
     --input: 0 0% 90%;
-    --ring: 0 0% 9%;
+    --ring: 143 55% 22%;
 
     --radius: 0.5rem;
 
     /* Custom Courtava Colors */
-    --court-green: 152 44% 42%;
-    --court-green-dark: 152 35% 35%;
-    --court-green-light: 152 20% 95%;
+    --court-green: 143 55% 22%;
+    --court-green-dark: 143 60% 16%;
+    --court-green-light: 143 30% 93%;
     --court-orange: 25 70% 50%;
     --court-surface: 35 15% 88%;
 
-    /* Gradients - solid colors, no gradients */
-    --gradient-hero: hsl(0 0% 9%);
+    /* Gradients */
+    --gradient-hero: hsl(143 55% 22%);
     --gradient-card: hsl(0 0% 100%);
 
     /* Shadows - minimal */
@@ -55,58 +55,59 @@
     --shadow-button: none;
     --shadow-nav: 0 -1px 0 0 rgb(0 0 0 / 0.06);
 
-    /* Sidebar (keep defaults) */
+    /* Sidebar */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-primary: 143 55% 22%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 143 20% 94%;
+    --sidebar-accent-foreground: 143 40% 20%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 143 55% 22%;
   }
 
   .dark {
     --background: 0 0% 7%;
-    --foreground: 0 0% 95%;
+    --foreground: 0 0% 93%;
 
     --card: 0 0% 11%;
-    --card-foreground: 0 0% 95%;
+    --card-foreground: 0 0% 93%;
 
     --popover: 0 0% 11%;
-    --popover-foreground: 0 0% 95%;
+    --popover-foreground: 0 0% 93%;
 
-    --primary: 0 0% 100%;
-    --primary-foreground: 0 0% 9%;
+    /* Primary - #195731 dark green */
+    --primary: 143 55% 22%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 18%;
-    --secondary-foreground: 0 0% 85%;
+    --secondary: 0 0% 16%;
+    --secondary-foreground: 0 0% 80%;
 
-    --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 60%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 55%;
 
-    --accent: 0 0% 100%;
-    --accent-foreground: 0 0% 9%;
+    --accent: 143 55% 22%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 0 0% 100%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 143 55% 22%;
 
-    --court-green: 152 44% 50%;
-    --court-green-dark: 152 35% 40%;
-    --court-green-light: 152 20% 18%;
+    --court-green: 143 55% 22%;
+    --court-green-dark: 143 60% 16%;
+    --court-green-light: 143 20% 16%;
 
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 0 0% 93%;
+    --sidebar-primary: 143 55% 22%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 0 0% 16%;
+    --sidebar-accent-foreground: 0 0% 80%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 143 55% 22%;
   }
 }
 

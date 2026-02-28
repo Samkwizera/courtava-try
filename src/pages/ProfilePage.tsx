@@ -84,7 +84,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-background safe-top pb-32">
       {/* Banner */}
       <div className="relative">
-        <div className="h-48 bg-gradient-to-br from-slate-300 via-slate-200 to-slate-400 dark:from-slate-700 dark:via-slate-600 dark:to-slate-800" />
+        <div className="h-48 bg-gradient-to-br from-green-950 via-green-900 to-green-800 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-700" />
 
         {/* Top bar buttons */}
         <div className="absolute top-4 left-4 right-4 flex items-center justify-between">

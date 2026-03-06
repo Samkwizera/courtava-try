@@ -123,65 +123,6 @@ export type Database = {
           },
         ]
       }
-      games: {
-        Row: {
-          id: string
-          title: string
-          court_id: string | null
-          court_name: string
-          date: string
-          time: string
-          format: string
-          skill_level: string
-          current_players: number
-          max_players: number
-          host_id: string
-          host_name: string
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          title: string
-          court_id?: string | null
-          court_name: string
-          date: string
-          time: string
-          format?: string
-          skill_level?: string
-          current_players?: number
-          max_players?: number
-          host_id: string
-          host_name: string
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          title?: string
-          court_id?: string | null
-          court_name?: string
-          date?: string
-          time?: string
-          format?: string
-          skill_level?: string
-          current_players?: number
-          max_players?: number
-          host_id?: string
-          host_name?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "games_host_id_fkey"
-            columns: ["host_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       courts: {
         Row: {
           address: string

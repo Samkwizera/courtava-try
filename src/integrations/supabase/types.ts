@@ -123,65 +123,6 @@ export type Database = {
           },
         ]
       }
-      games: {
-        Row: {
-          id: string
-          title: string
-          court_id: string | null
-          court_name: string
-          date: string
-          time: string
-          format: string
-          skill_level: string
-          current_players: number
-          max_players: number
-          host_id: string
-          host_name: string
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          title: string
-          court_id?: string | null
-          court_name: string
-          date: string
-          time: string
-          format?: string
-          skill_level?: string
-          current_players?: number
-          max_players?: number
-          host_id: string
-          host_name: string
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          title?: string
-          court_id?: string | null
-          court_name?: string
-          date?: string
-          time?: string
-          format?: string
-          skill_level?: string
-          current_players?: number
-          max_players?: number
-          host_id?: string
-          host_name?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "games_host_id_fkey"
-            columns: ["host_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       courts: {
         Row: {
           address: string
@@ -235,26 +176,113 @@ export type Database = {
           },
         ]
       }
-      profiles: {
+      games: {
         Row: {
-          avatar_url: string | null
+          court_id: string | null
+          court_name: string
           created_at: string
-          display_name: string | null
+          current_players: number
+          date: string
+          format: string
+          host_id: string
+          host_name: string
           id: string
+          max_players: number
+          skill_level: string
+          time: string
+          title: string
           updated_at: string
         }
         Insert: {
-          avatar_url?: string | null
+          court_id?: string | null
+          court_name: string
           created_at?: string
-          display_name?: string | null
-          id: string
+          current_players?: number
+          date: string
+          format: string
+          host_id: string
+          host_name: string
+          id?: string
+          max_players: number
+          skill_level: string
+          time: string
+          title: string
           updated_at?: string
         }
         Update: {
+          court_id?: string | null
+          court_name?: string
+          created_at?: string
+          current_players?: number
+          date?: string
+          format?: string
+          host_id?: string
+          host_name?: string
+          id?: string
+          max_players?: number
+          skill_level?: string
+          time?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "games_court_id_fkey"
+            columns: ["court_id"]
+            isOneToOne: false
+            referencedRelation: "courts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "games_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          availability: string[] | null
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          height: string | null
+          id: string
+          location: string | null
+          play_styles: string[] | null
+          position: string | null
+          skill_level: string | null
+          updated_at: string
+        }
+        Insert: {
+          availability?: string[] | null
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           display_name?: string | null
+          height?: string | null
+          id: string
+          location?: string | null
+          play_styles?: string[] | null
+          position?: string | null
+          skill_level?: string | null
+          updated_at?: string
+        }
+        Update: {
+          availability?: string[] | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          height?: string | null
           id?: string
+          location?: string | null
+          play_styles?: string[] | null
+          position?: string | null
+          skill_level?: string | null
           updated_at?: string
         }
         Relationships: []

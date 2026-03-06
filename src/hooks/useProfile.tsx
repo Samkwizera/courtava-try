@@ -68,13 +68,15 @@ export function useProfile() {
 
       if (Object.keys(dbUpdates).length > 0) {
         promises.push(
-          supabase
-            .from("profiles")
-            .update(dbUpdates)
-            .eq("id", user.id)
-            .select()
-            .single()
-            .then(({ error }) => { if (error) throw error; })
+          (async () => {
+            const { error } = await supabase
+              .from("profiles")
+              .update(dbUpdates)
+              .eq("id", user.id)
+              .select()
+              .single();
+            if (error) throw error;
+          })()
         );
       }
 

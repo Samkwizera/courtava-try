@@ -176,6 +176,72 @@ export type Database = {
           },
         ]
       }
+      games: {
+        Row: {
+          court_id: string | null
+          court_name: string
+          created_at: string
+          current_players: number
+          date: string
+          format: string
+          host_id: string
+          host_name: string
+          id: string
+          max_players: number
+          skill_level: string
+          time: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          court_id?: string | null
+          court_name: string
+          created_at?: string
+          current_players?: number
+          date: string
+          format: string
+          host_id: string
+          host_name: string
+          id?: string
+          max_players: number
+          skill_level: string
+          time: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          court_id?: string | null
+          court_name?: string
+          created_at?: string
+          current_players?: number
+          date?: string
+          format?: string
+          host_id?: string
+          host_name?: string
+          id?: string
+          max_players?: number
+          skill_level?: string
+          time?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "games_court_id_fkey"
+            columns: ["court_id"]
+            isOneToOne: false
+            referencedRelation: "courts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "games_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           availability: string[] | null

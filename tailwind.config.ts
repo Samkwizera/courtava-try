@@ -73,7 +73,7 @@ export default {
         "2xl": "calc(var(--radius) + 8px)",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["-apple-system", "BlinkMacSystemFont", "SF Pro Display", "SF Pro Text", "system-ui", "sans-serif"],
       },
       keyframes: {
         "accordion-down": {
@@ -86,8 +86,13 @@ export default {
         },
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
+        "accordion-down": "accordion-down 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+        "accordion-up": "accordion-up 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+      },
+      transitionTimingFunction: {
+        spring: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "spring-gentle": "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+        ios: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
       },
     },
   },

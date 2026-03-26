@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ChevronDown, Minus, Plus, Check, Share2 } from "lucide-react";
+import { ArrowLeft, ChevronDown, Minus, Plus, Check, Share2, Calendar, Copy } from "lucide-react";
+import { IosDateTimePicker } from "@/components/ui/IosDrumPicker";
+import { toast } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -86,6 +88,7 @@ export default function CreateGamePage() {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [duration, setDuration] = useState("60");
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   // Step 6: Max players
   const [maxPlayers, setMaxPlayers] = useState(10);
@@ -170,9 +173,24 @@ export default function CreateGamePage() {
             <p className="text-muted-foreground mb-6">Would you like to share this game with your friends?</p>
             <Button
               className="w-full mb-3 h-12 text-base"
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({ title: gameName, text: `Join my game: ${gameName}` });
+              onClick={async () => {
+                const shareUrl = `${window.location.origin}/games`;
+                const shareData = {
+                  title: gameName,
+                  text: `Join my game: ${gameName}`,
+                  url: shareUrl,
+                };
+                if (navigator.share && navigator.canShare?.(shareData)) {
+                  try {
+                    await navigator.share(shareData);
+                  } catch {
+                    // User cancelled — do nothing
+                  }
+                } else {
+                  await navigator.clipboard.writeText(shareUrl);
+                  toast("Link copied!", {
+                    description: "Share the link with your friends.",
+                  });
                 }
               }}
             >
@@ -361,28 +379,49 @@ export default function CreateGamePage() {
           <div className="flex-1 flex flex-col">
             <StepHeader
               title="When will the game take place?"
-              description="Set a date and the start and end times for the game"
+              description="Set a date and the start time for the game"
             />
-            <div className="flex-1 flex flex-col justify-center gap-6">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">Date</p>
-                <Input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="h-14 text-base rounded-lg bg-muted border border-border"
-                  min={new Date().toISOString().split("T")[0]}
-                />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">Start Time</p>
-                <Input
-                  type="time"
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  className="h-14 text-base rounded-lg bg-muted border border-border"
-                />
-              </div>
+            <div className="flex-1 flex flex-col justify-center gap-4">
+              {/* Tappable date/time display — opens drum picker */}
+              <button
+                type="button"
+                onClick={() => setPickerOpen(true)}
+                className="w-full ios-card-tap"
+                style={{
+                  background: "hsl(var(--card))",
+                  border: "0.5px solid hsl(var(--border))",
+                  borderRadius: 16,
+                  boxShadow: "var(--shadow-card)",
+                  padding: "0",
+                  overflow: "hidden",
+                  textAlign: "left",
+                }}
+              >
+                {date && time ? (
+                  <div className="px-4 py-4">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Date & Start Time</p>
+                    <p className="text-[20px] font-bold text-foreground tracking-tight">
+                      {formatDate(date)}
+                    </p>
+                    <p className="text-[17px] text-primary font-semibold mt-0.5">
+                      {formatTime(time)}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3 px-4 py-4">
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-[15px] font-medium text-foreground">Set Date & Time</p>
+                      <p className="text-sm text-muted-foreground">Tap to choose</p>
+                    </div>
+                    <ChevronDown className="w-5 h-5 text-muted-foreground ml-auto" />
+                  </div>
+                )}
+              </button>
+
+              {/* Duration */}
               <div>
                 <p className="text-sm font-semibold text-foreground text-center mb-2">Game duration</p>
                 <p className="text-2xl font-bold text-foreground text-center mb-3">
@@ -394,10 +433,10 @@ export default function CreateGamePage() {
                       key={d}
                       onClick={() => setDuration(d)}
                       className={cn(
-                        "w-14 h-14 rounded-lg text-sm font-medium transition-colors border",
+                        "w-14 h-14 rounded-xl text-sm font-medium ios-tap",
                         duration === d
-                          ? "bg-foreground text-background border-foreground"
-                          : "bg-background text-foreground border-border hover:bg-secondary"
+                          ? "bg-foreground text-background"
+                          : "bg-muted text-foreground"
                       )}
                     >
                       {d}
@@ -406,6 +445,15 @@ export default function CreateGamePage() {
                 </div>
               </div>
             </div>
+
+            {/* Drum picker sheet */}
+            <IosDateTimePicker
+              open={pickerOpen}
+              onClose={() => setPickerOpen(false)}
+              onConfirm={(d, t) => { setDate(d); setTime(t); }}
+              initialDate={date}
+              initialTime={time}
+            />
           </div>
         )}
 

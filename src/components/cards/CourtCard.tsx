@@ -34,7 +34,8 @@ export function CourtCard({
   return (
     <button
       onClick={onClick}
-      className="w-full text-left bg-card rounded-lg overflow-hidden transition-colors hover:bg-muted/50 border border-border"
+      className="w-full text-left bg-card rounded-2xl overflow-hidden ios-card-tap"
+      style={{ border: "0.5px solid hsl(var(--border))", boxShadow: "var(--shadow-card)" }}
     >
       {/* Court Image */}
       <div className="relative h-32 bg-muted">

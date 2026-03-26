@@ -90,22 +90,25 @@ export default function ProfilePage() {
         <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
           <button
             onClick={() => navigate(-1)}
-            className="w-9 h-9 rounded-full bg-white/80 dark:bg-black/40 backdrop-blur-sm flex items-center justify-center shadow-sm"
+            className="w-9 h-9 rounded-full glass flex items-center justify-center ios-tap"
+            style={{ border: "0.5px solid rgba(255,255,255,0.3)" }}
           >
-            <ArrowLeft className="w-4 h-4 text-foreground" />
+            <ArrowLeft className="w-4 h-4 text-white" />
           </button>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setEditOpen(true)}
-              className="w-9 h-9 rounded-full bg-white/80 dark:bg-black/40 backdrop-blur-sm flex items-center justify-center shadow-sm"
+              className="w-9 h-9 rounded-full glass flex items-center justify-center ios-tap"
+              style={{ border: "0.5px solid rgba(255,255,255,0.3)" }}
             >
-              <Edit2 className="w-4 h-4 text-foreground" />
+              <Edit2 className="w-4 h-4 text-white" />
             </button>
             <button
               onClick={() => setSettingsOpen((v) => !v)}
-              className="w-9 h-9 rounded-full bg-white/80 dark:bg-black/40 backdrop-blur-sm flex items-center justify-center shadow-sm"
+              className="w-9 h-9 rounded-full glass flex items-center justify-center ios-tap"
+              style={{ border: "0.5px solid rgba(255,255,255,0.3)" }}
             >
-              <Settings className="w-4 h-4 text-foreground" />
+              <Settings className="w-4 h-4 text-white" />
             </button>
           </div>
         </div>
@@ -136,93 +139,114 @@ export default function ProfilePage() {
 
       <div className="px-4 mt-5 flex flex-col gap-3">
         {/* Stats */}
-        <div className="bg-card rounded-xl border border-border p-4 flex flex-col items-center">
-          <span className="text-2xl font-bold text-foreground">{gamesPlayed}</span>
+        <div
+          className="bg-card rounded-2xl p-4 flex flex-col items-center"
+          style={{ border: "0.5px solid hsl(var(--border))", boxShadow: "var(--shadow-card)" }}
+        >
+          <span className="text-[28px] font-bold text-foreground tracking-tight">{gamesPlayed}</span>
           <span className="text-xs text-muted-foreground mt-0.5">games played</span>
         </div>
 
         {/* Bio */}
-        <div className="bg-card rounded-xl border border-border p-4">
-          <h2 className="text-sm font-semibold text-foreground mb-1.5">Bio</h2>
-          <p className="text-sm text-muted-foreground">
+        <div
+          className="bg-card rounded-2xl p-4"
+          style={{ border: "0.5px solid hsl(var(--border))", boxShadow: "var(--shadow-card)" }}
+        >
+          <h2 className="text-[13px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Bio</h2>
+          <p className="text-[15px] text-foreground leading-relaxed">
             {profile?.bio || "No bio yet. Tap edit to add one."}
           </p>
         </div>
 
         {/* Sports */}
         <div>
-          <h2 className="text-base font-bold text-foreground mb-2">Sports</h2>
+          <h2 className="text-[17px] font-bold text-foreground mb-2 tracking-tight">Sports</h2>
           <div className="grid grid-cols-2 gap-3">
             {DEMO_SPORTS.map((sport) => (
               <div
                 key={sport.name}
-                className="bg-card rounded-xl border border-border p-4 flex flex-col items-center gap-2"
+                className="bg-card rounded-2xl p-4 flex flex-col items-center gap-2 ios-card-tap"
+                style={{ border: "0.5px solid hsl(var(--border))", boxShadow: "var(--shadow-card)" }}
               >
                 <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground">
                   {SPORT_ICONS[sport.name] ?? <Activity className="w-6 h-6" />}
                 </div>
                 <div className="text-center">
-                  <p className="text-sm font-semibold text-foreground">{sport.name}</p>
+                  <p className="text-[15px] font-semibold text-foreground">{sport.name}</p>
                   <p className={cn("text-xs font-medium", SKILL_COLORS[sport.level] ?? "text-muted-foreground")}>
                     {sport.level}
                   </p>
                 </div>
               </div>
             ))}
-            <div className="bg-card rounded-xl border border-border p-4 flex flex-col items-center gap-2">
+            <div
+              className="bg-card rounded-2xl p-4 flex flex-col items-center gap-2"
+              style={{ border: "0.5px solid hsl(var(--border))", boxShadow: "var(--shadow-card)" }}
+            >
               <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground">
                 <span className="text-lg font-bold">{gamesCreated}</span>
               </div>
               <div className="text-center">
-                <p className="text-sm font-semibold text-foreground">Games</p>
+                <p className="text-[15px] font-semibold text-foreground">Games</p>
                 <p className="text-xs text-muted-foreground">created</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Settings (collapsible) */}
+        {/* Settings (collapsible) — iOS inset grouped style */}
         {settingsOpen && (
-          <div className="flex flex-col gap-2 mt-1">
-            <div className="flex items-center justify-between p-3 bg-card rounded-xl border border-border">
-              <div className="flex items-center gap-3">
-                {isDark ? (
-                  <Moon className="w-5 h-5 text-muted-foreground" />
-                ) : (
-                  <Sun className="w-5 h-5 text-muted-foreground" />
-                )}
-                <span className="font-medium text-foreground">Dark Mode</span>
+          <div className="flex flex-col gap-4 mt-1">
+            {/* Appearance group */}
+            <div className="ios-group">
+              <div className="ios-group-row">
+                <div className="w-8 h-8 rounded-[8px] bg-muted flex items-center justify-center">
+                  {isDark ? (
+                    <Moon className="w-4 h-4 text-muted-foreground" />
+                  ) : (
+                    <Sun className="w-4 h-4 text-muted-foreground" />
+                  )}
+                </div>
+                <span className="flex-1 text-[15px] font-medium text-foreground">Dark Mode</span>
+                <Switch checked={isDark} onCheckedChange={toggleTheme} />
               </div>
-              <Switch checked={isDark} onCheckedChange={toggleTheme} />
             </div>
 
-            {[
-              { label: "My Games", icon: Calendar, route: "/games" },
-              { label: "Find Players", icon: Users, route: "/players" },
-              { label: "Find Courts", icon: MapPin, route: "/courts" },
-            ].map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                onClick={() => navigate(item.route)}
-                className="flex items-center justify-between p-3 bg-card rounded-xl border border-border hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <item.icon className="w-5 h-5 text-muted-foreground" />
-                  <span className="font-medium text-foreground">{item.label}</span>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
-              </button>
-            ))}
+            {/* Navigation group */}
+            <div className="ios-group">
+              {[
+                { label: "My Games", icon: Calendar, route: "/games" },
+                { label: "Find Players", icon: Users, route: "/players" },
+                { label: "Find Courts", icon: MapPin, route: "/courts" },
+              ].map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => navigate(item.route)}
+                  className="ios-group-row w-full ios-tap"
+                >
+                  <div className="w-8 h-8 rounded-[8px] bg-muted flex items-center justify-center">
+                    <item.icon className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                  <span className="flex-1 text-[15px] font-medium text-foreground text-left">{item.label}</span>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground/60" />
+                </button>
+              ))}
+            </div>
 
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="flex items-center gap-3 p-3 bg-card rounded-xl border border-border hover:bg-destructive/10 transition-colors mt-1"
-            >
-              <LogOut className="w-5 h-5 text-destructive" />
-              <span className="font-medium text-destructive">Sign Out</span>
-            </button>
+            {/* Destructive group */}
+            <div className="ios-group">
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="ios-group-row w-full ios-tap"
+              >
+                <div className="w-8 h-8 rounded-[8px] bg-destructive/10 flex items-center justify-center">
+                  <LogOut className="w-4 h-4 text-destructive" />
+                </div>
+                <span className="flex-1 text-[15px] font-medium text-destructive text-left">Sign Out</span>
+              </button>
+            </div>
           </div>
         )}
       </div>

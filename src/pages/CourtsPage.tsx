@@ -12,6 +12,7 @@ import { useCheckIns } from "@/hooks/useCheckIns";
 import { useCourts } from "@/hooks/useCourts";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserLocation, getDistanceKm, formatDistance } from "@/hooks/useUserLocation";
+import { cn } from "@/lib/utils";
 
 const defaultFilters: CourtFiltersState = {
   surfaces: [],
@@ -117,20 +118,20 @@ export default function CourtsPage() {
   [filteredCourts]);
 
   return (
-    <div className="min-h-screen bg-background safe-top">
+    <div className="flex flex-col bg-background safe-top" style={{ height: "100dvh" }}>
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-background border-b border-border">
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between mb-3">
-            <h1 className="text-xl font-bold text-foreground">Find Courts</h1>
+      <header className="sticky top-0 z-40 glass-nav" style={{ boxShadow: "inset 0 -0.5px 0 0 rgba(0,0,0,0.14)" }}>
+        <div className="px-4 pt-2 pb-3">
+          <div className="flex items-center justify-between mb-2" style={{ minHeight: 44 }}>
+            <h1 className="ios-large-title text-foreground">Find Courts</h1>
             <div className="flex items-center gap-2">
-              <Button 
-                variant="default" 
-                size="sm" 
+              <Button
+                variant="default"
+                size="sm"
                 onClick={() => setAddCourtOpen(true)}
-                className="gap-1"
+                className="gap-1.5 rounded-full h-8 px-3 text-xs ios-tap"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
                 Add
               </Button>
               <Button
@@ -138,64 +139,76 @@ export default function CourtsPage() {
                 size="sm"
                 onClick={requestLocation}
                 disabled={isLocating}
-                className="gap-1"
+                className="gap-1.5 rounded-full h-8 px-3 text-xs ios-tap"
               >
-                <Locate className={`w-4 h-4 ${isLocating ? "animate-pulse" : ""}`} />
-                {isLocating ? "..." : locationEnabled ? "On" : "Location"}
+                <Locate className={`w-3.5 h-3.5 ${isLocating ? "animate-pulse" : ""}`} />
+                {isLocating ? "…" : locationEnabled ? "On" : "Location"}
               </Button>
             </div>
           </div>
 
           {/* Search bar */}
-          <div className="flex gap-2 mb-3">
+          <div className="flex gap-2 mb-2">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Search courts in Kigali..."
+                placeholder="Search courts…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 pl-9 pr-4 rounded-lg bg-muted border border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                className="w-full h-9 pl-9 pr-4 rounded-[10px] bg-muted/70 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring border-0"
+                style={{ fontFamily: "inherit" }}
               />
             </div>
-            <Button variant="secondary" size="icon" className="relative" onClick={() => setFiltersOpen(true)}>
-              <Filter className="w-4 h-4" />
+            <button
+              className="w-9 h-9 rounded-[10px] bg-muted/70 flex items-center justify-center relative ios-tap"
+              onClick={() => setFiltersOpen(true)}
+            >
+              <Filter className="w-4 h-4 text-foreground" />
               {activeFilterCount > 0 && (
                 <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]">
                   {activeFilterCount}
                 </Badge>
               )}
-            </Button>
+            </button>
           </div>
 
-          {/* View toggle */}
-          <div className="flex gap-2">
-            <Button
-              variant={viewMode === "list" ? "default" : "secondary"}
-              size="sm"
+          {/* View toggle — iOS segmented control */}
+          <div className="flex gap-1 p-0.5 bg-muted/70 rounded-[9px]">
+            <button
               onClick={() => setViewMode("list")}
-              className="flex-1"
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1.5 h-7 rounded-[7px] text-sm font-medium ios-tap",
+                viewMode === "list"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground"
+              )}
+              style={{ transition: "background-color 0.2s cubic-bezier(0.25,0.46,0.45,0.94)" }}
             >
-              <List className="w-4 h-4" />
+              <List className="w-3.5 h-3.5" />
               List
-            </Button>
-            <Button
-              variant={viewMode === "map" ? "default" : "secondary"}
-              size="sm"
+            </button>
+            <button
               onClick={() => setViewMode("map")}
-              className="flex-1"
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1.5 h-7 rounded-[7px] text-sm font-medium ios-tap",
+                viewMode === "map"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground"
+              )}
+              style={{ transition: "background-color 0.2s cubic-bezier(0.25,0.46,0.45,0.94)" }}
             >
-              <MapIcon className="w-4 h-4" />
+              <MapIcon className="w-3.5 h-3.5" />
               Map
-            </Button>
+            </button>
           </div>
         </div>
       </header>
 
       {/* Content */}
       {viewMode === "list" ? (
-        <div className="p-4 flex flex-col gap-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
             <MapPin className="w-4 h-4" />
             <span>{filteredCourts.length} courts in Kigali</span>
           </div>
@@ -218,7 +231,7 @@ export default function CourtsPage() {
           })}
         </div>
       ) : (
-        <div className="relative h-[calc(100vh-200px)] min-h-[400px]">
+        <div className="relative flex-1 min-h-0">
           {/* Interactive Map */}
           <div className="absolute inset-0">
             <CourtMap

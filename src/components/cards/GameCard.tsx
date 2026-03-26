@@ -46,7 +46,8 @@ export function GameCard({
   return (
     <div
       onClick={onClick}
-      className="bg-card rounded-lg p-4 border border-border transition-colors hover:bg-muted/50 cursor-pointer"
+      className="bg-card rounded-2xl p-4 ios-card-tap"
+      style={{ border: "0.5px solid hsl(var(--border))", boxShadow: "var(--shadow-card)" }}
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-3">

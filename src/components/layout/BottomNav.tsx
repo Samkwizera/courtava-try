@@ -1,9 +1,9 @@
 import { useLocation, useNavigate } from "react-router-dom";
 
 const GREEN = "oklch(0.68 0.14 150)";
-const INK = "#1A1A1A";
-const INK3 = "#8A8A88";
-const HAIR = "#EDEDE8";
+const INK = "hsl(var(--foreground))";
+const INK3 = "hsl(var(--muted-foreground))";
+const HAIR = "hsl(var(--border))";
 
 const HomeIcon = (color: string) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
@@ -69,7 +69,7 @@ export function BottomNav() {
       <div
         style={{
           display: "grid", gridTemplateColumns: "repeat(5, 1fr)",
-          background: "#fff", borderRadius: 24,
+          background: "hsl(var(--card))", borderRadius: 24,
           border: `1px solid ${HAIR}`,
           boxShadow: "0 6px 24px -8px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.03)",
           height: 62, alignItems: "center",

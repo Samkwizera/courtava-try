@@ -8,6 +8,10 @@ export interface Profile {
   display_name: string | null;
   avatar_url: string | null;
   bio: string | null;
+  skill_level: string | null;
+  position: string | null;
+  play_styles: string[] | null;
+  availability: string[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -16,6 +20,10 @@ export interface ProfileUpdate {
   display_name?: string | null;
   avatar_url?: string | null;
   bio?: string | null;
+  skill_level?: string | null;
+  position?: string | null;
+  play_styles?: string[] | null;
+  availability?: string[] | null;
 }
 
 export function useProfile() {
@@ -43,7 +51,7 @@ export function useProfile() {
 
           if (insertError) throw insertError;
           return {
-            ...(newProfile as Omit<Profile, "bio">),
+            ...(newProfile as Profile),
             bio: (user.user_metadata?.bio as string | null) ?? null,
           } as Profile;
         }
@@ -51,7 +59,7 @@ export function useProfile() {
       }
 
       return {
-        ...(data as Omit<Profile, "bio">),
+        ...(data as Profile),
         bio: (user.user_metadata?.bio as string | null) ?? null,
       } as Profile;
     },

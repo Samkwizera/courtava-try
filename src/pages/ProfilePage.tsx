@@ -1,43 +1,37 @@
 import { useState } from "react";
-import {
-  Settings,
-  ChevronRight,
-  Edit2,
-  Calendar,
-  Users,
-  MapPin,
-  Moon,
-  Sun,
-  LogOut,
-  BadgeCheck,
-  Dribbble,
-  Activity,
-  ArrowLeft,
-} from "lucide-react";
+import { Settings, LogOut, Moon, Sun, Edit2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useGames } from "@/hooks/useGames";
+import { useCheckIns } from "@/hooks/useCheckIns";
 import { EditProfileSheet } from "@/components/profile/EditProfileSheet";
-import { cn } from "@/lib/utils";
 
-const SPORT_ICONS: Record<string, React.ReactNode> = {
-  Basketball: <Dribbble className="w-6 h-6" />,
+const C = {
+  bg: "hsl(var(--background))",
+  surface: "hsl(var(--card))",
+  ink: "hsl(var(--foreground))",
+  ink2: "hsl(var(--muted-foreground))",
+  ink3: "hsl(var(--muted-foreground))",
+  hair: "hsl(var(--border))",
+  hair2: "hsl(var(--muted))",
+  green: "oklch(0.68 0.14 150)",
+  greenSoft: "hsl(var(--secondary))",
+  greenInk: "hsl(var(--secondary-foreground))",
+  red: "oklch(0.66 0.15 25)",
 };
 
-const SKILL_COLORS: Record<string, string> = {
-  Beginner: "text-emerald-600",
-  Intermediate: "text-blue-600",
-  Advanced: "text-violet-600",
-  Competitive: "text-rose-600",
-};
+const font = `"Inter", -apple-system, system-ui, sans-serif`;
 
-const DEMO_SPORTS = [
-  { name: "Basketball", level: "Intermediate" },
-];
+const ChevIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+    <path d="M9 6l6 6-6 6" stroke={C.ink3} strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+);
+
+const SKILL_LEVELS = ["Beginner", "Casual", "Intermediate", "Advanced", "Pro"];
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -45,6 +39,7 @@ export default function ProfilePage() {
   const { user, signOut } = useAuth();
   const { profile, isLoading, updateProfile, isUpdating } = useProfile();
   const { games } = useGames();
+  const { checkIns } = useCheckIns();
   const [editOpen, setEditOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -59,199 +54,214 @@ export default function ProfilePage() {
   const displayName = profile?.display_name || user?.email?.split("@")[0] || "Player";
   const username = displayName.toLowerCase().replace(/\s+/g, "");
   const avatarUrl = profile?.avatar_url;
-  const initial = displayName[0]?.toUpperCase() || "?";
-
-  const joinedDate = profile?.created_at
-    ? new Date(profile.created_at).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
-    : null;
+  const initial = displayName.slice(0, 2).toUpperCase();
 
   const gamesPlayed = games.length;
-  const gamesCreated = games.filter((g) => g.host_id === user?.id).length;
+  // Courts visited = distinct courts from check-ins
+  const distinctCourts = new Set(checkIns.filter((ci) => ci.user_id === user?.id).map((ci) => ci.court_id)).size;
+  // Rating placeholder
+  const rating = "—";
+
+  // Skill level from profile
+  const skillIndex = profile?.skill_level
+    ? SKILL_LEVELS.indexOf(profile.skill_level)
+    : -1;
+  const skillLabel = skillIndex >= 0 ? SKILL_LEVELS[skillIndex] : "Not set";
+
+  // Recent games (last 3)
+  const recentGames = games.slice(0, 3);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div style={{ minHeight: "100vh", background: C.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background safe-top pb-32">
-      {/* Banner */}
-      <div className="relative">
-        <div className="h-48 bg-gradient-to-br from-green-950 via-green-900 to-green-800 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-700" />
+    <div style={{ width: "100%", minHeight: "100vh", background: C.bg, fontFamily: font, color: C.ink, overflowY: "auto", paddingBottom: 120 }}>
 
-        {/* Top bar buttons */}
-        <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-9 h-9 rounded-full glass flex items-center justify-center ios-tap"
-            style={{ border: "0.5px solid rgba(255,255,255,0.3)" }}
-          >
-            <ArrowLeft className="w-4 h-4 text-white" />
-          </button>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setEditOpen(true)}
-              className="w-9 h-9 rounded-full glass flex items-center justify-center ios-tap"
-              style={{ border: "0.5px solid rgba(255,255,255,0.3)" }}
-            >
-              <Edit2 className="w-4 h-4 text-white" />
-            </button>
-            <button
-              onClick={() => setSettingsOpen((v) => !v)}
-              className="w-9 h-9 rounded-full glass flex items-center justify-center ios-tap"
-              style={{ border: "0.5px solid rgba(255,255,255,0.3)" }}
-            >
-              <Settings className="w-4 h-4 text-white" />
-            </button>
-          </div>
-        </div>
-
-        {/* Avatar */}
-        <div className="absolute -bottom-12 left-1/2 -translate-x-1/2">
-          <div className="w-24 h-24 rounded-full border-4 border-background bg-secondary flex items-center justify-center overflow-hidden shadow-md">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-3xl font-bold text-secondary-foreground">{initial}</span>
-            )}
-          </div>
-        </div>
+      {/* Top right buttons */}
+      <div style={{ padding: "60px 18px 0", display: "flex", justifyContent: "flex-end", gap: 8 }}>
+        <button
+          onClick={() => setEditOpen(true)}
+          style={{
+            width: 38, height: 38, borderRadius: 99, border: `1px solid ${C.hair}`,
+            background: C.surface, cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <Edit2 size={15} color={C.ink2} />
+        </button>
+        <button
+          onClick={() => setSettingsOpen((v) => !v)}
+          style={{
+            width: 38, height: 38, borderRadius: 99, border: `1px solid ${C.hair}`,
+            background: C.surface, cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <Settings size={15} color={C.ink2} />
+        </button>
       </div>
 
-      {/* Identity */}
-      <div className="mt-16 px-4 flex flex-col items-center text-center gap-1">
-        <div className="flex items-center gap-1.5">
-          <h1 className="text-2xl font-bold text-foreground">{displayName}</h1>
-          <BadgeCheck className="w-5 h-5 text-primary fill-primary/20" />
+      {/* Settings panel */}
+      {settingsOpen && (
+        <div style={{ margin: "12px 16px 0", background: C.surface, borderRadius: 16, border: `1px solid ${C.hair}`, overflow: "hidden" }}>
+          {/* Dark mode */}
+          <div style={{ display: "flex", alignItems: "center", padding: "14px 16px", gap: 12, borderBottom: `1px solid ${C.hair}` }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: C.hair2, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {isDark ? <Moon size={14} color={C.ink2} /> : <Sun size={14} color={C.ink2} />}
+            </div>
+            <span style={{ flex: 1, fontSize: 15, fontWeight: 500 }}>Dark Mode</span>
+            <Switch checked={isDark} onCheckedChange={toggleTheme} />
+          </div>
+          {/* Sign out */}
+          <button onClick={handleSignOut} style={{
+            width: "100%", display: "flex", alignItems: "center", padding: "14px 16px", gap: 12,
+            border: "none", background: "transparent", cursor: "pointer", fontFamily: font,
+          }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(220,60,60,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <LogOut size={14} color={C.red} />
+            </div>
+            <span style={{ flex: 1, fontSize: 15, fontWeight: 500, color: C.red, textAlign: "left" }}>Sign Out</span>
+          </button>
         </div>
-        <p className="text-sm text-muted-foreground">@{username}</p>
-        {joinedDate && (
-          <p className="text-xs text-muted-foreground">Joined {joinedDate}</p>
+      )}
+
+      {/* Avatar + identity */}
+      <div style={{ padding: "20px 22px 0", textAlign: "center" }}>
+        <div style={{
+          width: 88, height: 88, borderRadius: 99, margin: "0 auto",
+          background: "linear-gradient(135deg, #D9C9A8, #B5956B)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 28, fontWeight: 700, color: "#fff",
+          border: "3px solid #fff", boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
+          overflow: "hidden",
+        }}>
+          {avatarUrl ? (
+            <img src={avatarUrl} alt={displayName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          ) : (
+            <span>{initial}</span>
+          )}
+        </div>
+
+        <div style={{ fontSize: 22, fontWeight: 700, marginTop: 14, letterSpacing: -0.4 }}>
+          {displayName}
+        </div>
+        <div style={{ fontSize: 13, color: C.ink3, marginTop: 2 }}>@{username}</div>
+
+        {/* Available chip */}
+        <div style={{
+          marginTop: 10, display: "inline-flex", gap: 5, alignItems: "center",
+          padding: "4px 10px", borderRadius: 99, background: C.greenSoft,
+          color: C.greenInk, fontSize: 11, fontWeight: 600,
+        }}>
+          <div style={{ width: 6, height: 6, borderRadius: 99, background: C.green }} />
+          Available to hoop today
+        </div>
+
+        {profile?.bio && (
+          <div style={{ fontSize: 13, color: C.ink2, marginTop: 10, lineHeight: 1.5 }}>
+            {profile.bio}
+          </div>
         )}
       </div>
 
-      <div className="px-4 mt-5 flex flex-col gap-3">
-        {/* Stats */}
-        <div
-          className="bg-card rounded-2xl p-4 flex flex-col items-center"
-          style={{ border: "0.5px solid hsl(var(--border))", boxShadow: "var(--shadow-card)" }}
-        >
-          <span className="text-[28px] font-bold text-foreground tracking-tight">{gamesPlayed}</span>
-          <span className="text-xs text-muted-foreground mt-0.5">games played</span>
-        </div>
+      {/* Stats row */}
+      <div style={{ padding: "20px 14px 0", display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
+        {[
+          { v: String(gamesPlayed), l: "Games" },
+          { v: String(rating), l: "Rating" },
+          { v: String(distinctCourts || "—"), l: "Courts" },
+        ].map((s) => (
+          <div key={s.l} style={{
+            background: C.surface, border: `1px solid ${C.hair}`,
+            borderRadius: 16, padding: "14px 10px", textAlign: "center",
+          }}>
+            <div style={{ fontSize: 22, fontWeight: 700 }}>{s.v}</div>
+            <div style={{ fontSize: 11, color: C.ink3, marginTop: 2 }}>{s.l}</div>
+          </div>
+        ))}
+      </div>
 
-        {/* Bio */}
-        <div
-          className="bg-card rounded-2xl p-4"
-          style={{ border: "0.5px solid hsl(var(--border))", boxShadow: "var(--shadow-card)" }}
-        >
-          <h2 className="text-[13px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Bio</h2>
-          <p className="text-[15px] text-foreground leading-relaxed">
-            {profile?.bio || "No bio yet. Tap edit to add one."}
-          </p>
+      {/* Skill level */}
+      <div style={{ padding: "10px 14px 0" }}>
+        <div style={{
+          background: C.surface, border: `1px solid ${C.hair}`, borderRadius: 16, padding: 16,
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>Skill level</div>
+            <div style={{ fontSize: 12, color: C.ink3 }}>{skillLabel}</div>
+          </div>
+          <div style={{ display: "flex", gap: 5, marginTop: 12 }}>
+            {SKILL_LEVELS.map((l, i) => (
+              <div key={l} style={{
+                flex: 1, height: 5, borderRadius: 99,
+                background: skillIndex >= 0 && i <= skillIndex ? C.ink : C.hair,
+              }} />
+            ))}
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
+            <div style={{ fontSize: 10, color: C.ink3 }}>Beginner</div>
+            <div style={{ fontSize: 10, color: C.ink3 }}>Pro</div>
+          </div>
         </div>
+      </div>
 
-        {/* Sports */}
-        <div>
-          <h2 className="text-[17px] font-bold text-foreground mb-2 tracking-tight">Sports</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {DEMO_SPORTS.map((sport) => (
-              <div
-                key={sport.name}
-                className="bg-card rounded-2xl p-4 flex flex-col items-center gap-2 ios-card-tap"
-                style={{ border: "0.5px solid hsl(var(--border))", boxShadow: "var(--shadow-card)" }}
-              >
-                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground">
-                  {SPORT_ICONS[sport.name] ?? <Activity className="w-6 h-6" />}
+      {/* Preferences */}
+      <div style={{ padding: "10px 14px 0" }}>
+        <div style={{
+          background: C.surface, border: `1px solid ${C.hair}`, borderRadius: 16, overflow: "hidden",
+        }}>
+          {[
+            { l: "Sport", v: "Basketball" },
+            { l: "Position", v: profile?.position || "—" },
+            { l: "Preferred vibe", v: profile?.play_styles?.join(", ") || "—" },
+            { l: "Availability", v: profile?.availability?.join(", ") || "—" },
+          ].map((r, i, a) => (
+            <div key={r.l} style={{
+              padding: "14px 16px", display: "flex", justifyContent: "space-between",
+              borderBottom: i < a.length - 1 ? `1px solid ${C.hair}` : "none",
+            }}>
+              <div style={{ fontSize: 13, color: C.ink3 }}>{r.l}</div>
+              <div style={{ fontSize: 13, fontWeight: 500 }}>{r.v}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Recent games */}
+      {recentGames.length > 0 && (
+        <>
+          <div style={{ padding: "20px 22px 4px", fontSize: 14, fontWeight: 600 }}>Recent games</div>
+          <div style={{ padding: "0 14px 0", display: "flex", flexDirection: "column", gap: 6 }}>
+            {recentGames.map((game) => (
+              <div key={game.id} style={{
+                background: C.surface, border: `1px solid ${C.hair}`, borderRadius: 12,
+                padding: 12, display: "flex", alignItems: "center", gap: 12,
+                cursor: "pointer",
+              }} onClick={() => navigate("/games")}>
+                <div style={{ width: 8, height: 8, borderRadius: 99, background: C.green, flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 500 }}>{game.title}</div>
+                  <div style={{ fontSize: 11, color: C.ink3, marginTop: 2 }}>{game.court_name} · {game.date}</div>
                 </div>
-                <div className="text-center">
-                  <p className="text-[15px] font-semibold text-foreground">{sport.name}</p>
-                  <p className={cn("text-xs font-medium", SKILL_COLORS[sport.level] ?? "text-muted-foreground")}>
-                    {sport.level}
-                  </p>
-                </div>
+                <ChevIcon />
               </div>
             ))}
-            <div
-              className="bg-card rounded-2xl p-4 flex flex-col items-center gap-2"
-              style={{ border: "0.5px solid hsl(var(--border))", boxShadow: "var(--shadow-card)" }}
-            >
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground">
-                <span className="text-lg font-bold">{gamesCreated}</span>
-              </div>
-              <div className="text-center">
-                <p className="text-[15px] font-semibold text-foreground">Games</p>
-                <p className="text-xs text-muted-foreground">created</p>
-              </div>
-            </div>
           </div>
+        </>
+      )}
+
+      {/* Empty games state */}
+      {recentGames.length === 0 && (
+        <div style={{ padding: "20px 22px 0", textAlign: "center" }}>
+          <div style={{ fontSize: 13, color: C.ink3 }}>No games yet. Host or join a game!</div>
         </div>
+      )}
 
-        {/* Settings (collapsible) — iOS inset grouped style */}
-        {settingsOpen && (
-          <div className="flex flex-col gap-4 mt-1">
-            {/* Appearance group */}
-            <div className="ios-group">
-              <div className="ios-group-row">
-                <div className="w-8 h-8 rounded-[8px] bg-muted flex items-center justify-center">
-                  {isDark ? (
-                    <Moon className="w-4 h-4 text-muted-foreground" />
-                  ) : (
-                    <Sun className="w-4 h-4 text-muted-foreground" />
-                  )}
-                </div>
-                <span className="flex-1 text-[15px] font-medium text-foreground">Dark Mode</span>
-                <Switch checked={isDark} onCheckedChange={toggleTheme} />
-              </div>
-            </div>
-
-            {/* Navigation group */}
-            <div className="ios-group">
-              {[
-                { label: "My Games", icon: Calendar, route: "/games" },
-                { label: "Find Players", icon: Users, route: "/players" },
-                { label: "Find Courts", icon: MapPin, route: "/courts" },
-              ].map((item) => (
-                <button
-                  key={item.label}
-                  type="button"
-                  onClick={() => navigate(item.route)}
-                  className="ios-group-row w-full ios-tap"
-                >
-                  <div className="w-8 h-8 rounded-[8px] bg-muted flex items-center justify-center">
-                    <item.icon className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                  <span className="flex-1 text-[15px] font-medium text-foreground text-left">{item.label}</span>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground/60" />
-                </button>
-              ))}
-            </div>
-
-            {/* Destructive group */}
-            <div className="ios-group">
-              <button
-                type="button"
-                onClick={handleSignOut}
-                className="ios-group-row w-full ios-tap"
-              >
-                <div className="w-8 h-8 rounded-[8px] bg-destructive/10 flex items-center justify-center">
-                  <LogOut className="w-4 h-4 text-destructive" />
-                </div>
-                <span className="flex-1 text-[15px] font-medium text-destructive text-left">Sign Out</span>
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Edit Profile Sheet */}
       <EditProfileSheet
         open={editOpen}
         onOpenChange={setEditOpen}

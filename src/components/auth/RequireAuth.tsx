@@ -1,9 +1,9 @@
 import { ReactNode } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
 interface RequireAuthProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 export function RequireAuth({ children }: RequireAuthProps) {
@@ -22,9 +22,8 @@ export function RequireAuth({ children }: RequireAuthProps) {
   }
 
   if (!user) {
-    // Redirect to auth page, but save the intended destination
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  return <>{children}</>;
+  return <>{children ?? <Outlet />}</>;
 }

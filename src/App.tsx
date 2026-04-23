@@ -29,6 +29,7 @@ const GamesPage = lazy(() => import("@/pages/GamesPage"));
 const CreateGamePage = lazy(() => import("@/pages/CreateGamePage"));
 const PlayersPage = lazy(() => import("@/pages/PlayersPage"));
 const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
+const OnboardingPage = lazy(() => import("@/pages/OnboardingPage"));
 const InstallPage = lazy(() => import("@/pages/InstallPage"));
 const AuthPage = lazy(() => import("@/pages/AuthPage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
@@ -92,6 +93,9 @@ const App = () => {
                         <Route path="/create-game" element={<CreateGamePage />} />
                         <Route path="/players" element={<PlayersPage />} />
                         <Route path="/profile" element={<ProfilePage />} />
+                      </Route>
+                      <Route element={<RequireAuth />}>
+                        <Route path="/onboarding" element={<OnboardingPage />} />
                       </Route>
                       <Route path="/auth" element={<AuthPage />} />
                       <Route path="/install" element={<InstallPage />} />

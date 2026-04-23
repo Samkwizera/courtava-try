@@ -80,7 +80,7 @@ export default function AuthPage() {
           display_name: displayName || email.split("@")[0],
         });
         toast.success("Welcome to Courtava!");
-        navigate("/");
+        navigate("/onboarding");
       } else if (data.user && !data.session) {
         toast.success("Check your email to confirm your account!");
       }

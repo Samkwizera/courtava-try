@@ -1,61 +1,100 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ChevronDown, Minus, Plus, Check, Share2, Calendar, Copy } from "lucide-react";
-import { IosDateTimePicker } from "@/components/ui/IosDrumPicker";
-import { toast } from "@/components/ui/sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { useGames, GameInsert } from "@/hooks/useGames";
 import { useCourts } from "@/hooks/useCourts";
-import { cn } from "@/lib/utils";
+import { useCheckIns } from "@/hooks/useCheckIns";
+import { IosDateTimePicker } from "@/components/ui/IosDrumPicker";
 
-const TOTAL_STEPS = 7;
+const C = {
+  bg: "hsl(var(--background))",
+  surface: "hsl(var(--card))",
+  ink: "hsl(var(--foreground))",
+  ink2: "hsl(var(--muted-foreground))",
+  ink3: "hsl(var(--muted-foreground))",
+  hair: "hsl(var(--border))",
+  hair2: "hsl(var(--muted))",
+  green: "oklch(0.68 0.14 150)",
+  greenSoft: "hsl(var(--secondary))",
+  greenInk: "hsl(var(--secondary-foreground))",
+};
 
-function ProgressBar({ step }: { step: number }) {
+const font = `"Inter", -apple-system, system-ui, sans-serif`;
+
+const HEAT_META: Record<string, { color: string; ring: string }> = {
+  high:   { color: C.green,  ring: "rgba(46,160,100,0.22)" },
+  medium: { color: "oklch(0.78 0.12 75)", ring: "rgba(220,170,70,0.22)" },
+  low:    { color: C.ink3,   ring: "rgba(138,138,136,0.2)" },
+};
+
+function getHeat(count: number): "high" | "medium" | "low" {
+  if (count >= 6) return "high";
+  if (count >= 2) return "medium";
+  return "low";
+}
+
+function BackIcon() {
   return (
-    <div className="w-full h-1 bg-secondary rounded-full overflow-hidden">
-      <div
-        className="h-full bg-foreground rounded-full transition-all duration-300"
-        style={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
-      />
-    </div>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M15 18L9 12L15 6" stroke={C.ink} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
   );
 }
 
-function StepHeader({ title, description }: { title: string; description: string }) {
+function CheckIcon() {
   return (
-    <div className="mb-8">
-      <h1 className="text-2xl font-bold text-foreground mb-2">{title}</h1>
-      <p className="text-sm text-muted-foreground">{description}</p>
-    </div>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+      <path d="M5 12l4 4 10-10" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
   );
 }
 
-function ToggleOption({
-  label,
-  selected,
-  onClick,
-}: {
-  label: string;
-  selected: boolean;
-  onClick: () => void;
-}) {
+function ClockIcon() {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "px-5 py-2.5 rounded-md text-sm font-medium transition-colors border",
-        selected
-          ? "bg-foreground text-background border-foreground"
-          : "bg-background text-foreground border-border hover:bg-secondary"
-      )}
-    >
-      {label}
-    </button>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="9" stroke={C.ink2} strokeWidth="1.7"/>
+      <path d="M12 7v5l3 2" stroke={C.ink2} strokeWidth="1.7" strokeLinecap="round"/>
+    </svg>
   );
+}
+
+function UsersIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+      <circle cx="9" cy="9" r="3.5" stroke={C.ink2} strokeWidth="1.6"/>
+      <path d="M2 20c1-3.5 3.5-5 7-5s6 1.5 7 5" stroke={C.ink2} strokeWidth="1.6" strokeLinecap="round"/>
+      <path d="M15 7a3 3 0 1 1 0 6 M17 15c2 .5 4 1.5 5 4" stroke={C.ink2} strokeWidth="1.6" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+function FlameIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill={C.green}>
+      <path d="M12 2s1 3 3 5 3 3 3 6a6 6 0 1 1-12 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3 0-6 2-10z"/>
+    </svg>
+  );
+}
+
+function formatTime(t: string) {
+  const [h, m] = t.split(":");
+  const hour = parseInt(h);
+  const ampm = hour >= 12 ? "PM" : "AM";
+  return `${hour % 12 || 12}:${m} ${ampm}`;
+}
+
+function getNowTime() {
+  const now = new Date();
+  return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+}
+
+function getThirtyMinTime() {
+  const now = new Date(Date.now() + 30 * 60 * 1000);
+  return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+}
+
+function getTodayDate() {
+  return new Date().toISOString().split("T")[0];
 }
 
 export default function CreateGamePage() {
@@ -63,507 +102,449 @@ export default function CreateGamePage() {
   const { user } = useAuth();
   const { addGame, isAdding } = useGames();
   const { dbCourts } = useCourts();
+  const { checkIns, checkIn: doCheckIn } = useCheckIns();
 
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [successMode, setSuccessMode] = useState<"checkin" | "host">("checkin");
 
-  // Step 1: Name & Description
-  const [gameName, setGameName] = useState("");
-  const [description, setDescription] = useState("");
-
-  // Step 2: Sport & Level
-  const [sport, setSport] = useState("Basketball");
-  const [level, setLevel] = useState("");
-
-  // Step 3: Court settings
-  const [courtAccess, setCourtAccess] = useState<"Public" | "Private">("Public");
-  const [venue, setVenue] = useState<"Outdoor" | "Indoor">("Outdoor");
-  const [gameType, setGameType] = useState<"Individual" | "Teams">("Individual");
-  const [visibility, setVisibility] = useState<"Public" | "Private">("Public");
-
-  // Step 4: Location
+  // Step 1
+  const [mode, setMode] = useState<"checkin" | "host">("checkin");
   const [courtId, setCourtId] = useState("");
 
-  // Step 5: Date & Time
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [duration, setDuration] = useState("60");
+  // Step 2
+  const [vibe, setVibe] = useState<"casual" | "pickup" | "compete">("casual");
+  const [when, setWhen] = useState<"now" | "30" | "later">("now");
+  const [size, setSize] = useState(10);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickedDate, setPickedDate] = useState("");
+  const [pickedTime, setPickedTime] = useState("");
 
-  // Step 6: Max players
-  const [maxPlayers, setMaxPlayers] = useState(10);
+  // Step 3
+  const [notifyFriends, setNotifyFriends] = useState(true);
 
   const selectedCourt = dbCourts.find((c) => c.id === courtId);
+  const courtCheckInCount = checkIns.filter((ci) => ci.court_id === courtId).length;
+  const courtHeat = courtId ? getHeat(courtCheckInCount) : "low";
+
+  const courtsForDisplay = dbCourts.slice(0, 5).map((c) => ({
+    ...c,
+    liveCount: checkIns.filter((ci) => ci.court_id === c.id).length,
+    heat: getHeat(checkIns.filter((ci) => ci.court_id === c.id).length),
+  }));
 
   const canProceed = () => {
-    switch (step) {
-      case 1: return gameName.trim().length > 0;
-      case 2: return sport && level;
-      case 3: return true;
-      case 4: return courtId;
-      case 5: return date && time;
-      case 6: return maxPlayers >= 2;
-      case 7: return true;
-      default: return false;
-    }
+    if (step === 0) return !!courtId;
+    if (step === 1) return when !== "later" || (!!pickedDate && !!pickedTime);
+    return true;
   };
 
-  const handleNext = () => {
-    if (step < TOTAL_STEPS) {
-      setStep(step + 1);
-    }
+  const getEffectiveDateTime = () => {
+    if (when === "now") return { date: getTodayDate(), time: getNowTime() };
+    if (when === "30") return { date: getTodayDate(), time: getThirtyMinTime() };
+    return { date: pickedDate, time: pickedTime };
   };
 
-  const handleBack = () => {
-    if (step > 1) {
-      setStep(step - 1);
+  const handleConfirm = async () => {
+    if (!user || !courtId) return;
+
+    const displayName = user.user_metadata?.display_name || user.email?.split("@")[0] || "Player";
+    setSuccessMode(mode);
+
+    if (mode === "checkin") {
+      const result = await doCheckIn(courtId);
+      if (result) setShowSuccess(true);
     } else {
-      navigate(-1);
+      const { date, time } = getEffectiveDateTime();
+      const vibeMap = { casual: "Casual", pickup: "Pickup", compete: "Competitive" };
+      const skillMap = { casual: "Beginner", pickup: "Intermediate", compete: "Advanced" };
+      const formatMap = { casual: "Individual", pickup: "5v5", compete: "5v5" };
+
+      const game: GameInsert = {
+        title: `${displayName}'s ${vibeMap[vibe]} game at ${selectedCourt?.name || "TBD"}`,
+        court_id: courtId || null,
+        court_name: selectedCourt?.name || "TBD",
+        date,
+        time,
+        format: formatMap[vibe],
+        skill_level: skillMap[vibe],
+        max_players: size,
+        host_id: user.id,
+        host_name: displayName,
+      };
+
+      try {
+        await addGame(game);
+        setShowSuccess(true);
+      } catch {
+        // error handled in hook
+      }
     }
-  };
-
-  const handlePublish = async () => {
-    if (!user) return;
-
-    const game: GameInsert = {
-      title: gameName.trim(),
-      court_id: courtId || null,
-      court_name: selectedCourt?.name || "TBD",
-      date,
-      time,
-      format: gameType === "Teams" ? "5v5" : "Individual",
-      skill_level: level,
-      max_players: maxPlayers,
-      host_id: user.id,
-      host_name: user.user_metadata?.display_name || user.email?.split("@")[0] || "Player",
-    };
-
-    try {
-      await addGame(game);
-      setShowSuccess(true);
-    } catch {
-      // Error handled in hook
-    }
-  };
-
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return "";
-    const d = new Date(dateStr + "T00:00:00");
-    return d.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long" });
-  };
-
-  const formatTime = (timeStr: string) => {
-    if (!timeStr) return "";
-    const [h, m] = timeStr.split(":");
-    const hour = parseInt(h);
-    const ampm = hour >= 12 ? "PM" : "AM";
-    const hour12 = hour % 12 || 12;
-    return `${hour12}:${m} ${ampm}`;
   };
 
   if (showSuccess) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <div className="flex-1 flex flex-col items-center justify-center p-6">
-          <div className="bg-card rounded-lg p-8 max-w-sm w-full text-center border border-border">
-            <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center mx-auto mb-4">
-              <Check className="w-8 h-8 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold text-foreground mb-2">Game Created Successfully!</h2>
-            <p className="text-muted-foreground mb-6">Would you like to share this game with your friends?</p>
-            <Button
-              className="w-full mb-3 h-12 text-base"
-              onClick={async () => {
-                const shareUrl = `${window.location.origin}/games`;
-                const shareData = {
-                  title: gameName,
-                  text: `Join my game: ${gameName}`,
-                  url: shareUrl,
-                };
-                if (navigator.share && navigator.canShare?.(shareData)) {
-                  try {
-                    await navigator.share(shareData);
-                  } catch {
-                    // User cancelled — do nothing
-                  }
-                } else {
-                  await navigator.clipboard.writeText(shareUrl);
-                  toast("Link copied!", {
-                    description: "Share the link with your friends.",
-                  });
-                }
-              }}
-            >
-              <Share2 className="w-4 h-4 mr-2" />
-              Share Game
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full h-12 text-base"
-              onClick={() => navigate("/games")}
-            >
-              Maybe Later
-            </Button>
+      <div style={{ minHeight: "100vh", background: C.bg, fontFamily: font, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div style={{ textAlign: "center", maxWidth: 320 }}>
+          <div style={{ fontSize: 56, marginBottom: 16 }}>{successMode === "checkin" ? "✅" : "🎉"}</div>
+          <div style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>
+            {successMode === "checkin" ? "Checked in!" : "Game posted!"}
           </div>
+          <div style={{ fontSize: 14, color: C.ink3, marginBottom: 32 }}>
+            {successMode === "checkin"
+              ? `You're now checked in at ${selectedCourt?.name}. Let the neighborhood know you're hooping!`
+              : `Your game at ${selectedCourt?.name} is live. Others can now see and join it.`}
+          </div>
+          <button onClick={() => navigate("/")} style={{
+            width: "100%", height: 54, borderRadius: 16,
+            background: C.green, color: "#fff", border: "none",
+            fontSize: 16, fontWeight: 600, cursor: "pointer",
+            boxShadow: `0 8px 24px -8px ${C.green}`, fontFamily: font,
+            marginBottom: 10,
+          }}>Back to home</button>
+          <button onClick={() => navigate("/games")} style={{
+            width: "100%", height: 54, borderRadius: 16,
+            background: C.surface, color: C.ink, border: `1px solid ${C.hair}`,
+            fontSize: 16, fontWeight: 600, cursor: "pointer", fontFamily: font,
+          }}>View feed</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Top bar */}
-      <div className="px-4 pt-4 pb-2 safe-top">
-        <div className="flex items-center gap-3 mb-3">
-          <button onClick={handleBack} className="p-1">
-            <ArrowLeft className="w-5 h-5 text-foreground" />
+    <div style={{ minHeight: "100vh", background: C.bg, fontFamily: font, color: C.ink, display: "flex", flexDirection: "column" }}>
+
+      {/* Top bar with progress */}
+      <div style={{ padding: "60px 18px 8px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button
+            onClick={() => step > 0 ? setStep(step - 1) : navigate(-1)}
+            style={{
+              width: 36, height: 36, borderRadius: 99, border: `1px solid ${C.hair}`,
+              background: C.surface, cursor: "pointer", display: "flex",
+              alignItems: "center", justifyContent: "center", flexShrink: 0,
+            }}
+          >
+            <BackIcon />
           </button>
-          <div className="flex-1">
-            <ProgressBar step={step} />
+          <div style={{ flex: 1, height: 4, background: C.hair, borderRadius: 99, overflow: "hidden" }}>
+            <div style={{
+              width: `${((step + 1) / 3) * 100}%`, height: "100%",
+              background: C.green, transition: "width 0.3s",
+              borderRadius: 99,
+            }} />
           </div>
+          <div style={{ fontSize: 12, color: C.ink3, fontWeight: 500, flexShrink: 0 }}>{step + 1}/3</div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 px-6 flex flex-col">
-        {step === 1 && (
-          <div className="flex-1 flex flex-col">
-            <StepHeader
-              title="Enter the game name"
-              description="Your game name will be displayed to other users on the dashboard"
-            />
-            <div className="flex-1 flex flex-col justify-center gap-4">
-              <Input
-                placeholder="Game name"
-                value={gameName}
-                onChange={(e) => setGameName(e.target.value)}
-                className="h-14 text-base rounded-lg bg-muted border border-border"
-                maxLength={100}
+      {/* Step content */}
+      <div style={{ flex: 1, padding: "24px 22px 0", overflowY: "auto", paddingBottom: 220 }}>
+
+        {/* ── STEP 0: Mode + Court ── */}
+        {step === 0 && (
+          <>
+            <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: -0.6 }}>What are you up to?</div>
+            <div style={{ fontSize: 14, color: C.ink3, marginTop: 6 }}>Let the neighborhood know you're hooping.</div>
+
+            {/* Mode cards */}
+            <div style={{ marginTop: 22, display: "flex", flexDirection: "column", gap: 10 }}>
+              <ModeCard
+                active={mode === "checkin"}
+                onClick={() => setMode("checkin")}
+                title="Check in"
+                sub="I'm at a court, shooting around"
+                emoji="🏀"
               />
-              <Input
-                placeholder="Game Description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="h-14 text-base rounded-lg bg-muted border border-border"
-                maxLength={200}
+              <ModeCard
+                active={mode === "host"}
+                onClick={() => setMode("host")}
+                title="Host a game"
+                sub="Open a spot, invite players"
+                emoji="📣"
               />
             </div>
-          </div>
-        )}
 
-        {step === 2 && (
-          <div className="flex-1 flex flex-col">
-            <StepHeader
-              title="Select the sport and level"
-              description="Pick the sport and level of the event you're creating"
-            />
-            <div className="flex-1 flex flex-col justify-center gap-6">
-              <Select value={sport} onValueChange={setSport}>
-                <SelectTrigger className="h-14 text-base rounded-lg bg-muted border border-border">
-                  <SelectValue placeholder="Choose sports" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Basketball">Basketball</SelectItem>
-                  <SelectItem value="Football">Football</SelectItem>
-                  <SelectItem value="Tennis">Tennis</SelectItem>
-                  <SelectItem value="Volleyball">Volleyball</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-3">Skill Level</p>
-                <div className="flex flex-wrap gap-2">
-                  {["Beginner", "Intermediate", "Advanced", "Expert"].map((l) => (
-                    <ToggleOption key={l} label={l} selected={level === l} onClick={() => setLevel(l)} />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="flex-1 flex flex-col">
-            <StepHeader
-              title="Game settings"
-              description="Configure how your game will be set up"
-            />
-            <div className="flex-1 flex flex-col justify-center gap-6">
-              <div>
-                <p className="text-sm font-semibold text-foreground mb-2 text-center">Is the court publicly available?</p>
-                <div className="flex justify-center gap-3">
-                  <ToggleOption label="Public" selected={courtAccess === "Public"} onClick={() => setCourtAccess("Public")} />
-                  <ToggleOption label="Private" selected={courtAccess === "Private"} onClick={() => setCourtAccess("Private")} />
-                </div>
-                <p className="text-xs text-muted-foreground text-center mt-1.5">
-                  {courtAccess === "Private" ? "Private court that you control - only joined players will be there" : "Public court open to anyone"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-sm font-semibold text-foreground mb-2 text-center">Is it an indoor or outdoor court?</p>
-                <div className="flex justify-center gap-3">
-                  <ToggleOption label="Outdoor" selected={venue === "Outdoor"} onClick={() => setVenue("Outdoor")} />
-                  <ToggleOption label="Indoor" selected={venue === "Indoor"} onClick={() => setVenue("Indoor")} />
-                </div>
-              </div>
-
-              <div>
-                <p className="text-sm font-semibold text-foreground mb-2 text-center">Game Type</p>
-                <div className="flex justify-center gap-3">
-                  <ToggleOption label="Individual" selected={gameType === "Individual"} onClick={() => setGameType("Individual")} />
-                  <ToggleOption label="Teams" selected={gameType === "Teams"} onClick={() => setGameType("Teams")} />
-                </div>
-                <p className="text-xs text-muted-foreground text-center mt-1.5">
-                  {gameType === "Individual" ? "Individual players join the game" : "Players join as teams"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-sm font-semibold text-foreground mb-2 text-center">Should your game be visible to everyone?</p>
-                <div className="flex justify-center gap-3">
-                  <ToggleOption label="Public" selected={visibility === "Public"} onClick={() => setVisibility("Public")} />
-                  <ToggleOption label="Private" selected={visibility === "Private"} onClick={() => setVisibility("Private")} />
-                </div>
-                <p className="text-xs text-muted-foreground text-center mt-1.5">
-                  {visibility === "Private" ? "Your game will be hidden - players can only join with your game code or link" : "Visible to all players in your area"}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {step === 4 && (
-          <div className="flex-1 flex flex-col">
-            <StepHeader
-              title="Where will the game take place?"
-              description="Select one of the courts on the map or type in the location of the game"
-            />
-            <div className="flex-1 flex flex-col justify-center gap-4">
-              <Select value={courtId} onValueChange={setCourtId}>
-                <SelectTrigger className="h-14 text-base rounded-lg bg-muted border border-border">
-                  <SelectValue placeholder="Select a court" />
-                </SelectTrigger>
-                <SelectContent>
-                  {dbCourts.map((court) => (
-                    <SelectItem key={court.id} value={court.id}>
-                      {court.name} — {court.address}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {selectedCourt && (
-                <div className="space-y-3">
-                  <div className="bg-muted rounded-lg p-4">
-                    <p className="text-xs text-muted-foreground uppercase font-medium mb-1">Display Location</p>
-                    <p className="font-medium text-foreground">{selectedCourt.name}</p>
-                  </div>
-                  <div className="bg-muted rounded-lg p-4">
-                    <p className="text-xs text-muted-foreground uppercase font-medium mb-1">Street Address</p>
-                    <p className="font-medium text-foreground">{selectedCourt.address}</p>
-                  </div>
-                  <div className="flex items-center gap-2 justify-center">
-                    <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                      <Check className="w-3 h-3 text-primary-foreground" />
+            {/* Court picker */}
+            <div style={{ marginTop: 24, fontSize: 13, fontWeight: 600, color: C.ink2 }}>Which court?</div>
+            <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+              {courtsForDisplay.map((c) => {
+                const meta = HEAT_META[c.heat];
+                return (
+                  <label key={c.id} onClick={() => setCourtId(c.id)} style={{
+                    display: "flex", alignItems: "center", gap: 12,
+                    background: C.surface, border: `1px solid ${courtId === c.id ? C.ink : C.hair}`,
+                    borderRadius: 14, padding: 12, cursor: "pointer",
+                    transition: "border-color 0.15s",
+                  }}>
+                    <div style={{
+                      width: 20, height: 20, borderRadius: 99, flexShrink: 0,
+                      border: `2px solid ${courtId === c.id ? C.ink : C.hair}`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      {courtId === c.id && (
+                        <div style={{ width: 10, height: 10, borderRadius: 99, background: C.ink }} />
+                      )}
                     </div>
-                    <span className="text-sm font-medium text-primary">Location successfully selected</span>
-                  </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 500 }}>{c.name}</div>
+                      <div style={{ fontSize: 12, color: C.ink3 }}>
+                        {c.address}
+                        {c.liveCount > 0 && ` · ${c.liveCount} here`}
+                      </div>
+                    </div>
+                    <div style={{ width: 8, height: 8, borderRadius: 99, background: meta.color, flexShrink: 0 }} />
+                  </label>
+                );
+              })}
+
+              {dbCourts.length > 5 && (
+                <button onClick={() => navigate("/courts")} style={{
+                  padding: "10px 14px", borderRadius: 14, border: `1px solid ${C.hair}`,
+                  background: C.surface, fontSize: 13, fontWeight: 500, color: C.ink3,
+                  cursor: "pointer", fontFamily: font, textAlign: "left",
+                }}>
+                  See all courts →
+                </button>
+              )}
+
+              {dbCourts.length === 0 && (
+                <div style={{ textAlign: "center", padding: "20px 0", color: C.ink3, fontSize: 13 }}>
+                  No courts yet.{" "}
+                  <button onClick={() => navigate("/courts")} style={{
+                    background: "none", border: "none", color: C.green,
+                    fontWeight: 600, cursor: "pointer", fontFamily: font, fontSize: 13,
+                  }}>Add one →</button>
                 </div>
               )}
             </div>
-          </div>
+          </>
         )}
 
-        {step === 5 && (
-          <div className="flex-1 flex flex-col">
-            <StepHeader
-              title="When will the game take place?"
-              description="Set a date and the start time for the game"
-            />
-            <div className="flex-1 flex flex-col justify-center gap-4">
-              {/* Tappable date/time display — opens drum picker */}
-              <button
-                type="button"
-                onClick={() => setPickerOpen(true)}
-                className="w-full ios-card-tap"
-                style={{
-                  background: "hsl(var(--card))",
-                  border: "0.5px solid hsl(var(--border))",
-                  borderRadius: 16,
-                  boxShadow: "var(--shadow-card)",
-                  padding: "0",
-                  overflow: "hidden",
-                  textAlign: "left",
-                }}
-              >
-                {date && time ? (
-                  <div className="px-4 py-4">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Date & Start Time</p>
-                    <p className="text-[20px] font-bold text-foreground tracking-tight">
-                      {formatDate(date)}
-                    </p>
-                    <p className="text-[17px] text-primary font-semibold mt-0.5">
-                      {formatTime(time)}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3 px-4 py-4">
-                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                      <Calendar className="w-5 h-5 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <p className="text-[15px] font-medium text-foreground">Set Date & Time</p>
-                      <p className="text-sm text-muted-foreground">Tap to choose</p>
-                    </div>
-                    <ChevronDown className="w-5 h-5 text-muted-foreground ml-auto" />
-                  </div>
-                )}
-              </button>
+        {/* ── STEP 1: Vibe + When + Players ── */}
+        {step === 1 && (
+          <>
+            <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: -0.6 }}>Set the vibe</div>
+            <div style={{ fontSize: 14, color: C.ink3, marginTop: 6 }}>Help others know what to expect.</div>
 
-              {/* Duration */}
-              <div>
-                <p className="text-sm font-semibold text-foreground text-center mb-2">Game duration</p>
-                <p className="text-2xl font-bold text-foreground text-center mb-3">
-                  {parseInt(duration) >= 60 ? `${parseInt(duration) / 60} hour${parseInt(duration) > 60 ? "s" : ""}` : `${duration} min`}
-                </p>
-                <div className="flex justify-center gap-3">
-                  {["30", "60", "90", "120"].map((d) => (
-                    <button
-                      key={d}
-                      onClick={() => setDuration(d)}
-                      className={cn(
-                        "w-14 h-14 rounded-xl text-sm font-medium ios-tap",
-                        duration === d
-                          ? "bg-foreground text-background"
-                          : "bg-muted text-foreground"
-                      )}
-                    >
-                      {d}
-                    </button>
-                  ))}
-                </div>
+            {/* Vibe */}
+            <div style={{ marginTop: 22 }}>
+              <div style={{ fontSize: 12, color: C.ink3, fontWeight: 600, letterSpacing: 0.3, textTransform: "uppercase" }}>Vibe</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginTop: 10 }}>
+                {([
+                  { k: "casual", label: "Casual", sub: "Just shooting" },
+                  { k: "pickup", label: "Pickup", sub: "5v5 for fun" },
+                  { k: "compete", label: "Compete", sub: "Bring it" },
+                ] as const).map((v) => (
+                  <div key={v.k} onClick={() => setVibe(v.k)} style={{
+                    background: vibe === v.k ? C.ink : "#fff",
+                    color: vibe === v.k ? "#fff" : C.ink,
+                    border: `1px solid ${vibe === v.k ? C.ink : C.hair}`,
+                    borderRadius: 14, padding: 12, cursor: "pointer", textAlign: "center",
+                    transition: "background 0.15s, color 0.15s",
+                  }}>
+                    <div style={{ fontSize: 13, fontWeight: 600 }}>{v.label}</div>
+                    <div style={{ fontSize: 10, opacity: 0.7, marginTop: 2 }}>{v.sub}</div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Drum picker sheet */}
+            {/* When */}
+            <div style={{ marginTop: 22 }}>
+              <div style={{ fontSize: 12, color: C.ink3, fontWeight: 600, letterSpacing: 0.3, textTransform: "uppercase" }}>When</div>
+              <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                {([
+                  { k: "now", label: "Right now", sub: "Start immediately" },
+                  { k: "30", label: "In 30 min", sub: "Time to gather" },
+                  { k: "later", label: "Pick time", sub: "Schedule ahead" },
+                ] as const).map((w) => (
+                  <div key={w.k} onClick={() => { setWhen(w.k); if (w.k === "later") setPickerOpen(true); }} style={{
+                    flex: 1,
+                    background: when === w.k ? C.greenSoft : "#fff",
+                    border: `1px solid ${when === w.k ? C.green : C.hair}`,
+                    borderRadius: 14, padding: 12, cursor: "pointer", textAlign: "center",
+                    transition: "background 0.15s",
+                  }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: when === w.k ? C.greenInk : C.ink }}>{w.label}</div>
+                    <div style={{ fontSize: 10, color: C.ink3, marginTop: 2 }}>
+                      {w.k === "later" && pickedDate && pickedTime
+                        ? `${pickedDate} ${formatTime(pickedTime)}`
+                        : w.sub}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Players (only for host) */}
+            {mode === "host" && (
+              <div style={{ marginTop: 22 }}>
+                <div style={{ fontSize: 12, color: C.ink3, fontWeight: 600, letterSpacing: 0.3, textTransform: "uppercase" }}>
+                  Players · {size} max
+                </div>
+                <div style={{
+                  marginTop: 12, background: C.surface, border: `1px solid ${C.hair}`,
+                  borderRadius: 14, padding: 14, display: "flex", alignItems: "center", gap: 14,
+                }}>
+                  <button onClick={() => setSize(Math.max(2, size - 2))} style={{
+                    width: 36, height: 36, borderRadius: 10, background: C.hair2, border: "none",
+                    fontSize: 18, fontWeight: 600, cursor: "pointer",
+                  }}>−</button>
+                  <div style={{ flex: 1, textAlign: "center" }}>
+                    <div style={{ fontSize: 24, fontWeight: 700 }}>{size}</div>
+                    <div style={{ fontSize: 10, color: C.ink3 }}>players</div>
+                  </div>
+                  <button onClick={() => setSize(Math.min(20, size + 2))} style={{
+                    width: 36, height: 36, borderRadius: 10, background: C.hair2, border: "none",
+                    fontSize: 18, fontWeight: 600, cursor: "pointer",
+                  }}>+</button>
+                </div>
+              </div>
+            )}
+
+            {/* Date/time picker */}
             <IosDateTimePicker
               open={pickerOpen}
               onClose={() => setPickerOpen(false)}
-              onConfirm={(d, t) => { setDate(d); setTime(t); }}
-              initialDate={date}
-              initialTime={time}
+              onConfirm={(d, t) => { setPickedDate(d); setPickedTime(t); }}
+              initialDate={pickedDate}
+              initialTime={pickedTime}
             />
-          </div>
+          </>
         )}
 
-        {step === 6 && (
-          <div className="flex-1 flex flex-col">
-            <StepHeader
-              title="What is the maximum amount of players?"
-              description="Select the maximum amount of players that can join the game (2-50). By default, you will be included in the player count"
-            />
-            <div className="flex-1 flex flex-col justify-center">
-              <div className="flex items-center justify-center gap-6">
-                <button
-                  onClick={() => setMaxPlayers(Math.max(2, maxPlayers - 1))}
-                  className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
-                >
-                  <Minus className="w-5 h-5 text-foreground" />
-                </button>
-                <div className="w-20 h-14 rounded-xl bg-secondary flex items-center justify-center">
-                  <span className="text-xl font-bold text-foreground">{maxPlayers}</span>
-                </div>
-                <button
-                  onClick={() => setMaxPlayers(Math.min(50, maxPlayers + 1))}
-                  className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
-                >
-                  <Plus className="w-5 h-5 text-foreground" />
-                </button>
-              </div>
+        {/* ── STEP 2: Preview ── */}
+        {step === 2 && (
+          <>
+            <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: -0.6 }}>Looking good</div>
+            <div style={{ fontSize: 14, color: C.ink3, marginTop: 6 }}>
+              {mode === "host" ? "Here's what we'll post to the feed." : "Here's your check-in."}
             </div>
-          </div>
-        )}
 
-        {step === 7 && (
-          <div className="flex-1 flex flex-col">
-            <StepHeader
-              title="All done!"
-              description="You've successfully created your game. Here's a summary of the details:"
-            />
-            <div className="bg-card rounded-lg border border-border p-5 mb-4">
-              <h3 className="text-xl font-bold text-foreground text-center mb-3">{gameName}</h3>
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                <Check className="w-6 h-6 text-primary" />
-              </div>
-              <p className="text-sm text-primary font-medium text-center mb-4">All done!</p>
-
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Sport</span>
-                  <span className="font-medium text-foreground">{sport}</span>
+            {/* Preview card */}
+            <div style={{
+              marginTop: 22, background: C.surface, borderRadius: 18,
+              border: `1px solid ${C.hair}`, overflow: "hidden",
+            }}>
+              <div style={{
+                height: 90,
+                background: `linear-gradient(135deg, ${C.greenSoft}, #EDE8D3)`,
+                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 42,
+              }}>🏀</div>
+              <div style={{ padding: 16 }}>
+                <div style={{ fontSize: 11, color: C.greenInk, fontWeight: 700, letterSpacing: 0.3 }}>
+                  {mode === "host" ? "OPEN GAME" : "CHECKED IN"}
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Level</span>
-                  <span className="font-medium text-foreground">{level}</span>
+                <div style={{ fontSize: 18, fontWeight: 700, marginTop: 3 }}>
+                  {selectedCourt?.name || "Unknown court"}
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Date</span>
-                  <span className="font-medium text-foreground">{formatDate(date)} {formatTime(time)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Max players</span>
-                  <span className="font-medium text-foreground">{maxPlayers}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Location</span>
-                  <span className="font-medium text-foreground text-right">{selectedCourt?.name || "TBD"}</span>
-                </div>
-                {description && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Description</span>
-                    <span className="font-medium text-foreground text-right max-w-[60%]">{description}</span>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Venue</span>
-                  <span className="font-medium text-foreground">{venue}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Duration</span>
-                  <span className="font-medium text-foreground">
-                    {parseInt(duration) >= 60 ? `${parseInt(duration) / 60} hour${parseInt(duration) > 60 ? "s" : ""}` : `${duration} min`}
-                  </span>
+                <div style={{ display: "flex", gap: 16, marginTop: 10, flexWrap: "wrap" }}>
+                  <MetaItem icon={<ClockIcon />} label={
+                    when === "now" ? "Now" : when === "30" ? "In 30 min" : `${pickedDate} ${pickedTime ? formatTime(pickedTime) : ""}`
+                  } />
+                  {mode === "host" && (
+                    <MetaItem icon={<UsersIcon />} label={`1 of ${size}`} />
+                  )}
+                  <MetaItem icon={<FlameIcon />} label={
+                    vibe === "casual" ? "Casual" : vibe === "pickup" ? "Pickup" : "Competitive"
+                  } />
                 </div>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground text-center">
-              We will notify you about users that join your game!
-            </p>
-          </div>
-        )}
 
-        {/* Bottom button */}
-        <div className="py-4 pb-8">
-          {step < TOTAL_STEPS ? (
-            <Button
-              className="w-full h-14 text-base rounded-lg font-medium"
-              disabled={!canProceed()}
-              onClick={handleNext}
-            >
-              Next
-            </Button>
-          ) : (
-            <Button
-              className="w-full h-14 text-base rounded-lg font-medium"
-              onClick={handlePublish}
-              disabled={isAdding}
-            >
-              {isAdding ? "Publishing..." : "Publish"}
-            </Button>
-          )}
-        </div>
+            {/* Notify friends toggle */}
+            <div onClick={() => setNotifyFriends((v) => !v)} style={{
+              marginTop: 14, background: C.surface, border: `1px solid ${C.hair}`,
+              borderRadius: 14, padding: 14, display: "flex", gap: 12, alignItems: "center",
+              cursor: "pointer",
+            }}>
+              <div style={{
+                width: 20, height: 20, borderRadius: 6,
+                background: notifyFriends ? C.green : C.hair,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0, transition: "background 0.15s",
+              }}>
+                {notifyFriends && <CheckIcon />}
+              </div>
+              <div style={{ flex: 1, fontSize: 13 }}>Notify others nearby</div>
+            </div>
+          </>
+        )}
       </div>
+
+      {/* Sticky CTA */}
+      <div style={{
+        position: "fixed", left: 0, right: 0, bottom: 92, zIndex: 30,
+        padding: "14px 16px 14px",
+        background: `linear-gradient(to top, ${C.bg} 55%, transparent)`,
+      }}>
+        <button
+          disabled={!canProceed() || isAdding}
+          onClick={() => {
+            if (step < 2) setStep(step + 1);
+            else handleConfirm();
+          }}
+          style={{
+            width: "100%", height: 54, borderRadius: 16,
+            background: canProceed() ? C.green : C.hair,
+            color: canProceed() ? "#fff" : C.ink3,
+            border: "none", fontSize: 16, fontWeight: 600, cursor: canProceed() ? "pointer" : "default",
+            boxShadow: canProceed() ? `0 8px 24px -8px ${C.green}` : "none",
+            fontFamily: font, transition: "background 0.2s",
+          }}
+        >
+          {step < 2
+            ? "Continue"
+            : isAdding
+            ? "Posting..."
+            : mode === "host"
+            ? "Post game"
+            : "Check in"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ModeCard({ active, onClick, title, sub, emoji }: {
+  active: boolean; onClick: () => void; title: string; sub: string; emoji: string;
+}) {
+  return (
+    <div onClick={onClick} style={{
+      background: active ? C.ink : "#fff",
+      color: active ? "#fff" : C.ink,
+      border: `1px solid ${active ? C.ink : C.hair}`,
+      borderRadius: 16, padding: 16, cursor: "pointer",
+      display: "flex", gap: 14, alignItems: "center",
+      transition: "background 0.15s, color 0.15s",
+    }}>
+      <div style={{
+        width: 44, height: 44, borderRadius: 12,
+        background: active ? "rgba(255,255,255,0.12)" : C.hair2,
+        display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22,
+        flexShrink: 0,
+      }}>{emoji}</div>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 15, fontWeight: 600 }}>{title}</div>
+        <div style={{ fontSize: 12, opacity: active ? 0.7 : 0.6, marginTop: 2 }}>{sub}</div>
+      </div>
+      <div style={{
+        width: 20, height: 20, borderRadius: 99, flexShrink: 0,
+        border: `2px solid ${active ? "#fff" : C.hair}`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}>
+        {active && <div style={{ width: 10, height: 10, borderRadius: 99, background: C.surface }} />}
+      </div>
+    </div>
+  );
+}
+
+function MetaItem({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <div style={{ display: "flex", gap: 5, alignItems: "center", fontSize: 12, color: C.ink2 }}>
+      {icon}<span>{label}</span>
     </div>
   );
 }

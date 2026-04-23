@@ -5,15 +5,16 @@ import { useCheckIns } from "@/hooks/useCheckIns";
 import { toast } from "sonner";
 
 const C = {
-  bg: "#FAFAF7",
-  ink: "#1A1A1A",
-  ink2: "#4A4A4A",
-  ink3: "#8A8A88",
-  hair: "#EDEDE8",
-  hair2: "#F3F3EE",
+  bg: "hsl(var(--background))",
+  surface: "hsl(var(--card))",
+  ink: "hsl(var(--foreground))",
+  ink2: "hsl(var(--muted-foreground))",
+  ink3: "hsl(var(--muted-foreground))",
+  hair: "hsl(var(--border))",
+  hair2: "hsl(var(--muted))",
   green: "oklch(0.68 0.14 150)",
-  greenSoft: "oklch(0.94 0.05 150)",
-  greenInk: "oklch(0.38 0.10 150)",
+  greenSoft: "hsl(var(--secondary))",
+  greenInk: "hsl(var(--secondary-foreground))",
   amber: "oklch(0.78 0.12 75)",
 };
 
@@ -80,7 +81,7 @@ function CircleBtn({ onClick, children }: { onClick?: () => void; children: Reac
 
 function StatCell({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ background: "#fff", border: `1px solid ${C.hair}`, borderRadius: 12, padding: "10px 12px" }}>
+    <div style={{ background: C.surface, border: `1px solid ${C.hair}`, borderRadius: 12, padding: "10px 12px" }}>
       <div style={{ fontSize: 10, color: C.ink3, fontWeight: 500, letterSpacing: 0.3, textTransform: "uppercase" }}>{label}</div>
       <div style={{ fontSize: 14, fontWeight: 600, marginTop: 2 }}>{value}</div>
     </div>
@@ -160,7 +161,7 @@ export default function CourtDetailsPage() {
   const surfaceLabel = surface.charAt(0).toUpperCase() + surface.slice(1);
 
   return (
-    <div style={{ width: "100%", minHeight: "100vh", background: C.bg, fontFamily: '"Inter", system-ui, sans-serif', color: C.ink, paddingBottom: 140 }}>
+    <div style={{ width: "100%", minHeight: "100vh", background: C.bg, fontFamily: '"Inter", system-ui, sans-serif', color: C.ink, paddingBottom: 200 }}>
 
       {/* Hero */}
       <div style={{ position: "relative", height: 280 }}>
@@ -207,7 +208,7 @@ export default function CourtDetailsPage() {
         </div>
 
         {/* Live player strip */}
-        <div style={{ marginTop: 18, background: "#fff", borderRadius: 16, border: `1px solid ${C.hair}`, padding: 14 }}>
+        <div style={{ marginTop: 18, background: C.surface, borderRadius: 16, border: `1px solid ${C.hair}`, padding: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {playerCount > 0 && (
@@ -249,7 +250,7 @@ export default function CourtDetailsPage() {
         </div>
 
         {/* Activity heatmap */}
-        <div style={{ marginTop: 10, background: "#fff", borderRadius: 16, border: `1px solid ${C.hair}`, padding: 16 }}>
+        <div style={{ marginTop: 10, background: C.surface, borderRadius: 16, border: `1px solid ${C.hair}`, padding: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
             <div style={{ fontSize: 14, fontWeight: 600 }}>Usually busy around 6–7 PM</div>
             <div style={{ fontSize: 11, color: C.ink3 }}>Today</div>
@@ -285,7 +286,7 @@ export default function CourtDetailsPage() {
             { t: "Shootaround · yesterday 7 PM",   s: "4 players" },
           ].map((r, i) => (
             <div key={i} style={{
-              background: "#fff", border: `1px solid ${C.hair}`, borderRadius: 12, padding: 12,
+              background: C.surface, border: `1px solid ${C.hair}`, borderRadius: 12, padding: 12,
               display: "flex", justifyContent: "space-between", alignItems: "center",
             }}>
               <div>
@@ -298,11 +299,11 @@ export default function CourtDetailsPage() {
         </div>
       </div>
 
-      {/* Sticky CTA */}
+      {/* Sticky CTA — sits above the bottom nav (nav: bottom 24 + height 62 = 86px) */}
       <div style={{
-        position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 30,
-        padding: "14px 16px 30px",
-        background: "linear-gradient(to top, #fff 55%, rgba(255,255,255,0))",
+        position: "fixed", left: 0, right: 0, bottom: 92, zIndex: 30,
+        padding: "14px 16px 14px",
+        background: "linear-gradient(to top, rgba(255,255,255,0.98) 60%, rgba(255,255,255,0))",
         display: "flex", gap: 10,
       }}>
         <button
@@ -320,7 +321,7 @@ export default function CourtDetailsPage() {
         </button>
         <button style={{
           width: 54, height: 54, borderRadius: 16,
-          background: "#fff", border: `1px solid ${C.hair}`, cursor: "pointer",
+          background: C.surface, border: `1px solid ${C.hair}`, cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>
           <WaveIcon />

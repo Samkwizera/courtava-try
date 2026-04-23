@@ -1,3 +1,6 @@
+import iprcCourtImg from "@/assets/iprc-court.jpg";
+import kigaliArenaImg from "@/assets/kigali-arena.jpg";
+
 export interface Court {
   id: string;
   name: string;
@@ -46,14 +49,38 @@ export const courts: Court[] = [
     amenities: { lights: true, water: true, parking: true },
     description: "Premium indoor basketball courts at the iconic Kigali Arena. Features professional-grade flooring, climate control, and excellent lighting for year-round play.",
     photos: [
+      kigaliArenaImg,
       "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800",
       "https://images.unsplash.com/photo-1574623452334-1e0ac2b3ccb4?w=800",
-      "https://images.unsplash.com/photo-1559692048-79a3f837883d?w=800",
     ],
     reviews: [
       { id: "r1", author: "Jean Pierre", rating: 5, date: "2 days ago", comment: "Best courts in Kigali! Always clean and well-maintained." },
       { id: "r2", author: "Alice M.", rating: 5, date: "1 week ago", comment: "Amazing facility. The indoor setup is perfect for all weather." },
       { id: "r3", author: "David K.", rating: 4, date: "2 weeks ago", comment: "Great courts but can get crowded on weekends." },
+    ],
+  },
+  {
+    id: "7",
+    name: "IPRC Kigali Court",
+    address: "KK 15 Ave, Kicukiro",
+    lat: -1.9812,
+    lng: 30.1067,
+    distance: "2.8 km",
+    distanceNum: 2.8,
+    rating: 4.6,
+    reviewCount: 94,
+    playersNow: 5,
+    surface: "outdoor",
+    amenities: { lights: true, water: true, parking: true },
+    description: "Popular outdoor court at IPRC Kigali. A go-to spot for students and the surrounding community with regular pickup games throughout the day.",
+    photos: [
+      iprcCourtImg,
+      "https://images.unsplash.com/photo-1544919982-0a0c10c1c5b8?w=800",
+    ],
+    reviews: [
+      { id: "r13", author: "Olivier N.", rating: 5, date: "1 day ago", comment: "Always a great game here. The court is well maintained and very active." },
+      { id: "r14", author: "Sandra K.", rating: 4, date: "4 days ago", comment: "Good energy, lots of players. Best in the afternoon." },
+      { id: "r15", author: "Thierry M.", rating: 5, date: "1 week ago", comment: "My home court. Love the competitive games here." },
     ],
   },
   {

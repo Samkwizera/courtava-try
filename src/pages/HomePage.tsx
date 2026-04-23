@@ -1,18 +1,20 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCourts } from "@/hooks/useCourts";
 import { useCheckIns } from "@/hooks/useCheckIns";
 import { useAuth } from "@/hooks/useAuth";
 
 const C = {
-  bg: "#FAFAF7",
-  ink: "#1A1A1A",
-  ink2: "#4A4A4A",
-  ink3: "#8A8A88",
-  hair: "#EDEDE8",
-  hair2: "#F3F3EE",
+  bg: "hsl(var(--background))",
+  surface: "hsl(var(--card))",
+  ink: "hsl(var(--foreground))",
+  ink2: "hsl(var(--muted-foreground))",
+  ink3: "hsl(var(--muted-foreground))",
+  hair: "hsl(var(--border))",
+  hair2: "hsl(var(--muted))",
   green: "oklch(0.68 0.14 150)",
-  greenSoft: "oklch(0.94 0.05 150)",
-  greenInk: "oklch(0.38 0.10 150)",
+  greenSoft: "hsl(var(--secondary))",
+  greenInk: "hsl(var(--secondary-foreground))",
   amber: "oklch(0.78 0.12 75)",
 };
 
@@ -76,6 +78,7 @@ export default function HomePage() {
   const { dbCourts } = useCourts();
   const { checkIns } = useCheckIns();
   const { user } = useAuth();
+  const [activeFilter, setActiveFilter] = useState("all");
 
   const displayName = user?.user_metadata?.display_name || user?.email?.split("@")[0] || "Player";
   const initials = displayName.slice(0, 2).toUpperCase();
@@ -85,6 +88,14 @@ export default function HomePage() {
     return { ...court, liveCount, heat: getCourtHeat(liveCount) };
   });
   const activeCourts = courtsWithActivity.filter((c) => c.liveCount > 0).length;
+
+  const displayedCourts = courtsWithActivity.filter((c) => {
+    if (activeFilter === "all") return true;
+    if (activeFilter === "hot") return c.heat === "high";
+    if (activeFilter === "casual") return c.heat === "low" || c.heat === "medium";
+    if (activeFilter === "competitive") return c.heat === "high" || c.heat === "medium";
+    return true;
+  });
 
   const now = new Date();
   const day = now.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase();
@@ -112,7 +123,7 @@ export default function HomePage() {
             onClick={() => navigate("/profile")}
             style={{
               width: 40, height: 40, borderRadius: 99, border: `1px solid ${C.hair}`,
-              background: "#fff", cursor: "pointer",
+              background: C.surface, cursor: "pointer",
               display: "flex", alignItems: "center", justifyContent: "center",
               fontWeight: 600, fontSize: 13, color: C.ink2,
             }}
@@ -170,7 +181,7 @@ export default function HomePage() {
                 }}
                 className={court.heat === "high" ? "pulse" : ""}
               >
-                <div style={{ width: 8, height: 8, borderRadius: 99, background: "#fff" }} />
+                <div style={{ width: 8, height: 8, borderRadius: 99, background: C.surface }} />
               </button>
             );
           })}
@@ -185,7 +196,7 @@ export default function HomePage() {
           {/* Floating search bar */}
           <div style={{
             position: "absolute", top: 14, left: 14, right: 14,
-            background: "#fff", borderRadius: 14, height: 42,
+            background: C.surface, borderRadius: 14, height: 42,
             display: "flex", alignItems: "center", gap: 10, padding: "0 14px",
             boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
           }}>
@@ -198,7 +209,7 @@ export default function HomePage() {
           {/* Heat legend */}
           <div style={{
             position: "absolute", bottom: 14, left: 14,
-            background: "#fff", borderRadius: 12, padding: "8px 12px",
+            background: C.surface, borderRadius: 12, padding: "8px 12px",
             display: "flex", gap: 12, alignItems: "center",
             boxShadow: "0 4px 12px rgba(0,0,0,0.06)", fontSize: 11, color: C.ink2, fontWeight: 500,
           }}>
@@ -213,7 +224,7 @@ export default function HomePage() {
           {/* Recenter button */}
           <div style={{
             position: "absolute", bottom: 14, right: 14,
-            width: 42, height: 42, borderRadius: 14, background: "#fff",
+            width: 42, height: 42, borderRadius: 14, background: C.surface,
             boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
             display: "flex", alignItems: "center", justifyContent: "center",
             cursor: "pointer",
@@ -226,19 +237,21 @@ export default function HomePage() {
       {/* Filter chips */}
       <div style={{ display: "flex", gap: 8, padding: "18px 22px 6px", overflowX: "auto" }}>
         {[
-          { k: "all",         label: "All",          active: true },
-          { k: "hot",         label: "🔥 Hot now",   active: false },
-          { k: "casual",      label: "Casual",       active: false },
-          { k: "competitive", label: "Competitive",  active: false },
+          { k: "all",         label: "All" },
+          { k: "hot",         label: "🔥 Hot now" },
+          { k: "casual",      label: "Casual" },
+          { k: "competitive", label: "Competitive" },
         ].map((chip) => (
           <div
             key={chip.k}
+            onClick={() => setActiveFilter(chip.k)}
             style={{
               padding: "8px 14px", borderRadius: 99,
-              background: chip.active ? C.ink : "#fff",
-              color: chip.active ? "#fff" : C.ink2,
-              border: `1px solid ${chip.active ? C.ink : C.hair}`,
+              background: activeFilter === chip.k ? C.ink : "#fff",
+              color: activeFilter === chip.k ? "#fff" : C.ink2,
+              border: `1px solid ${activeFilter === chip.k ? C.ink : C.hair}`,
               fontSize: 13, fontWeight: 500, whiteSpace: "nowrap", cursor: "pointer",
+              transition: "background 0.2s, color 0.2s",
             }}
           >
             {chip.label}
@@ -253,7 +266,7 @@ export default function HomePage() {
           <div style={{ fontSize: 12, color: C.ink3 }}>Sorted by activity</div>
         </div>
 
-        {courtsWithActivity.length === 0 ? (
+        {displayedCourts.length === 0 ? (
           <div style={{ textAlign: "center", padding: "40px 0" }}>
             <div style={{ fontSize: 14, color: C.ink3, marginBottom: 12 }}>No courts yet. Be the first to add one!</div>
             <button
@@ -268,14 +281,14 @@ export default function HomePage() {
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {courtsWithActivity.map((court) => {
+            {displayedCourts.map((court) => {
               const meta = HEAT_META[court.heat];
               return (
                 <div
                   key={court.id}
                   onClick={() => navigate(`/courts/${court.id}`)}
                   style={{
-                    background: "#fff", borderRadius: 16, padding: 14,
+                    background: C.surface, borderRadius: 16, padding: 14,
                     border: `1px solid ${C.hair}`, display: "flex", alignItems: "center", gap: 12,
                     cursor: "pointer",
                   }}

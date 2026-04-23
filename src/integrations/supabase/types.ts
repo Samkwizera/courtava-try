@@ -134,6 +134,7 @@ export type Database = {
           lng: number
           name: string
           parking: boolean
+          photo_url: string | null
           surface: string
           updated_at: string
           water: boolean
@@ -148,6 +149,7 @@ export type Database = {
           lng: number
           name: string
           parking?: boolean
+          photo_url?: string | null
           surface?: string
           updated_at?: string
           water?: boolean
@@ -162,6 +164,7 @@ export type Database = {
           lng?: number
           name?: string
           parking?: boolean
+          photo_url?: string | null
           surface?: string
           updated_at?: string
           water?: boolean

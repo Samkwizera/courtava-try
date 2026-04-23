@@ -12,6 +12,7 @@ export interface DbCourt {
   lights: boolean;
   water: boolean;
   parking: boolean;
+  photo_url: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;

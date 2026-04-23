@@ -30,6 +30,14 @@ export default function AuthPage() {
     }
   }, [user, authLoading, navigate, location]);
 
+  const getErrorMessage = (error: any): string => {
+    const msg = error?.message || "";
+    if (msg.toLowerCase().includes("failed to fetch") || msg.toLowerCase().includes("networkerror") || msg.toLowerCase().includes("network request failed")) {
+      return "Cannot connect to the server. Please check your internet connection and try again.";
+    }
+    return msg;
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -45,7 +53,7 @@ export default function AuthPage() {
     setIsLoading(true);
     try {
       const redirectUrl = `${window.location.origin}/`;
-      
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -61,7 +69,7 @@ export default function AuthPage() {
         if (error.message.includes("already registered")) {
           toast.error("This email is already registered. Please sign in instead.");
         } else {
-          toast.error(error.message);
+          toast.error(getErrorMessage(error));
         }
         return;
       }
@@ -77,7 +85,7 @@ export default function AuthPage() {
         toast.success("Check your email to confirm your account!");
       }
     } catch (error: any) {
-      toast.error("An error occurred. Please try again.");
+      toast.error(getErrorMessage(error) || "An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -108,7 +116,7 @@ export default function AuthPage() {
             toast.error("Invalid email or password");
           }
         } else {
-          toast.error(error.message);
+          toast.error(getErrorMessage(error));
         }
         return;
       }
@@ -119,7 +127,7 @@ export default function AuthPage() {
       const from = (location.state as any)?.from?.pathname || "/";
       navigate(from, { replace: true });
     } catch (error: any) {
-      toast.error("An error occurred. Please try again.");
+      toast.error(getErrorMessage(error) || "An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }

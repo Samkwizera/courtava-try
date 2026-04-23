@@ -1,50 +1,60 @@
+/* Geist variable font — system-font-style fallback for non-Apple platforms */
+@import "@fontsource-variable/geist";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* Courtava — Dark Green & White Theme */
-    --background: 0 0% 97%;
-    --foreground: 0 0% 9%;
+    /* Courtava — Notion-minimal, warm off-white, single green accent */
+    --background: 42 8% 97%;        /* #FAFAF7 warm off-white */
+    --foreground: 0 0% 10%;         /* #1A1A1A near-black */
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 9%;
+    --card-foreground: 0 0% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 9%;
+    --popover-foreground: 0 0% 10%;
 
-    /* Primary - Dark Green */
-    --primary: 143 55% 22%;
+    /* Primary - medium green (oklch(0.68 0.14 150) ≈ hsl(143 45% 46%)) */
+    --primary: 143 45% 46%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Light Green Tint */
-    --secondary: 143 20% 94%;
-    --secondary-foreground: 143 40% 20%;
+    /* Secondary - green soft tint */
+    --secondary: 143 30% 93%;       /* greenSoft */
+    --secondary-foreground: 143 35% 22%; /* greenInk */
 
     /* Muted */
-    --muted: 0 0% 95%;
-    --muted-foreground: 0 0% 46%;
+    --muted: 42 7% 95%;             /* #F3F3EE hair2 */
+    --muted-foreground: 0 1% 54%;   /* #8A8A88 */
 
-    /* Accent - Dark Green */
-    --accent: 143 55% 22%;
+    /* Accent - same green */
+    --accent: 143 45% 46%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 10 55% 50%;      /* oklch(0.66 0.15 25) */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 88%;
-    --input: 0 0% 90%;
-    --ring: 143 55% 22%;
+    --border: 42 7% 91%;            /* #EDEDE8 hairline */
+    --input: 42 7% 91%;
+    --ring: 143 45% 46%;
 
     /* iOS radius base — 12px */
     --radius: 0.75rem;
 
     /* Custom Courtava Colors */
-    --court-green: 143 55% 22%;
-    --court-green-dark: 143 60% 16%;
+    --court-green: 143 45% 46%;
+    --court-green-dark: 143 35% 22%;
     --court-green-light: 143 30% 93%;
-    --court-orange: 25 70% 50%;
+    --court-orange: 45 55% 55%;     /* oklch(0.78 0.12 75) */
+
+    /* Raw color tokens (oklch for precise matching) */
+    --c-green: oklch(0.68 0.14 150);
+    --c-green-soft: oklch(0.94 0.05 150);
+    --c-green-ink: oklch(0.38 0.10 150);
+    --c-amber: oklch(0.78 0.12 75);
+    --c-red: oklch(0.66 0.15 25);
     --court-surface: 35 15% 88%;
 
     /* Gradients */
@@ -123,15 +133,70 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Geist Variable", "DM Sans", system-ui, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Geist Variable", "DM Sans", system-ui, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
 }
 
 @layer utilities {
+  /* ─── App Typography Scale ─── */
+
+  /* Headlines — 24-28px, extrabold */
+  .type-headline {
+    font-size: 1.75rem; /* 28px */
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+  }
+
+  .type-headline-sm {
+    font-size: 1.5rem; /* 24px */
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  /* Subtitles — 13px, regular, muted */
+  .type-subtitle {
+    font-size: 0.8125rem; /* 13px */
+    font-weight: 400;
+    color: hsl(var(--muted-foreground));
+    line-height: 1.4;
+  }
+
+  /* Section labels — 11px, uppercase, tracked, muted */
+  .type-label {
+    font-size: 0.6875rem; /* 11px */
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.075em; /* ~1.2px at 16px base */
+    color: hsl(var(--muted-foreground));
+    line-height: 1.4;
+  }
+
+  /* Body value — semibold */
+  .type-value {
+    font-size: 0.9375rem; /* 15px */
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  /* Body label — regular */
+  .type-body {
+    font-size: 0.9375rem; /* 15px */
+    font-weight: 400;
+    line-height: 1.4;
+  }
+
   .text-balance {
     text-wrap: balance;
   }
@@ -259,6 +324,20 @@
     border-top: 0.5px solid hsl(var(--border));
   }
 
+  /* ─── Prototype court-map pulse animations ─── */
+  @keyframes pulse-ring {
+    0%   { box-shadow: 0 0 0 0 rgba(46,160,100,0.45); }
+    70%  { box-shadow: 0 0 0 14px rgba(46,160,100,0); }
+    100% { box-shadow: 0 0 0 0 rgba(46,160,100,0); }
+  }
+  .pulse { animation: pulse-ring 1.8s cubic-bezier(0.4,0,0.6,1) infinite; }
+
+  @keyframes pulse-dot-anim {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.55; transform: scale(0.88); }
+  }
+  .pulse-dot { animation: pulse-dot-anim 1.6s ease-in-out infinite; }
+
   /* ─── Spring animations ─── */
   @keyframes ios-fade-in {
     from { opacity: 0; transform: translateY(6px) scale(0.98); }
@@ -325,17 +404,17 @@
   /* ─── iOS large title ─── */
   .ios-large-title {
     font-size: 2rem;
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: -0.025em;
     line-height: 1.1;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Geist Variable", "DM Sans", system-ui, sans-serif;
   }
 
   .ios-title {
     font-size: 1.0625rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: -0.01em;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Geist Variable", "DM Sans", system-ui, sans-serif;
   }
 
   /* ─── Scrollbar hide ─── */

@@ -1,63 +1,122 @@
-import { Home, Map, Plus, Users, User } from "lucide-react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { useLocation, useNavigate } from "react-router-dom";
 
-const leftNavItems = [
-  { to: "/", icon: Home, label: "Home" },
-  { to: "/courts", icon: Map, label: "Courts" },
-];
+const GREEN = "oklch(0.68 0.14 150)";
+const INK = "#1A1A1A";
+const INK3 = "#8A8A88";
+const HAIR = "#EDEDE8";
 
-const rightNavItems = [
-  { to: "/players", icon: Users, label: "Players" },
-  { to: "/profile", icon: User, label: "Profile" },
+const HomeIcon = (color: string) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+    <path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1V11z"
+      stroke={color} strokeWidth="1.8" strokeLinejoin="round"/>
+  </svg>
+);
+
+const MapIcon = (color: string) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+    <path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z M9 4v14 M15 6v14"
+      stroke={color} strokeWidth="1.7" strokeLinejoin="round"/>
+  </svg>
+);
+
+const PlusIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+    <path d="M12 5v14M5 12h14" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+);
+
+const BellIcon = (color: string) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+    <path d="M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6z M10 20a2 2 0 0 0 4 0"
+      stroke={color} strokeWidth="1.7" strokeLinejoin="round"/>
+  </svg>
+);
+
+const UserIcon = (color: string) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="8" r="4" stroke={color} strokeWidth="1.7"/>
+    <path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6" stroke={color} strokeWidth="1.7" strokeLinecap="round"/>
+  </svg>
+);
+
+const TABS = [
+  { id: "home",    to: "/",            label: "Home",    icon: HomeIcon },
+  { id: "courts",  to: "/courts",      label: "Map",     icon: MapIcon },
+  { id: "create",  to: "/create-game", label: "",        icon: null, plus: true },
+  { id: "games",   to: "/games",       label: "Feed",    icon: BellIcon },
+  { id: "profile", to: "/profile",     label: "You",     icon: UserIcon },
 ];
 
 export function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const renderNavItem = (item: { to: string; icon: any; label: string }) => {
-    const isActive = location.pathname === item.to;
-    const Icon = item.icon;
-
-    return (
-      <NavLink
-        key={item.to}
-        to={item.to}
-        className={cn(
-          "flex flex-col items-center justify-center flex-1 py-2 ios-tap",
-          isActive ? "text-primary" : "text-muted-foreground hover:text-primary"
-        )}
-      >
-        <Icon
-          className="w-6 h-6"
-          strokeWidth={isActive ? 2.5 : 1.5}
-          style={{ transition: "color 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)" }}
-        />
-      </NavLink>
-    );
-  };
+  const activeId = (() => {
+    if (location.pathname === "/") return "home";
+    if (location.pathname.startsWith("/courts")) return "courts";
+    if (location.pathname.startsWith("/games") || location.pathname.startsWith("/create-game")) return "games";
+    if (location.pathname.startsWith("/profile")) return "profile";
+    return "";
+  })();
 
   return (
-    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-3rem)] max-w-sm">
+    <nav
+      style={{
+        position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
+        zIndex: 50, width: "calc(100% - 3rem)", maxWidth: 420,
+      }}
+    >
       <div
-        className="flex items-center justify-around h-16 bg-card rounded-2xl border border-border/50"
-        style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)" }}
+        style={{
+          display: "grid", gridTemplateColumns: "repeat(5, 1fr)",
+          background: "#fff", borderRadius: 24,
+          border: `1px solid ${HAIR}`,
+          boxShadow: "0 6px 24px -8px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.03)",
+          height: 62, alignItems: "center",
+        }}
       >
-        {leftNavItems.map(renderNavItem)}
-
-        {/* Center FAB — raised */}
-        <div className="flex flex-col items-center justify-center flex-1">
-          <button
-            onClick={() => navigate("/create-game")}
-            className="-mt-6 w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center ios-tap"
-            style={{ boxShadow: "0 4px 16px rgba(25,87,49,0.35), 0 2px 6px rgba(0,0,0,0.15)" }}
-          >
-            <Plus className="w-7 h-7" strokeWidth={2.5} />
-          </button>
-        </div>
-
-        {rightNavItems.map(renderNavItem)}
+        {TABS.map((tab) => {
+          if (tab.plus) {
+            return (
+              <button
+                key={tab.id}
+                onClick={() => navigate(tab.to)}
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  border: "none", background: "transparent", cursor: "pointer", height: "100%",
+                }}
+              >
+                <div
+                  style={{
+                    width: 46, height: 46, borderRadius: 14,
+                    background: GREEN,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    boxShadow: `0 6px 14px -4px ${GREEN}`,
+                  }}
+                >
+                  <PlusIcon />
+                </div>
+              </button>
+            );
+          }
+          const isActive = activeId === tab.id;
+          const color = isActive ? INK : INK3;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => navigate(tab.to)}
+              style={{
+                display: "flex", flexDirection: "column", alignItems: "center",
+                justifyContent: "center", gap: 3,
+                border: "none", background: "transparent", cursor: "pointer", height: "100%",
+                color, fontFamily: '"Inter", system-ui, sans-serif',
+              }}
+            >
+              {tab.icon!(color)}
+              <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: 0.1 }}>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
     </nav>
   );

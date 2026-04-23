@@ -72,8 +72,40 @@ export default {
         xl: "calc(var(--radius) + 4px)",
         "2xl": "calc(var(--radius) + 8px)",
       },
+      fontSize: {
+        "11": ["0.6875rem", { lineHeight: "1.4", letterSpacing: "0.075em" }],
+        "13": ["0.8125rem", { lineHeight: "1.4" }],
+        "15": ["0.9375rem", { lineHeight: "1.4" }],
+        "24": ["1.5rem",    { lineHeight: "1.2", letterSpacing: "-0.02em" }],
+        "28": ["1.75rem",   { lineHeight: "1.15", letterSpacing: "-0.025em" }],
+      },
+      fontWeight: {
+        extrabold: "800",
+      },
+      letterSpacing: {
+        "section": "0.075em",
+      },
       fontFamily: {
-        sans: ["-apple-system", "BlinkMacSystemFont", "SF Pro Display", "SF Pro Text", "system-ui", "sans-serif"],
+        /* Body — system font first, then Geist, then DM Sans */
+        sans: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "SF Pro Text",
+          "Geist Variable",
+          "DM Sans",
+          "system-ui",
+          "sans-serif",
+        ],
+        /* Headings — system display font first, then Geist, then DM Sans at heavy weights */
+        heading: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "SF Pro Display",
+          "Geist Variable",
+          "DM Sans",
+          "system-ui",
+          "sans-serif",
+        ],
       },
       keyframes: {
         "accordion-down": {

@@ -7,14 +7,11 @@ import {
   Shield,
   LogOut,
   Trash2,
-  Moon,
-  Sun,
   ChevronRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -32,9 +29,7 @@ import { useState } from "react";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
-  const { resolvedTheme, setTheme } = useTheme();
   const { signOut } = useAuth();
-  const isDark = resolvedTheme === "dark";
 
   const [notifications, setNotifications] = useState({
     checkIns: true,
@@ -42,14 +37,6 @@ export default function SettingsPage() {
     messages: false,
     communities: true,
   });
-
-  const toggleTheme = () => {
-    setTheme(isDark ? "light" : "dark");
-    toast({
-      title: "Theme Updated",
-      description: `Switched to ${isDark ? "light" : "dark"} mode`,
-    });
-  };
 
   const handleNotificationToggle = (key: keyof typeof notifications) => {
     setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -102,35 +89,6 @@ export default function SettingsPage() {
       </header>
 
       <div className="p-4 space-y-6">
-        {/* Appearance Section */}
-        <section>
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 px-1">
-            Appearance
-          </h2>
-          <div className="bg-card rounded-xl shadow-card border border-border overflow-hidden">
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="w-full flex items-center justify-between p-4 hover:bg-secondary/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                {isDark ? (
-                  <Moon className="w-5 h-5 text-primary" />
-                ) : (
-                  <Sun className="w-5 h-5 text-primary" />
-                )}
-                <div className="text-left">
-                  <p className="font-medium text-foreground">Dark Mode</p>
-                  <p className="text-sm text-muted-foreground">
-                    {isDark ? "Enabled" : "Disabled"}
-                  </p>
-                </div>
-              </div>
-              <Switch checked={isDark} onCheckedChange={toggleTheme} />
-            </button>
-          </div>
-        </section>
-
         {/* Notifications Section */}
         <section>
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 px-1">

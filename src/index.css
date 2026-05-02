@@ -78,51 +78,6 @@
     --sidebar-ring: 143 55% 22%;
   }
 
-  .dark {
-    --background: 0 0% 7%;
-    --foreground: 0 0% 93%;
-
-    --card: 0 0% 11%;
-    --card-foreground: 0 0% 93%;
-
-    --popover: 0 0% 11%;
-    --popover-foreground: 0 0% 93%;
-
-    /* Primary - #195731 dark green */
-    --primary: 143 55% 22%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 0 0% 16%;
-    --secondary-foreground: 0 0% 80%;
-
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 55%;
-
-    --accent: 143 55% 22%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 20%;
-    --input: 0 0% 18%;
-    --ring: 143 55% 22%;
-
-    --court-green: 143 55% 22%;
-    --court-green-dark: 143 60% 16%;
-    --court-green-light: 143 20% 16%;
-
-    --shadow-nav: 0 -0.5px 0 0 rgb(255 255 255 / 0.08);
-
-    --sidebar-background: 0 0% 7%;
-    --sidebar-foreground: 0 0% 93%;
-    --sidebar-primary: 143 55% 22%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 16%;
-    --sidebar-accent-foreground: 0 0% 80%;
-    --sidebar-border: 0 0% 18%;
-    --sidebar-ring: 143 55% 22%;
-  }
 }
 
 @layer base {
@@ -241,12 +196,6 @@
     -webkit-backdrop-filter: blur(20px) saturate(1.8);
   }
 
-  .dark .glass {
-    background: rgba(28, 28, 30, 0.85);
-    backdrop-filter: blur(20px) saturate(1.8);
-    -webkit-backdrop-filter: blur(20px) saturate(1.8);
-  }
-
   /* Navigation bar / tab bar glass */
   .glass-nav {
     background: rgba(249, 249, 249, 0.94);
@@ -254,21 +203,9 @@
     -webkit-backdrop-filter: blur(20px) saturate(1.8);
   }
 
-  .dark .glass-nav {
-    background: rgba(22, 22, 23, 0.94);
-    backdrop-filter: blur(20px) saturate(1.8);
-    -webkit-backdrop-filter: blur(20px) saturate(1.8);
-  }
-
   /* Card / sheet glass */
   .glass-card {
     background: rgba(255, 255, 255, 0.78);
-    backdrop-filter: blur(20px) saturate(1.6);
-    -webkit-backdrop-filter: blur(20px) saturate(1.6);
-  }
-
-  .dark .glass-card {
-    background: rgba(44, 44, 46, 0.82);
     backdrop-filter: blur(20px) saturate(1.6);
     -webkit-backdrop-filter: blur(20px) saturate(1.6);
   }

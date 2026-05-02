@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { Settings, LogOut, Moon, Sun, Edit2 } from "lucide-react";
+import { Settings, LogOut, Edit2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Switch } from "@/components/ui/switch";
-import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useGames } from "@/hooks/useGames";
@@ -35,16 +33,12 @@ const SKILL_LEVELS = ["Beginner", "Casual", "Intermediate", "Advanced", "Pro"];
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { resolvedTheme, setTheme } = useTheme();
   const { user, signOut } = useAuth();
   const { profile, isLoading, updateProfile, isUpdating } = useProfile();
   const { games } = useGames();
   const { checkIns } = useCheckIns();
   const [editOpen, setEditOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-
-  const isDark = resolvedTheme === "dark";
-  const toggleTheme = () => setTheme(isDark ? "light" : "dark");
 
   const handleSignOut = async () => {
     await signOut();
@@ -109,14 +103,6 @@ export default function ProfilePage() {
       {/* Settings panel */}
       {settingsOpen && (
         <div style={{ margin: "12px 16px 0", background: C.surface, borderRadius: 16, border: `1px solid ${C.hair}`, overflow: "hidden" }}>
-          {/* Dark mode */}
-          <div style={{ display: "flex", alignItems: "center", padding: "14px 16px", gap: 12, borderBottom: `1px solid ${C.hair}` }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: C.hair2, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {isDark ? <Moon size={14} color={C.ink2} /> : <Sun size={14} color={C.ink2} />}
-            </div>
-            <span style={{ flex: 1, fontSize: 15, fontWeight: 500 }}>Dark Mode</span>
-            <Switch checked={isDark} onCheckedChange={toggleTheme} />
-          </div>
           {/* Sign out */}
           <button onClick={handleSignOut} style={{
             width: "100%", display: "flex", alignItems: "center", padding: "14px 16px", gap: 12,

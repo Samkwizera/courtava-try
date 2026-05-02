@@ -1,70 +1,27 @@
-import { createContext, useContext, useEffect, useState } from "react";
-
-type Theme = "light" | "dark" | "system";
+import { createContext, useContext, useEffect } from "react";
 
 interface ThemeContextType {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
-  resolvedTheme: "light" | "dark";
+  theme: "light";
+  resolvedTheme: "light";
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+const ThemeContext = createContext<ThemeContextType>({ theme: "light", resolvedTheme: "light" });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== "undefined") {
-      return (localStorage.getItem("courtava-theme") as Theme) || "system";
-    }
-    return "system";
-  });
-
-  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
-
   useEffect(() => {
     const root = window.document.documentElement;
-
-    const applyTheme = (newTheme: "light" | "dark") => {
-      root.classList.remove("light", "dark");
-      root.classList.add(newTheme);
-      setResolvedTheme(newTheme);
-    };
-
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light";
-      applyTheme(systemTheme);
-
-      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      const handler = (e: MediaQueryListEvent) => {
-        applyTheme(e.matches ? "dark" : "light");
-      };
-      mediaQuery.addEventListener("change", handler);
-      return () => mediaQuery.removeEventListener("change", handler);
-    } else {
-      applyTheme(theme);
-    }
-  }, [theme]);
-
-  const handleSetTheme = (newTheme: Theme) => {
-    setTheme(newTheme);
-    localStorage.setItem("courtava-theme", newTheme);
-  };
+    root.classList.remove("dark");
+    root.classList.add("light");
+    localStorage.removeItem("courtava-theme");
+  }, []);
 
   return (
-    <ThemeContext.Provider
-      value={{ theme, setTheme: handleSetTheme, resolvedTheme }}
-    >
+    <ThemeContext.Provider value={{ theme: "light", resolvedTheme: "light" }}>
       {children}
     </ThemeContext.Provider>
   );
 }
 
 export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider");
-  }
-  return context;
+  return useContext(ThemeContext);
 }

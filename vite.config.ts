@@ -4,8 +4,9 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
-// https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+const isDev = process.env.NODE_ENV !== "production";
+
+export default defineConfig({
   server: {
     host: "::",
     port: 8080,
@@ -15,7 +16,7 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === "development" && componentTagger(),
+    ...(isDev ? [componentTagger()] : []),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["courtava-icon.png", "pwa-192x192.png", "pwa-512x512.png"],
@@ -59,17 +60,17 @@ export default defineConfig(({ mode }) => ({
               cacheName: "google-fonts-cache",
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                maxAgeSeconds: 60 * 60 * 24 * 365,
               },
             },
           },
         ],
       },
     }),
-  ].filter(Boolean),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
-}));
+});

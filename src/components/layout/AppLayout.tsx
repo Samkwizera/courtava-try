@@ -8,7 +8,7 @@ export function AppLayout() {
   const { user } = useAuth();
 
   // Redirect to onboarding if not completed yet
-  if (user && !isOnboardingDone(user.id)) {
+  if (user && !isOnboardingDone(user)) {
     return <Navigate to="/onboarding" replace />;
   }
 

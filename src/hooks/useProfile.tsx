@@ -50,18 +50,12 @@ export function useProfile() {
             .single();
 
           if (insertError) throw insertError;
-          return {
-            ...(newProfile as Profile),
-            bio: (user.user_metadata?.bio as string | null) ?? null,
-          } as Profile;
+          return newProfile as Profile;
         }
         throw error;
       }
 
-      return {
-        ...(data as Profile),
-        bio: (user.user_metadata?.bio as string | null) ?? null,
-      } as Profile;
+      return data as Profile;
     },
     enabled: !!user,
   });
@@ -70,33 +64,12 @@ export function useProfile() {
     mutationFn: async (updates: ProfileUpdate) => {
       if (!user) throw new Error("Not authenticated");
 
-      const { bio, ...dbUpdates } = updates;
+      const { error } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("id", user.id);
 
-      const promises: Promise<unknown>[] = [];
-
-      if (Object.keys(dbUpdates).length > 0) {
-        promises.push(
-          (async () => {
-            const { error } = await supabase
-              .from("profiles")
-              .update(dbUpdates)
-              .eq("id", user.id)
-              .select()
-              .single();
-            if (error) throw error;
-          })()
-        );
-      }
-
-      if (bio !== undefined) {
-        promises.push(
-          supabase.auth.updateUser({ data: { bio } }).then(({ error }) => {
-            if (error) throw error;
-          })
-        );
-      }
-
-      await Promise.all(promises);
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });

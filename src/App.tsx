@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy, useMemo, useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { SplashScreen } from "@/components/SplashScreen";
-import HomePage from "@/pages/HomePage";
 import { BackendEnvErrorScreen } from "@/components/BackendEnvErrorScreen";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { RequireAuth } from "@/components/auth/RequireAuth";
@@ -23,6 +22,7 @@ const PageLoader = () => (
 
 // Lazy-load anything that imports the backend client until we know env exists.
 const AuthProvider = lazy(() => import("@/hooks/useAuth").then((m) => ({ default: m.AuthProvider })));
+const HomePage = lazy(() => import("@/pages/HomePage"));
 const CourtsPage = lazy(() => import("@/pages/CourtsPage"));
 const CourtDetailsPage = lazy(() => import("@/pages/CourtDetailsPage"));
 const GamesPage = lazy(() => import("@/pages/GamesPage"));

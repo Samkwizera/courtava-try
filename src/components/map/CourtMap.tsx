@@ -7,6 +7,9 @@ import { formatDistance, getDistanceKm } from "@/hooks/useUserLocation";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || "";
 
+const esc = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
 interface Court {
   id: string;
   name: string;
@@ -154,8 +157,8 @@ export function CourtMap({
         .setPopup(
           new mapboxgl.Popup({ offset: 20 }).setHTML(
             `<div style="padding:4px 2px; min-width:120px">
-              <strong style="font-size:13px">${place.name}</strong>
-              <p style="font-size:11px; color:#666; margin:2px 0 0">${place.fullAddress}</p>
+              <strong style="font-size:13px">${esc(place.name)}</strong>
+              <p style="font-size:11px; color:#666; margin:2px 0 0">${esc(place.fullAddress)}</p>
             </div>`
           )
         )
@@ -252,9 +255,9 @@ export function CourtMap({
 
         const popupHtml = `
           <div style="padding:4px 2px; min-width:140px">
-            <strong style="font-size:13px">${court.name}</strong>
-            <p style="font-size:11px; color:#666; margin:2px 0 0">${court.address}</p>
-            ${distText ? `<p style="font-size:11px; color:#3b82f6; margin:4px 0 0; font-weight:600">📍 ${distText} from you</p>` : ""}
+            <strong style="font-size:13px">${esc(court.name)}</strong>
+            <p style="font-size:11px; color:#666; margin:2px 0 0">${esc(court.address)}</p>
+            ${distText ? `<p style="font-size:11px; color:#3b82f6; margin:4px 0 0; font-weight:600">📍 ${esc(distText)} from you</p>` : ""}
             ${count > 0 ? `<p style="font-size:11px; color:#22c55e; margin:4px 0 0; font-weight:600">${count} player${count > 1 ? "s" : ""} here</p>` : ""}
           </div>
         `;

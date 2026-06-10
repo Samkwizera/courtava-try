@@ -64,6 +64,7 @@ export default function CourtsPage() {
           water: court.water,
           parking: court.parking,
         },
+        photo_url: court.photo_url,
       };
     });
   }, [dbCourts, userLocation]);
@@ -225,6 +226,7 @@ export default function CourtsPage() {
                 playersNow={liveCount}
                 surface={court.surface}
                 amenities={court.amenities}
+                imageUrl={court.photo_url ?? undefined}
                 onClick={() => navigate(`/courts/${court.id}`)}
               />
             );
@@ -279,6 +281,7 @@ export default function CourtsPage() {
                     playersNow={liveCount}
                     surface={court.surface}
                     amenities={court.amenities}
+                    imageUrl={court.photo_url ?? undefined}
                     onClick={() => navigate(`/courts/${court.id}`)}
                   />
                 </div>

@@ -171,7 +171,7 @@ export default function GamesPage() {
                     : "Check back later or be the first to check in"}
                 </div>
               </div>
-              <button onClick={() => navigate("/")} style={{
+              <button onClick={() => navigate("/courts")} style={{
                 fontSize: 12, fontWeight: 600, color: "#fff", background: C.ink,
                 border: "none", padding: "8px 14px", borderRadius: 99, cursor: "pointer",
                 flexShrink: 0, fontFamily: font,

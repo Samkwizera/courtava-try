@@ -26,7 +26,7 @@ interface CreateCommunitySheetProps {
     description?: string;
     court_id?: string;
     schedule?: string;
-  }) => Promise<any>;
+  }) => Promise<unknown>;
 }
 
 export function CreateCommunitySheet({

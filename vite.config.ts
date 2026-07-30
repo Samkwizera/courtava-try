@@ -66,6 +66,19 @@ export default defineConfig({
       ],
     },
   }), cloudflare()],
+  build: {
+    chunkSizeWarningLimit: 1800,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "react-vendor": ["react", "react-dom", "react-router-dom"],
+          "supabase-vendor": ["@supabase/supabase-js"],
+          "query-vendor": ["@tanstack/react-query"],
+          "mapbox-vendor": ["mapbox-gl", "@mapbox/mapbox-gl-geocoder"],
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

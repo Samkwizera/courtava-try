@@ -28,6 +28,12 @@ function LocationPicker({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const initialLocationRef = useRef({ lat, lng });
+  const onLocationChangeRef = useRef(onLocationChange);
+
+  useEffect(() => {
+    onLocationChangeRef.current = onLocationChange;
+  }, [onLocationChange]);
 
   const updateMarker = useCallback(
     (lngLat: { lng: number; lat: number }) => {
@@ -42,18 +48,22 @@ function LocationPicker({
 
         markerRef.current.on("dragend", () => {
           const pos = markerRef.current!.getLngLat();
-          onLocationChange(pos.lat.toFixed(6), pos.lng.toFixed(6));
+          onLocationChangeRef.current(pos.lat.toFixed(6), pos.lng.toFixed(6));
         });
       }
     },
-    [onLocationChange]
+    []
   );
 
   useEffect(() => {
     if (!containerRef.current || !mapboxgl.accessToken) return;
 
-    const initialLat = lat ? parseFloat(lat) : -1.9403;
-    const initialLng = lng ? parseFloat(lng) : 30.0588;
+    const initialLat = initialLocationRef.current.lat
+      ? parseFloat(initialLocationRef.current.lat)
+      : -1.9403;
+    const initialLng = initialLocationRef.current.lng
+      ? parseFloat(initialLocationRef.current.lng)
+      : 30.0588;
 
     const map = new mapboxgl.Map({
       container: containerRef.current,
@@ -66,15 +76,18 @@ function LocationPicker({
 
     map.on("load", () => {
       // If we already have coordinates, place the marker
-      if (lat && lng) {
-        updateMarker({ lat: parseFloat(lat), lng: parseFloat(lng) });
+      if (initialLocationRef.current.lat && initialLocationRef.current.lng) {
+        updateMarker({
+          lat: parseFloat(initialLocationRef.current.lat),
+          lng: parseFloat(initialLocationRef.current.lng),
+        });
       }
     });
 
     // Click to drop pin
     map.on("click", (e) => {
       updateMarker(e.lngLat);
-      onLocationChange(e.lngLat.lat.toFixed(6), e.lngLat.lng.toFixed(6));
+      onLocationChangeRef.current(e.lngLat.lat.toFixed(6), e.lngLat.lng.toFixed(6));
     });
 
     return () => {
@@ -83,7 +96,7 @@ function LocationPicker({
       map.remove();
       mapRef.current = null;
     };
-  }, []); // Init once
+  }, [updateMarker]); // Init once
 
   // Sync marker if lat/lng change externally (e.g. "Use Current" button)
   useEffect(() => {

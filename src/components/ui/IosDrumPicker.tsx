@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useState } from "react";
+import { useRef, useEffect, useCallback, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 
 const ITEM_H = 44;
@@ -21,15 +21,7 @@ function PickerColumn({
   const ref = useRef<HTMLDivElement>(null);
   const snapTimer = useRef<ReturnType<typeof setTimeout>>();
 
-  // Set initial scroll position on mount (no animation)
-  useEffect(() => {
-    const el = ref.current;
-    if (el) el.scrollTop = selectedIndex * ITEM_H;
-    // Immediately apply opacities for initial render
-    applyOpacities(selectedIndex);
-  }, []);
-
-  const applyOpacities = (centerIdx: number) => {
+  const applyOpacities = useCallback((centerIdx: number) => {
     const el = ref.current;
     if (!el) return;
     el.querySelectorAll<HTMLElement>("[data-item]").forEach((child, i) => {
@@ -38,7 +30,15 @@ function PickerColumn({
       child.style.fontSize = dist < 0.6 ? "20px" : dist < 1.5 ? "17px" : "15px";
       child.style.fontWeight = dist < 0.6 ? "700" : "400";
     });
-  };
+  }, []);
+
+  // Set initial scroll position on mount (no animation)
+  useEffect(() => {
+    const el = ref.current;
+    if (el) el.scrollTop = selectedIndex * ITEM_H;
+    // Immediately apply opacities for initial render
+    applyOpacities(selectedIndex);
+  }, [applyOpacities, selectedIndex]);
 
   const handleScroll = useCallback(() => {
     const el = ref.current;
@@ -56,7 +56,7 @@ function PickerColumn({
       el.scrollTo({ top: clamped * ITEM_H, behavior: "smooth" });
       onChange(clamped);
     }, 90);
-  }, [items.length, onChange]);
+  }, [applyOpacities, items.length, onChange]);
 
   return (
     <div className={cn("relative flex-1 overflow-hidden", className)}>
@@ -150,9 +150,9 @@ export function IosDateTimePicker({
   initialDate?: string; // YYYY-MM-DD
   initialTime?: string; // HH:MM (24h)
 }) {
-  const DATES = generateDates(60);
+  const DATES = useMemo(() => generateDates(60), []);
 
-  const parseInitial = () => {
+  const parseInitial = useCallback(() => {
     let dateIdx = 0;
     let hourIdx = 6; // default: 7
     let minIdx = 0;  // default: :00
@@ -175,7 +175,7 @@ export function IosDateTimePicker({
     }
 
     return { dateIdx, hourIdx, minIdx, ampmIdx };
-  };
+  }, [DATES, initialDate, initialTime]);
 
   const [dateIdx, setDateIdx] = useState(0);
   const [hourIdx, setHourIdx] = useState(6);
@@ -195,7 +195,7 @@ export function IosDateTimePicker({
     } else {
       setVisible(false);
     }
-  }, [open, initialDate, initialTime]);
+  }, [open, parseInitial]);
 
   const handleDone = () => {
     const selectedDate = DATES[dateIdx].value;

@@ -27,6 +27,17 @@ interface PlaceResult {
   lat: number;
 }
 
+interface MapboxFeature {
+  id: string;
+  text: string;
+  place_name: string;
+  center: [number, number];
+}
+
+interface MapboxGeocodingResponse {
+  features?: MapboxFeature[];
+}
+
 interface CourtMapProps {
   courts: Court[];
   onCourtSelect?: (court: Court) => void;
@@ -59,6 +70,8 @@ export function CourtMap({
   const markers = useRef<mapboxgl.Marker[]>([]);
   const userMarker = useRef<mapboxgl.Marker | null>(null);
   const placeMarker = useRef<mapboxgl.Marker | null>(null);
+  const initialCenter = useRef(center);
+  const initialZoom = useRef(zoom);
   const [mapSearch, setMapSearch] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [placeResults, setPlaceResults] = useState<PlaceResult[]>([]);
@@ -96,9 +109,9 @@ export function CourtMap({
               query
             )}.json?access_token=${mapboxgl.accessToken}&limit=5${proximity}&language=en`
           );
-          const data = await res.json();
+          const data = (await res.json()) as MapboxGeocodingResponse;
           const places: PlaceResult[] = (data.features || []).map(
-            (f: any) => ({
+            (f) => ({
               id: f.id,
               name: f.text,
               fullAddress: f.place_name,
@@ -186,8 +199,8 @@ export function CourtMap({
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/streets-v12",
-      center: [center[1], center[0]],
-      zoom,
+      center: [initialCenter.current[1], initialCenter.current[0]],
+      zoom: initialZoom.current,
     });
 
     map.current.addControl(new mapboxgl.NavigationControl(), "bottom-right");
@@ -286,7 +299,7 @@ export function CourtMap({
     return () => {
       m.off("load", addMarkers);
     };
-  }, [courts, selectedCourtId, checkIns, onCourtSelect, onAvatarClick, userLocation]);
+  }, [courts, selectedCourtId, checkIns, onCourtSelect, userLocation]);
 
   // ── 3. Fly to new center ──
   useEffect(() => {

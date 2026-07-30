@@ -15,6 +15,14 @@ export interface CheckIn {
   };
 }
 
+type CheckInRow = Omit<CheckIn, "profile"> & {
+  profile?: CheckIn["profile"] | CheckIn["profile"][];
+};
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 export function useCheckIns() {
   const { user } = useAuth();
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
@@ -33,9 +41,9 @@ export function useCheckIns() {
 
       if (error) throw error;
 
-      const formattedData = (data || []).map((item: any) => ({
+      const formattedData: CheckIn[] = ((data || []) as CheckInRow[]).map((item) => ({
         ...item,
-        profile: item.profile,
+        profile: Array.isArray(item.profile) ? item.profile[0] : item.profile,
       }));
 
       setCheckIns(formattedData);
@@ -72,9 +80,9 @@ export function useCheckIns() {
       toast.success("You're checked in! Others can now see you on the map.");
       await fetchCheckIns();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error checking in:", error);
-      toast.error("Failed to check in. Please try again.");
+      toast.error(getErrorMessage(error) || "Failed to check in. Please try again.");
       return false;
     }
   };
@@ -94,9 +102,9 @@ export function useCheckIns() {
       setMyCheckIn(null);
       await fetchCheckIns();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error checking out:", error);
-      toast.error("Failed to check out. Please try again.");
+      toast.error(getErrorMessage(error) || "Failed to check out. Please try again.");
       return false;
     }
   };

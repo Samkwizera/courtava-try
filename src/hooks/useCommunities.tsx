@@ -15,6 +15,10 @@ export interface Community {
   is_member: boolean;
 }
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 export function useCommunities() {
   const { user } = useAuth();
   const [communities, setCommunities] = useState<Community[]>([]);
@@ -103,9 +107,9 @@ export function useCommunities() {
       toast.success("Community created!");
       await fetchCommunities();
       return newCommunity;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating community:", error);
-      toast.error("Failed to create community");
+      toast.error(getErrorMessage(error) || "Failed to create community");
       return null;
     }
   };
@@ -127,9 +131,9 @@ export function useCommunities() {
       toast.success("You've joined the community!");
       await fetchCommunities();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error joining community:", error);
-      toast.error("Failed to join community");
+      toast.error(getErrorMessage(error) || "Failed to join community");
       return false;
     }
   };
@@ -149,9 +153,9 @@ export function useCommunities() {
       toast.success("You've left the community");
       await fetchCommunities();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error leaving community:", error);
-      toast.error("Failed to leave community");
+      toast.error(getErrorMessage(error) || "Failed to leave community");
       return false;
     }
   };

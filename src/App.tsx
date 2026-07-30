@@ -4,11 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy, useMemo, useState } from "react";
-import { AppLayout } from "@/components/layout/AppLayout";
 import { SplashScreen } from "@/components/SplashScreen";
 import { BackendEnvErrorScreen } from "@/components/BackendEnvErrorScreen";
 import { ThemeProvider } from "@/hooks/useTheme";
-import { RequireAuth } from "@/components/auth/RequireAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const PageLoader = () => (
@@ -22,6 +20,8 @@ const PageLoader = () => (
 
 // Lazy-load anything that imports the backend client until we know env exists.
 const AuthProvider = lazy(() => import("@/hooks/useAuth").then((m) => ({ default: m.AuthProvider })));
+const AppLayout = lazy(() => import("@/components/layout/AppLayout").then((m) => ({ default: m.AppLayout })));
+const RequireAuth = lazy(() => import("@/components/auth/RequireAuth").then((m) => ({ default: m.RequireAuth })));
 const HomePage = lazy(() => import("@/pages/HomePage"));
 const CourtsPage = lazy(() => import("@/pages/CourtsPage"));
 const CourtDetailsPage = lazy(() => import("@/pages/CourtDetailsPage"));

@@ -11,6 +11,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import courtavaLogo from "@/assets/courtava-logo.png";
 
+interface AuthLocationState {
+  from?: {
+    pathname?: string;
+  };
+}
+
+function getRedirectPath(state: unknown): string {
+  return (state as AuthLocationState | null)?.from?.pathname || "/";
+}
+
 export default function AuthPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -25,13 +35,13 @@ export default function AuthPage() {
   // Redirect authenticated users away from auth page
   useEffect(() => {
     if (!authLoading && user) {
-      const from = (location.state as any)?.from?.pathname || "/";
+      const from = getRedirectPath(location.state);
       navigate(from, { replace: true });
     }
   }, [user, authLoading, navigate, location]);
 
-  const getErrorMessage = (error: any): string => {
-    const msg = error?.message || "";
+  const getErrorMessage = (error: unknown): string => {
+    const msg = error instanceof Error ? error.message : "";
     if (msg.toLowerCase().includes("failed to fetch") || msg.toLowerCase().includes("networkerror") || msg.toLowerCase().includes("network request failed")) {
       return "Cannot connect to the server. Please check your internet connection and try again.";
     }
@@ -84,7 +94,7 @@ export default function AuthPage() {
       } else if (data.user && !data.session) {
         toast.success("Check your email to confirm your account!");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(getErrorMessage(error) || "An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
@@ -124,9 +134,9 @@ export default function AuthPage() {
       setFailedAttempts(0);
       setShowForgotPassword(false);
       toast.success("Welcome back!");
-      const from = (location.state as any)?.from?.pathname || "/";
+      const from = getRedirectPath(location.state);
       navigate(from, { replace: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(getErrorMessage(error) || "An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
@@ -148,7 +158,8 @@ export default function AuthPage() {
       } else {
         toast.success("Password reset email sent! Check your inbox.");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      console.error("Error sending password reset:", error);
       toast.error("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);

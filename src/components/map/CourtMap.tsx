@@ -7,6 +7,12 @@ import { formatDistance, getDistanceKm } from "@/hooks/useUserLocation";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || "";
 
+const COURT_SOURCE_ID = "court-markers";
+const COURT_CIRCLE_LAYER_ID = "court-marker-circles";
+const COURT_DOT_LAYER_ID = "court-marker-dots";
+const COURT_BADGE_LAYER_ID = "court-marker-badges";
+const COURT_BADGE_TEXT_LAYER_ID = "court-marker-badge-text";
+
 const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -67,9 +73,9 @@ export function CourtMap({
 }: CourtMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const markers = useRef<mapboxgl.Marker[]>([]);
   const userMarker = useRef<mapboxgl.Marker | null>(null);
   const placeMarker = useRef<mapboxgl.Marker | null>(null);
+  const courtPopup = useRef<mapboxgl.Popup | null>(null);
   const initialCenter = useRef(center);
   const initialZoom = useRef(zoom);
   const didFitInitialBounds = useRef(false);
@@ -174,7 +180,7 @@ export function CourtMap({
       `;
       el.appendChild(pin);
 
-      placeMarker.current = new mapboxgl.Marker({ element: el })
+      placeMarker.current = new mapboxgl.Marker({ element: el, anchor: "center" })
         .setLngLat([place.lng, place.lat])
         .setPopup(
           new mapboxgl.Popup({ offset: 20 }).setHTML(
@@ -247,6 +253,8 @@ export function CourtMap({
     return () => {
       window.clearTimeout(resizeTimer);
       m.off("error", reportMapError);
+      courtPopup.current?.remove();
+      courtPopup.current = null;
       placeMarker.current?.remove();
       placeMarker.current = null;
       m.remove();
@@ -276,93 +284,177 @@ export function CourtMap({
     if (!m) return;
 
     const addMarkers = () => {
-      markers.current.forEach((mk) => mk.remove());
-      markers.current = [];
+      const courtSourceData = {
+        type: "FeatureCollection" as const,
+        features: courts.map((court) => {
+          const count = checkIns.filter((c) => c.court_id === court.id).length;
+          const distText = userLocation
+            ? formatDistance(getDistanceKm(userLocation.lat, userLocation.lng, court.lat, court.lng))
+            : "";
 
-      courts.forEach((court) => {
-        const isSelected = selectedCourtId === court.id;
-        const courtCheckIns = checkIns.filter((c) => c.court_id === court.id);
-        const count = courtCheckIns.length;
+          return {
+            type: "Feature" as const,
+            geometry: {
+              type: "Point" as const,
+              coordinates: [court.lng, court.lat],
+            },
+            properties: {
+              courtId: court.id,
+              name: court.name,
+              address: court.address,
+              count,
+              countLabel: count ? String(count) : "",
+              distText,
+              isSelected: selectedCourtId === court.id,
+            },
+          };
+        }),
+      };
 
-        const distText =
-          userLocation
-            ? formatDistance(
-                getDistanceKm(userLocation.lat, userLocation.lng, court.lat, court.lng)
-              )
-            : null;
+      const source = m.getSource(COURT_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
+      if (source) {
+        source.setData(courtSourceData as Parameters<mapboxgl.GeoJSONSource["setData"]>[0]);
+        return;
+      }
 
-        const el = document.createElement("div");
-        const pin = document.createElement("div");
-        el.style.cssText = `
-          width: 32px; height: 32px;
-          cursor: pointer;
-          position: relative;
-        `;
-        pin.style.cssText = `
-          width: 32px; height: 32px;
-          background: ${isSelected ? "#4ade80" : "#22c55e"};
-          border: 3px solid ${isSelected ? "#fff" : "rgba(255,255,255,0.8)"};
-          border-radius: 50%;
-          display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-          transition: transform 0.15s;
-          transform: ${isSelected ? "scale(1.3)" : "scale(1)"};
-          position: relative;
-        `;
-        pin.innerHTML = `
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="8" fill="white"/>
-          </svg>
-        `;
+      m.addSource(COURT_SOURCE_ID, {
+        type: "geojson",
+        data: courtSourceData,
+      });
 
-        if (count > 0) {
-          const badge = document.createElement("span");
-          badge.textContent = String(count);
-          badge.title = "View players here";
-          badge.style.cssText = `
-            position: absolute; top: -6px; right: -6px;
-            background: #f97316; color: white; font-size: 10px; font-weight: 700;
-            width: 18px; height: 18px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            border: 2px solid white;
-            cursor: pointer;
-          `;
-          badge.addEventListener("click", (event) => {
-            event.stopPropagation();
-            onAvatarClick?.(court.id);
-          });
-          pin.appendChild(badge);
-        }
-        el.appendChild(pin);
+      m.addLayer({
+        id: COURT_CIRCLE_LAYER_ID,
+        type: "circle",
+        source: COURT_SOURCE_ID,
+        paint: {
+          "circle-radius": ["case", ["boolean", ["get", "isSelected"], false], 20, 16],
+          "circle-color": ["case", ["boolean", ["get", "isSelected"], false], "#4ade80", "#22c55e"],
+          "circle-stroke-color": "#ffffff",
+          "circle-stroke-width": 3,
+        },
+      });
 
-        const popupHtml = `
-          <div style="padding:4px 2px; min-width:140px">
+      m.addLayer({
+        id: COURT_DOT_LAYER_ID,
+        type: "circle",
+        source: COURT_SOURCE_ID,
+        paint: {
+          "circle-radius": ["case", ["boolean", ["get", "isSelected"], false], 8, 6],
+          "circle-color": "#ffffff",
+        },
+      });
+
+      m.addLayer({
+        id: COURT_BADGE_LAYER_ID,
+        type: "circle",
+        source: COURT_SOURCE_ID,
+        filter: [">", ["get", "count"], 0],
+        paint: {
+          "circle-radius": 9,
+          "circle-color": "#f97316",
+          "circle-stroke-color": "#ffffff",
+          "circle-stroke-width": 2,
+          "circle-translate": [12, -12],
+          "circle-translate-anchor": "viewport",
+        },
+      });
+
+      m.addLayer({
+        id: COURT_BADGE_TEXT_LAYER_ID,
+        type: "symbol",
+        source: COURT_SOURCE_ID,
+        filter: [">", ["get", "count"], 0],
+        layout: {
+          "text-field": ["get", "countLabel"],
+          "text-size": 10,
+          "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+          "text-allow-overlap": true,
+          "text-ignore-placement": true,
+        },
+        paint: {
+          "text-color": "#ffffff",
+          "text-translate": [12, -12],
+          "text-translate-anchor": "viewport",
+        },
+      });
+    };
+
+    const findCourtFromFeature = (
+      event: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }
+    ) => {
+      const courtId = event.features?.[0]?.properties?.courtId as string | undefined;
+      return courtId ? courts.find((court) => court.id === courtId) : undefined;
+    };
+
+    const handleCourtClick = (
+      event: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }
+    ) => {
+      const court = findCourtFromFeature(event);
+      if (!court) return;
+
+      onCourtSelect?.(court);
+
+      const count = checkIns.filter((c) => c.court_id === court.id).length;
+      const distText = userLocation
+        ? formatDistance(getDistanceKm(userLocation.lat, userLocation.lng, court.lat, court.lng))
+        : null;
+
+      courtPopup.current?.remove();
+      courtPopup.current = new mapboxgl.Popup({ offset: 20, closeButton: true })
+        .setLngLat([court.lng, court.lat])
+        .setHTML(
+          `<div style="padding:4px 2px; min-width:140px">
             <strong style="font-size:13px">${esc(court.name)}</strong>
             <p style="font-size:11px; color:#666; margin:2px 0 0">${esc(court.address)}</p>
             ${distText ? `<p style="font-size:11px; color:#3b82f6; margin:4px 0 0; font-weight:600">${esc(distText)} from you</p>` : ""}
             ${count > 0 ? `<p style="font-size:11px; color:#22c55e; margin:4px 0 0; font-weight:600">${count} player${count > 1 ? "s" : ""} here</p>` : ""}
-          </div>
-        `;
+          </div>`
+        )
+        .addTo(m);
+    };
 
-        const popup = new mapboxgl.Popup({ offset: 20, closeButton: true }).setHTML(popupHtml);
+    const handleBadgeClick = (
+      event: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }
+    ) => {
+      const court = findCourtFromFeature(event);
+      if (!court) return;
 
-        const marker = new mapboxgl.Marker({ element: el })
-          .setLngLat([court.lng, court.lat])
-          .setPopup(popup)
-          .addTo(m);
+      event.preventDefault();
+      onAvatarClick?.(court.id);
+    };
 
-        el.addEventListener("click", () => {
-          onCourtSelect?.(court);
-        });
+    const setPointerCursor = () => {
+      m.getCanvas().style.cursor = "pointer";
+    };
 
-        markers.current.push(marker);
-      });
+    const clearPointerCursor = () => {
+      m.getCanvas().style.cursor = "";
+    };
+
+    const bindLayerEvents = () => {
+      if (!m.getLayer(COURT_CIRCLE_LAYER_ID)) return;
+
+      m.on("click", COURT_CIRCLE_LAYER_ID, handleCourtClick);
+      m.on("click", COURT_DOT_LAYER_ID, handleCourtClick);
+      m.on("click", COURT_BADGE_LAYER_ID, handleBadgeClick);
+      m.on("click", COURT_BADGE_TEXT_LAYER_ID, handleBadgeClick);
+      m.on("mouseenter", COURT_CIRCLE_LAYER_ID, setPointerCursor);
+      m.on("mouseenter", COURT_DOT_LAYER_ID, setPointerCursor);
+      m.on("mouseenter", COURT_BADGE_LAYER_ID, setPointerCursor);
+      m.on("mouseleave", COURT_CIRCLE_LAYER_ID, clearPointerCursor);
+      m.on("mouseleave", COURT_DOT_LAYER_ID, clearPointerCursor);
+      m.on("mouseleave", COURT_BADGE_LAYER_ID, clearPointerCursor);
+    };
+
+    const syncAndBind = () => {
+      addMarkers();
+      bindLayerEvents();
     };
 
     if (m.loaded()) {
-      addMarkers();
+      syncAndBind();
     } else {
-      m.on("load", addMarkers);
+      m.on("load", syncAndBind);
     }
 
     if (!didFitInitialBounds.current && courts.length > 0) {
@@ -381,7 +473,25 @@ export function CourtMap({
     }
 
     return () => {
-      m.off("load", addMarkers);
+      m.off("load", syncAndBind);
+      if (m.getLayer(COURT_CIRCLE_LAYER_ID)) {
+        m.off("click", COURT_CIRCLE_LAYER_ID, handleCourtClick);
+        m.off("mouseenter", COURT_CIRCLE_LAYER_ID, setPointerCursor);
+        m.off("mouseleave", COURT_CIRCLE_LAYER_ID, clearPointerCursor);
+      }
+      if (m.getLayer(COURT_DOT_LAYER_ID)) {
+        m.off("click", COURT_DOT_LAYER_ID, handleCourtClick);
+        m.off("mouseenter", COURT_DOT_LAYER_ID, setPointerCursor);
+        m.off("mouseleave", COURT_DOT_LAYER_ID, clearPointerCursor);
+      }
+      if (m.getLayer(COURT_BADGE_LAYER_ID)) {
+        m.off("click", COURT_BADGE_LAYER_ID, handleBadgeClick);
+        m.off("mouseenter", COURT_BADGE_LAYER_ID, setPointerCursor);
+        m.off("mouseleave", COURT_BADGE_LAYER_ID, clearPointerCursor);
+      }
+      if (m.getLayer(COURT_BADGE_TEXT_LAYER_ID)) {
+        m.off("click", COURT_BADGE_TEXT_LAYER_ID, handleBadgeClick);
+      }
     };
   }, [courts, selectedCourtId, checkIns, onCourtSelect, onAvatarClick, userLocation, fitToCourts]);
 
@@ -412,7 +522,7 @@ export function CourtMap({
       box-shadow: 0 0 0 6px rgba(59,130,246,0.25), 0 2px 8px rgba(0,0,0,0.3);
     `;
 
-    userMarker.current = new mapboxgl.Marker({ element: el })
+    userMarker.current = new mapboxgl.Marker({ element: el, anchor: "center" })
       .setLngLat([userLocation.lng, userLocation.lat])
       .setPopup(
         new mapboxgl.Popup({ offset: 15 }).setHTML(

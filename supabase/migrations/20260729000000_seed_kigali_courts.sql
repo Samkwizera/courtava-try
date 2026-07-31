@@ -17,8 +17,8 @@ WITH new_courts (
       '10000000-0000-4000-8000-000000000101'::uuid,
       'Club Rafiki',
       'Avenue de la Nyabarongo, Nyamirambo, Kigali',
-      -1.97154,
-      30.05583,
+      -1.9716971,
+      30.0558259,
       'cement',
       true,
       false,
@@ -113,8 +113,8 @@ WITH new_courts (
       '10000000-0000-4000-8000-000000000109'::uuid,
       'Zaria Court Kigali',
       'KG 17 Ave, Remera, Kigali',
-      -1.9369,
-      30.0941,
+      -1.957488,
+      30.1120156,
       'indoor',
       true,
       true,
@@ -163,6 +163,19 @@ FROM new_courts seed
 WHERE NOT EXISTS (
   SELECT 1
   FROM public.courts existing
-  WHERE lower(existing.name) = lower(seed.name)
+  WHERE
+    lower(existing.name) = lower(seed.name)
+    OR (
+      (
+        existing.name ILIKE '%africa leadership university%'
+        OR existing.name ILIKE '%african leadership university%'
+        OR existing.name ILIKE '%ALU%'
+      )
+      AND (
+        seed.name ILIKE '%africa leadership university%'
+        OR seed.name ILIKE '%african leadership university%'
+        OR seed.name ILIKE '%ALU%'
+      )
+    )
 )
 ON CONFLICT (id) DO NOTHING;

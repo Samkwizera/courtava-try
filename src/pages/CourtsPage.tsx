@@ -208,7 +208,7 @@ export default function CourtsPage() {
 
       {/* Content */}
       {viewMode === "list" ? (
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+        <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
           <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
             <MapPin className="w-4 h-4" />
             <span>{filteredCourts.length} courts in Kigali</span>
@@ -226,7 +226,7 @@ export default function CourtsPage() {
                 playersNow={liveCount}
                 surface={court.surface}
                 amenities={court.amenities}
-                imageUrl={court.photo_url ?? undefined}
+                variant="compact"
                 onClick={() => navigate(`/courts/${court.id}`)}
               />
             );
@@ -260,7 +260,7 @@ export default function CourtsPage() {
             if (!court) return null;
             const liveCount = checkIns.filter((c) => c.court_id === court.id).length;
             return (
-              <div className="absolute bottom-4 left-4 right-4 z-[1000]">
+              <div className="absolute bottom-28 left-4 right-4 z-[1000]">
                 <div className="relative">
                   <button
                     onClick={(e) => {
@@ -281,7 +281,7 @@ export default function CourtsPage() {
                     playersNow={liveCount}
                     surface={court.surface}
                     amenities={court.amenities}
-                    imageUrl={court.photo_url ?? undefined}
+                    variant="compact"
                     onClick={() => navigate(`/courts/${court.id}`)}
                   />
                 </div>

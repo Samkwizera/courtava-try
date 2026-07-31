@@ -72,11 +72,15 @@ export function CourtMap({
   const placeMarker = useRef<mapboxgl.Marker | null>(null);
   const initialCenter = useRef(center);
   const initialZoom = useRef(zoom);
+  const didFitInitialBounds = useRef(false);
   const [mapSearch, setMapSearch] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [placeResults, setPlaceResults] = useState<PlaceResult[]>([]);
   const [isSearchingPlaces, setIsSearchingPlaces] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const centerLat = center[0];
+  const centerLng = center[1];
 
   // Filter courts for search suggestions
   const courtResults = useMemo(() => {
@@ -155,15 +159,20 @@ export function CourtMap({
     // Add a temporary red marker for the place
     if (map.current) {
       const el = document.createElement("div");
+      const pin = document.createElement("div");
       el.style.cssText = `
+        width: 28px; height: 28px;
+        cursor: pointer;
+      `;
+      pin.style.cssText = `
         width: 28px; height: 28px;
         background: #ef4444;
         border: 3px solid white;
         border-radius: 50% 50% 50% 0;
         transform: rotate(-45deg);
         box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        cursor: pointer;
       `;
+      el.appendChild(pin);
 
       placeMarker.current = new mapboxgl.Marker({ element: el })
         .setLngLat([place.lng, place.lat])
@@ -192,26 +201,74 @@ export function CourtMap({
     }
   };
 
+  const fitToCourts = useCallback(
+    (m: mapboxgl.Map) => {
+      if (courts.length === 0) return;
+
+      const bounds = new mapboxgl.LngLatBounds();
+      courts.forEach((court) => bounds.extend([court.lng, court.lat]));
+
+      if (userLocation) {
+        bounds.extend([userLocation.lng, userLocation.lat]);
+      }
+
+      m.fitBounds(bounds, {
+        padding: { top: 90, bottom: 140, left: 48, right: 48 },
+        maxZoom: 15,
+        duration: 700,
+      });
+    },
+    [courts, userLocation]
+  );
+
   // ── 1. Initialize map ──
   useEffect(() => {
     if (map.current || !mapContainer.current || !mapboxgl.accessToken) return;
 
-    map.current = new mapboxgl.Map({
+    const m = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/streets-v12",
       center: [initialCenter.current[1], initialCenter.current[0]],
       zoom: initialZoom.current,
     });
+    map.current = m;
 
-    map.current.addControl(new mapboxgl.NavigationControl(), "bottom-right");
+    const reportMapError = (event: mapboxgl.ErrorEvent) => {
+      console.error("Mapbox error:", event.error);
+      setMapError("Map failed to load. Check your Mapbox token and network connection.");
+    };
+
+    m.addControl(new mapboxgl.NavigationControl(), "bottom-right");
+    m.on("error", reportMapError);
+
+    requestAnimationFrame(() => m.resize());
+    const resizeTimer = window.setTimeout(() => m.resize(), 250);
 
     return () => {
+      window.clearTimeout(resizeTimer);
+      m.off("error", reportMapError);
       placeMarker.current?.remove();
       placeMarker.current = null;
-      map.current?.remove();
+      m.remove();
       map.current = null;
     };
   }, []);
+
+  // Keep Mapbox dimensions in sync after tab changes, mobile viewport changes, or data load.
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+
+    const resize = () => m.resize();
+    requestAnimationFrame(resize);
+    const resizeTimer = window.setTimeout(resize, 250);
+    window.addEventListener("resize", resize);
+
+    return () => {
+      window.clearTimeout(resizeTimer);
+      window.removeEventListener("resize", resize);
+    };
+  }, [courts.length]);
 
   // ── 2. Sync court markers ──
   useEffect(() => {
@@ -235,19 +292,24 @@ export function CourtMap({
             : null;
 
         const el = document.createElement("div");
+        const pin = document.createElement("div");
         el.style.cssText = `
+          width: 32px; height: 32px;
+          cursor: pointer;
+          position: relative;
+        `;
+        pin.style.cssText = `
           width: 32px; height: 32px;
           background: ${isSelected ? "#4ade80" : "#22c55e"};
           border: 3px solid ${isSelected ? "#fff" : "rgba(255,255,255,0.8)"};
           border-radius: 50%;
-          cursor: pointer;
           display: flex; align-items: center; justify-content: center;
           box-shadow: 0 2px 8px rgba(0,0,0,0.3);
           transition: transform 0.15s;
           transform: ${isSelected ? "scale(1.3)" : "scale(1)"};
           position: relative;
         `;
-        el.innerHTML = `
+        pin.innerHTML = `
           <svg width="16" height="16" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="8" fill="white"/>
           </svg>
@@ -256,21 +318,28 @@ export function CourtMap({
         if (count > 0) {
           const badge = document.createElement("span");
           badge.textContent = String(count);
+          badge.title = "View players here";
           badge.style.cssText = `
             position: absolute; top: -6px; right: -6px;
             background: #f97316; color: white; font-size: 10px; font-weight: 700;
             width: 18px; height: 18px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             border: 2px solid white;
+            cursor: pointer;
           `;
-          el.appendChild(badge);
+          badge.addEventListener("click", (event) => {
+            event.stopPropagation();
+            onAvatarClick?.(court.id);
+          });
+          pin.appendChild(badge);
         }
+        el.appendChild(pin);
 
         const popupHtml = `
           <div style="padding:4px 2px; min-width:140px">
             <strong style="font-size:13px">${esc(court.name)}</strong>
             <p style="font-size:11px; color:#666; margin:2px 0 0">${esc(court.address)}</p>
-            ${distText ? `<p style="font-size:11px; color:#3b82f6; margin:4px 0 0; font-weight:600">📍 ${esc(distText)} from you</p>` : ""}
+            ${distText ? `<p style="font-size:11px; color:#3b82f6; margin:4px 0 0; font-weight:600">${esc(distText)} from you</p>` : ""}
             ${count > 0 ? `<p style="font-size:11px; color:#22c55e; margin:4px 0 0; font-weight:600">${count} player${count > 1 ? "s" : ""} here</p>` : ""}
           </div>
         `;
@@ -296,16 +365,31 @@ export function CourtMap({
       m.on("load", addMarkers);
     }
 
+    if (!didFitInitialBounds.current && courts.length > 0) {
+      const fit = () => {
+        if (!didFitInitialBounds.current) {
+          fitToCourts(m);
+          didFitInitialBounds.current = true;
+        }
+      };
+
+      if (m.loaded()) {
+        fit();
+      } else {
+        m.once("load", fit);
+      }
+    }
+
     return () => {
       m.off("load", addMarkers);
     };
-  }, [courts, selectedCourtId, checkIns, onCourtSelect, userLocation]);
+  }, [courts, selectedCourtId, checkIns, onCourtSelect, onAvatarClick, userLocation, fitToCourts]);
 
   // ── 3. Fly to new center ──
   useEffect(() => {
     if (!map.current) return;
-    map.current.flyTo({ center: [center[1], center[0]], zoom, duration: 800 });
-  }, [center, zoom]);
+    map.current.flyTo({ center: [centerLng, centerLat], zoom, duration: 800 });
+  }, [centerLat, centerLng, zoom]);
 
   // ── 4. User location marker ──
   useEffect(() => {
@@ -332,17 +416,14 @@ export function CourtMap({
       .setLngLat([userLocation.lng, userLocation.lat])
       .setPopup(
         new mapboxgl.Popup({ offset: 15 }).setHTML(
-          `<div style="padding:4px 2px"><strong style="font-size:12px">📍 You are here</strong></div>`
+          `<div style="padding:4px 2px"><strong style="font-size:12px">You are here</strong></div>`
         )
       )
       .addTo(m);
 
     // Fit bounds to show user + all courts
     if (courts.length > 0) {
-      const bounds = new mapboxgl.LngLatBounds();
-      bounds.extend([userLocation.lng, userLocation.lat]);
-      courts.forEach((c) => bounds.extend([c.lng, c.lat]));
-      m.fitBounds(bounds, { padding: 60, maxZoom: 15, duration: 1200 });
+      fitToCourts(m);
     } else {
       m.flyTo({ center: [userLocation.lng, userLocation.lat], zoom: 14, duration: 1000 });
     }
@@ -351,7 +432,13 @@ export function CourtMap({
       userMarker.current?.remove();
       userMarker.current = null;
     };
-  }, [userLocation, courts]);
+  }, [userLocation, courts, fitToCourts]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
+  }, []);
 
   // ── No token fallback ──
   if (!mapboxgl.accessToken) {
@@ -380,6 +467,12 @@ export function CourtMap({
 
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
+      {mapError && (
+        <div className="absolute left-3 right-3 top-16 z-20 rounded-xl border border-destructive/20 bg-background/95 px-3 py-2 text-sm text-destructive shadow-lg">
+          {mapError}
+        </div>
+      )}
+
       {/* Floating search bar on the map */}
       <div className="absolute top-3 left-3 right-3 z-10">
         <div className="relative">

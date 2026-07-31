@@ -21,6 +21,17 @@ function getRedirectPath(state: unknown): string {
   return (state as AuthLocationState | null)?.from?.pathname || "/";
 }
 
+function GoogleIcon() {
+  return (
+    <span
+      aria-hidden="true"
+      className="flex h-5 w-5 items-center justify-center rounded-full bg-background text-sm font-semibold text-foreground"
+    >
+      G
+    </span>
+  );
+}
+
 export default function AuthPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -143,6 +154,33 @@ export default function AuthPage() {
     }
   };
 
+  const handleGoogleAuth = async () => {
+    setIsLoading(true);
+    try {
+      const from = getRedirectPath(location.state);
+      const redirectTo = `${window.location.origin}${from}`;
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo,
+          queryParams: {
+            access_type: "offline",
+            prompt: "select_account",
+          },
+        },
+      });
+
+      if (error) {
+        toast.error(getErrorMessage(error));
+        setIsLoading(false);
+      }
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error) || "Google sign-in failed. Please try again.");
+      setIsLoading(false);
+    }
+  };
+
   const handleForgotPassword = async () => {
     if (!email) {
       toast.error("Please enter your email address first");
@@ -204,7 +242,25 @@ export default function AuthPage() {
               </TabsList>
 
               <TabsContent value="signup">
-                <form onSubmit={handleSignUp} className="space-y-4">
+                <div className="space-y-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-12 text-base"
+                    onClick={handleGoogleAuth}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <GoogleIcon />}
+                    Continue with Google
+                  </Button>
+
+                  <div className="flex items-center gap-3">
+                    <div className="h-px flex-1 bg-border" />
+                    <span className="text-xs text-muted-foreground">or</span>
+                    <div className="h-px flex-1 bg-border" />
+                  </div>
+
+                  <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signup-name">Display Name</Label>
                     <Input
@@ -251,11 +307,30 @@ export default function AuthPage() {
                       "Create Account"
                     )}
                   </Button>
-                </form>
+                  </form>
+                </div>
               </TabsContent>
 
               <TabsContent value="signin">
-                <form onSubmit={handleSignIn} className="space-y-4">
+                <div className="space-y-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-12 text-base"
+                    onClick={handleGoogleAuth}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <GoogleIcon />}
+                    Continue with Google
+                  </Button>
+
+                  <div className="flex items-center gap-3">
+                    <div className="h-px flex-1 bg-border" />
+                    <span className="text-xs text-muted-foreground">or</span>
+                    <div className="h-px flex-1 bg-border" />
+                  </div>
+
+                  <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signin-email">Email</Label>
                     <Input
@@ -302,7 +377,8 @@ export default function AuthPage() {
                       </button>
                     </div>
                   )}
-                </form>
+                  </form>
+                </div>
               </TabsContent>
             </Tabs>
           </CardContent>

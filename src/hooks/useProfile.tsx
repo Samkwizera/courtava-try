@@ -18,7 +18,6 @@ export interface Profile {
 
 export interface ProfileUpdate {
   display_name?: string | null;
-  avatar_url?: string | null;
   bio?: string | null;
   skill_level?: string | null;
   position?: string | null;

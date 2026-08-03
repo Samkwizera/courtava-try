@@ -34,7 +34,6 @@ export function EditProfileSheet({
   isSaving,
 }: EditProfileSheetProps) {
   const [displayName, setDisplayName] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
   const [bio, setBio] = useState("");
   const [skillLevel, setSkillLevel] = useState("");
   const [position, setPosition] = useState("");
@@ -44,7 +43,6 @@ export function EditProfileSheet({
   useEffect(() => {
     if (profile && open) {
       setDisplayName(profile.display_name || "");
-      setAvatarUrl(profile.avatar_url || "");
       setBio(profile.bio || "");
       setSkillLevel(profile.skill_level || "");
       setPosition(profile.position || "");
@@ -63,7 +61,6 @@ export function EditProfileSheet({
 
     await onSave({
       display_name: displayName.trim(),
-      avatar_url: avatarUrl.trim() || null,
       bio: bio.trim() || null,
       skill_level: skillLevel || null,
       position: position || null,
@@ -104,33 +101,6 @@ export function EditProfileSheet({
         </SheetHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5 pb-6">
-          {/* Avatar preview + URL */}
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-secondary border-2 border-border flex items-center justify-center text-xl font-bold text-secondary-foreground overflow-hidden shrink-0">
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt="Avatar"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                  }}
-                />
-              ) : (
-                (displayName || "?")[0].toUpperCase()
-              )}
-            </div>
-            <div className="flex-1 space-y-1">
-              <Label htmlFor="avatar-url">Profile Picture URL</Label>
-              <Input
-                id="avatar-url"
-                placeholder="https://example.com/photo.jpg"
-                value={avatarUrl}
-                onChange={(e) => setAvatarUrl(e.target.value)}
-              />
-            </div>
-          </div>
-
           {/* Display name */}
           <div className="space-y-1.5">
             <Label htmlFor="display-name">Name</Label>

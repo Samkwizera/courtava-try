@@ -10,6 +10,14 @@ interface State {
   error: Error | null;
 }
 
+const CHUNK_RELOAD_KEY = "courtava_chunk_reload_attempted";
+
+function isChunkLoadError(error: Error) {
+  return /Failed to fetch dynamically imported module|Importing a module script failed|ChunkLoadError|Loading chunk \d+ failed/i.test(
+    error.message
+  );
+}
+
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false, error: null };
 
@@ -19,6 +27,25 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("App error:", error, errorInfo);
+
+    if (isChunkLoadError(error)) {
+      let hasReloaded = false;
+
+      try {
+        hasReloaded = sessionStorage.getItem(CHUNK_RELOAD_KEY) === "true";
+      } catch {
+        /* ignore */
+      }
+
+      if (!hasReloaded) {
+        try {
+          sessionStorage.setItem(CHUNK_RELOAD_KEY, "true");
+        } catch {
+          /* ignore */
+        }
+        window.location.reload();
+      }
+    }
   }
 
   render() {

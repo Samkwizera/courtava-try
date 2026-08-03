@@ -8,6 +8,7 @@ import { SplashScreen } from "@/components/SplashScreen";
 import { BackendEnvErrorScreen } from "@/components/BackendEnvErrorScreen";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import CourtDetailsPage from "@/pages/CourtDetailsPage";
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -24,7 +25,6 @@ const AppLayout = lazy(() => import("@/components/layout/AppLayout").then((m) =>
 const RequireAuth = lazy(() => import("@/components/auth/RequireAuth").then((m) => ({ default: m.RequireAuth })));
 const HomePage = lazy(() => import("@/pages/HomePage"));
 const CourtsPage = lazy(() => import("@/pages/CourtsPage"));
-const CourtDetailsPage = lazy(() => import("@/pages/CourtDetailsPage"));
 const GamesPage = lazy(() => import("@/pages/GamesPage"));
 const CreateGamePage = lazy(() => import("@/pages/CreateGamePage"));
 const PlayersPage = lazy(() => import("@/pages/PlayersPage"));

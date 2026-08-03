@@ -2,6 +2,21 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
+const PRELOAD_RELOAD_KEY = "courtava_preload_reload_attempted";
+
+window.addEventListener("vite:preloadError", (event) => {
+  event.preventDefault();
+
+  try {
+    if (sessionStorage.getItem(PRELOAD_RELOAD_KEY) === "true") return;
+    sessionStorage.setItem(PRELOAD_RELOAD_KEY, "true");
+  } catch {
+    /* ignore */
+  }
+
+  window.location.reload();
+});
+
 const rootEl = document.getElementById("root");
 if (!rootEl) {
   document.body.innerHTML = '<div style="padding:24px;font-family:sans-serif">Root element not found.</div>';

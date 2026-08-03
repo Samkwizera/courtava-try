@@ -76,3 +76,28 @@ export function useCourts() {
     isAdding: addCourtMutation.isPending,
   };
 }
+
+export function useCourt(courtId?: string) {
+  const { data: court = null, isLoading, error } = useQuery({
+    queryKey: ["court", courtId],
+    queryFn: async () => {
+      if (!courtId) return null;
+
+      const { data, error } = await supabase
+        .from("courts")
+        .select("*")
+        .eq("id", courtId)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data as DbCourt | null;
+    },
+    enabled: !!courtId,
+  });
+
+  return {
+    court,
+    isLoading,
+    error,
+  };
+}

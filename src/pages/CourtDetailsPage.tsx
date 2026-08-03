@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useCourts } from "@/hooks/useCourts";
+import { useCourt, useCourts } from "@/hooks/useCourts";
 import { useAuth } from "@/hooks/useAuth";
 import { useCheckIns } from "@/hooks/useCheckIns";
 import { toast } from "sonner";
@@ -102,10 +102,13 @@ export default function CourtDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { dbCourts, isLoading } = useCourts();
+  const { dbCourts, isLoading: isCourtsLoading } = useCourts();
   const { checkIns, myCheckIn, checkIn, checkOut } = useCheckIns();
 
-  const court = dbCourts.find((c) => c.id === id);
+  const listCourt = dbCourts.find((c) => c.id === id);
+  const { court: routeCourt, isLoading: isRouteCourtLoading } = useCourt(listCourt ? undefined : id);
+  const court = listCourt ?? routeCourt;
+  const isLoading = !court && (isCourtsLoading || isRouteCourtLoading);
   const courtCheckIns = checkIns.filter((c) => c.court_id === id);
   const isCheckedInHere = myCheckIn?.court_id === id;
   const playerCount = courtCheckIns.length;

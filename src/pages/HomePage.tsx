@@ -79,6 +79,7 @@ export default function HomePage() {
   const { checkIns } = useCheckIns();
   const { user } = useAuth();
   const [activeFilter, setActiveFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const displayName = user?.user_metadata?.display_name || user?.email?.split("@")[0] || "Player";
   const initials = displayName.slice(0, 2).toUpperCase();
@@ -89,12 +90,21 @@ export default function HomePage() {
   });
   const activeCourts = courtsWithActivity.filter((c) => c.liveCount > 0).length;
 
+  const normalizedSearch = searchQuery.trim().toLowerCase();
   const displayedCourts = courtsWithActivity.filter((c) => {
     if (activeFilter === "all") return true;
     if (activeFilter === "hot") return c.heat === "high";
     if (activeFilter === "casual") return c.heat === "low" || c.heat === "medium";
     if (activeFilter === "competitive") return c.heat === "high" || c.heat === "medium";
     return true;
+  }).filter((court) => {
+    if (!normalizedSearch) return true;
+
+    return (
+      court.name.toLowerCase().includes(normalizedSearch) ||
+      court.address.toLowerCase().includes(normalizedSearch) ||
+      court.surface.toLowerCase().includes(normalizedSearch)
+    );
   });
 
   const now = new Date();
@@ -162,8 +172,8 @@ export default function HomePage() {
           </svg>
 
           {/* Court dots */}
-          {courtsWithActivity.slice(0, 8).map((court, i) => {
-            const { cx, cy } = deterministicPos(court.id, i, Math.min(courtsWithActivity.length, 8));
+          {displayedCourts.slice(0, 8).map((court, i) => {
+            const { cx, cy } = deterministicPos(court.id, i, Math.min(displayedCourts.length, 8));
             const meta = HEAT_META[court.heat];
             return (
               <button
@@ -201,9 +211,47 @@ export default function HomePage() {
             boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
           }}>
             <SearchIcon />
-            <div style={{ color: C.ink3, fontSize: 14, flex: 1 }}>Search courts near you</div>
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && displayedCourts.length === 1) {
+                  navigate(`/courts/${displayedCourts[0].id}`);
+                }
+              }}
+              placeholder="Search courts near you"
+              aria-label="Search courts near you"
+              style={{
+                flex: 1,
+                minWidth: 0,
+                border: "none",
+                outline: "none",
+                background: "transparent",
+                color: C.ink,
+                fontSize: 14,
+                fontFamily: "inherit",
+              }}
+            />
             <div style={{ width: 1, height: 18, background: C.hair }} />
-            <FilterIcon />
+            <button
+              type="button"
+              onClick={() => navigate("/courts")}
+              aria-label="Open court filters"
+              style={{
+                width: 26,
+                height: 26,
+                border: "none",
+                background: "transparent",
+                padding: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+              }}
+            >
+              <FilterIcon />
+            </button>
           </div>
 
           {/* Heat legend */}
@@ -262,21 +310,27 @@ export default function HomePage() {
       {/* Courts near you */}
       <div style={{ padding: "12px 14px 0" }}>
         <div style={{ padding: "8px 8px 10px", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <div style={{ fontSize: 17, fontWeight: 600 }}>Courts near you</div>
-          <div style={{ fontSize: 12, color: C.ink3 }}>Sorted by activity</div>
+          <div style={{ fontSize: 17, fontWeight: 600 }}>
+            {normalizedSearch ? "Search results" : "Courts near you"}
+          </div>
+          <div style={{ fontSize: 12, color: C.ink3 }}>
+            {displayedCourts.length} {displayedCourts.length === 1 ? "court" : "courts"}
+          </div>
         </div>
 
         {displayedCourts.length === 0 ? (
           <div style={{ textAlign: "center", padding: "40px 0" }}>
-            <div style={{ fontSize: 14, color: C.ink3, marginBottom: 12 }}>No courts yet. Be the first to add one!</div>
+            <div style={{ fontSize: 14, color: C.ink3, marginBottom: 12 }}>
+              {normalizedSearch ? "No courts match your search." : "No courts yet. Be the first to add one!"}
+            </div>
             <button
-              onClick={() => navigate("/courts")}
+              onClick={() => normalizedSearch ? setSearchQuery("") : navigate("/courts")}
               style={{
                 background: C.green, color: "#fff", border: "none", borderRadius: 99,
                 padding: "10px 20px", fontSize: 14, fontWeight: 600, cursor: "pointer",
               }}
             >
-              Explore courts
+              {normalizedSearch ? "Clear search" : "Explore courts"}
             </button>
           </div>
         ) : (

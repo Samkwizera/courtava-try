@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -21,45 +21,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const syncedProfileIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    const ensureProfile = async (session: Session | null) => {
-      const user = session?.user;
-      if (!user || syncedProfileIds.current.has(user.id)) return;
-
-      syncedProfileIds.current.add(user.id);
-
-      const displayName =
-        user.user_metadata?.display_name ||
-        user.user_metadata?.full_name ||
-        user.user_metadata?.name ||
-        user.email?.split("@")[0] ||
-        "Player";
-
-      const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
-
-      const { error } = await supabase.from("profiles").upsert({
-        id: user.id,
-        display_name: displayName,
-        avatar_url: avatarUrl,
-      });
-
-      if (error) {
-        syncedProfileIds.current.delete(user.id);
-        console.error("Error syncing auth profile:", error);
-      }
-    };
-
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setIsLoading(false);
-        if (session?.user) {
-          void ensureProfile(session);
-        }
       }
     );
 
@@ -68,7 +37,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
-      void ensureProfile(session);
     });
 
     return () => subscription.unsubscribe();

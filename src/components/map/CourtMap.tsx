@@ -474,6 +474,9 @@ export function CourtMap({
 
     return () => {
       m.off("load", syncAndBind);
+
+      if (map.current !== m) return;
+
       if (m.getLayer(COURT_CIRCLE_LAYER_ID)) {
         m.off("click", COURT_CIRCLE_LAYER_ID, handleCourtClick);
         m.off("mouseenter", COURT_CIRCLE_LAYER_ID, setPointerCursor);

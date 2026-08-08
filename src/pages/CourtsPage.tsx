@@ -1,4 +1,4 @@
-import { MapPin, Search, Filter, List, Map as MapIcon, X, Plus, Locate } from "lucide-react";
+import { MapPin, Search, Filter, List, Map as MapIcon, X, Locate } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,10 +7,8 @@ import { CourtCard } from "@/components/cards/CourtCard";
 import { CourtMap } from "@/components/map/CourtMap";
 import { CourtFilters, CourtFiltersState } from "@/components/courts/CourtFilters";
 import { CheckInSheet } from "@/components/courts/CheckInSheet";
-import { AddCourtSheet } from "@/components/courts/AddCourtSheet";
 import { useCheckIns } from "@/hooks/useCheckIns";
 import { useCourts } from "@/hooks/useCourts";
-import { useAuth } from "@/hooks/useAuth";
 import { useUserLocation, getDistanceKm, formatDistance } from "@/hooks/useUserLocation";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +20,6 @@ const defaultFilters: CourtFiltersState = {
 
 export default function CourtsPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const { checkIns } = useCheckIns();
   const { dbCourts } = useCourts();
   const { userLocation, isLocating, locationEnabled, requestLocation } = useUserLocation();
@@ -33,7 +30,6 @@ export default function CourtsPage() {
   const [filters, setFilters] = useState<CourtFiltersState>(defaultFilters);
   const [checkInSheetOpen, setCheckInSheetOpen] = useState(false);
   const [checkInCourtId, setCheckInCourtId] = useState<string | null>(null);
-  const [addCourtOpen, setAddCourtOpen] = useState(false);
 
   // Use database courts with real distance when location is available
   const allCourts = useMemo(() => {
@@ -126,15 +122,6 @@ export default function CourtsPage() {
           <div className="flex items-center justify-between mb-2" style={{ minHeight: 44 }}>
             <h1 className="ios-large-title text-foreground">Find Courts</h1>
             <div className="flex items-center gap-2">
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => setAddCourtOpen(true)}
-                className="gap-1.5 rounded-full h-8 px-3 text-xs ios-tap"
-              >
-                <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-                Add
-              </Button>
               <Button
                 variant={locationEnabled ? "default" : "secondary"}
                 size="sm"
@@ -309,9 +296,6 @@ export default function CourtsPage() {
           checkedInUsers={checkIns.filter(c => c.court_id === checkInCourtId)}
         />
       )}
-
-      {/* Add Court Sheet */}
-      <AddCourtSheet open={addCourtOpen} onOpenChange={setAddCourtOpen} />
     </div>
   );
 }

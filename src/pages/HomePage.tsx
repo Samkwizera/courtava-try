@@ -321,7 +321,7 @@ export default function HomePage() {
         {displayedCourts.length === 0 ? (
           <div style={{ textAlign: "center", padding: "40px 0" }}>
             <div style={{ fontSize: 14, color: C.ink3, marginBottom: 12 }}>
-              {normalizedSearch ? "No courts match your search." : "No courts yet. Be the first to add one!"}
+              {normalizedSearch ? "No courts match your search." : "No courts are available yet."}
             </div>
             <button
               onClick={() => normalizedSearch ? setSearchQuery("") : navigate("/courts")}

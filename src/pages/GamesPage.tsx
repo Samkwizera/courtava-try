@@ -77,34 +77,13 @@ export default function GamesPage() {
     joinGame(gameId);
   };
 
-  const filterCourt = courtFilterId ? dbCourts.find((c) => c.id === courtFilterId) : undefined;
-  const courtGames = courtFilterId
-    ? games
-        .filter((g) => g.court_id === courtFilterId)
-        .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
-    : [];
-
-  // Courts with heat from check-ins
-  const courtsWithHeat = dbCourts.map((c) => ({
-    ...c,
-    liveCount: checkIns.filter((ci) => ci.court_id === c.id).length,
-  })).filter((c) => c.liveCount > 0);
-
-  const hotCourts = courtsWithHeat.filter((c) => c.liveCount >= 6);
-  const liveCourts = courtsWithHeat;
-
-  // Games split into today vs upcoming
-  const todayGames = games.filter((g) => isToday(g.date));
-  const upcomingGames = games.filter((g) => !isToday(g.date));
-
-  // Check-ins by others
-  const otherCheckIns = checkIns.filter((ci) => ci.user_id !== user?.id);
-
-  // Recently added courts (last 7 days)
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const newCourts = dbCourts.filter((c) => c.created_at > sevenDaysAgo);
-
   if (courtFilterId) {
+    const filterCourt = dbCourts.find((c) => c.id === courtFilterId);
+    const todayStr = new Date().toISOString().split("T")[0];
+    const courtGames = games
+      .filter((g) => g.court_id === courtFilterId && g.date >= todayStr)
+      .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+
     return (
       <div style={{ width: "100%", minHeight: "100vh", background: C.bg, fontFamily: font, color: C.ink, overflowY: "auto", paddingBottom: 120 }}>
         <div style={{ padding: "70px 22px 8px" }}>
@@ -121,12 +100,14 @@ export default function GamesPage() {
             Games at {filterCourt?.name || "this court"}
           </div>
           <div style={{ fontSize: 13, color: C.ink3, marginTop: 4 }}>
-            {courtGames.length} upcoming {courtGames.length === 1 ? "game" : "games"}
+            {isLoading ? "Loading…" : `${courtGames.length} upcoming ${courtGames.length === 1 ? "game" : "games"}`}
           </div>
         </div>
 
         <div style={{ padding: "14px 14px 0" }}>
-          {courtGames.length === 0 ? (
+          {isLoading ? (
+            <div style={{ textAlign: "center", padding: 40, color: C.ink3 }}>Loading...</div>
+          ) : courtGames.length === 0 ? (
             <div style={{ textAlign: "center", padding: "48px 0" }}>
               <div style={{ fontSize: 32, marginBottom: 12 }}>🏀</div>
               <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>No games scheduled yet</div>
@@ -155,6 +136,26 @@ export default function GamesPage() {
       </div>
     );
   }
+
+  // Courts with heat from check-ins
+  const courtsWithHeat = dbCourts.map((c) => ({
+    ...c,
+    liveCount: checkIns.filter((ci) => ci.court_id === c.id).length,
+  })).filter((c) => c.liveCount > 0);
+
+  const hotCourts = courtsWithHeat.filter((c) => c.liveCount >= 6);
+  const liveCourts = courtsWithHeat;
+
+  // Games split into today vs upcoming
+  const todayGames = games.filter((g) => isToday(g.date));
+  const upcomingGames = games.filter((g) => !isToday(g.date));
+
+  // Check-ins by others
+  const otherCheckIns = checkIns.filter((ci) => ci.user_id !== user?.id);
+
+  // Recently added courts (last 7 days)
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const newCourts = dbCourts.filter((c) => c.created_at > sevenDaysAgo);
 
   return (
     <div style={{ width: "100%", minHeight: "100vh", background: C.bg, fontFamily: font, color: C.ink, overflowY: "auto", paddingBottom: 120 }}>

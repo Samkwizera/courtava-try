@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useCourts } from "@/hooks/useCourts";
 import { useCheckIns } from "@/hooks/useCheckIns";
 import { useAuth } from "@/hooks/useAuth";
+import { useGames } from "@/hooks/useGames";
 
 const C = {
   bg: "hsl(var(--background))",
@@ -61,6 +62,19 @@ function getCourtHeat(playerCount: number): "high" | "medium" | "low" {
   return "low";
 }
 
+function formatTime(t: string) {
+  const [h, m] = t.split(":");
+  const hour = parseInt(h);
+  const ampm = hour >= 12 ? "PM" : "AM";
+  return `${hour % 12 || 12}:${m} ${ampm}`;
+}
+
+function formatGameTime(date: string, time: string) {
+  const today = new Date().toISOString().split("T")[0];
+  const isToday = date === today;
+  return `${isToday ? "Today" : date} · ${time ? formatTime(time) : ""}`;
+}
+
 function deterministicPos(id: string, index: number, total: number): { cx: number; cy: number } {
   const hash = id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
   const col = index % 3;
@@ -77,6 +91,7 @@ export default function HomePage() {
   const navigate = useNavigate();
   const { dbCourts } = useCourts();
   const { checkIns } = useCheckIns();
+  const { games } = useGames();
   const { user } = useAuth();
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -110,6 +125,11 @@ export default function HomePage() {
   const now = new Date();
   const day = now.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase();
   const time = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+
+  const todayStr = now.toISOString().split("T")[0];
+  const upcomingGames = games
+    .filter((g) => g.date >= todayStr)
+    .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
 
   return (
     <div style={{ width: "100%", minHeight: "100vh", background: C.bg, fontFamily: '"Inter", system-ui, sans-serif', color: C.ink, overflowY: "auto", paddingBottom: 120 }}>
@@ -306,6 +326,55 @@ export default function HomePage() {
           </div>
         ))}
       </div>
+
+      {/* Upcoming games */}
+      {upcomingGames.length > 0 && (
+        <div style={{ padding: "12px 14px 0" }}>
+          <div style={{ padding: "8px 8px 10px", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+            <div style={{ fontSize: 17, fontWeight: 600 }}>Upcoming games</div>
+            <div style={{ fontSize: 12, color: C.ink3 }}>
+              {upcomingGames.length} {upcomingGames.length === 1 ? "game" : "games"}
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {upcomingGames.slice(0, 3).map((game) => {
+              const spots = game.max_players - game.current_players;
+              const isFull = spots <= 0;
+              return (
+                <div
+                  key={game.id}
+                  onClick={() => navigate(game.court_id ? `/games?court=${game.court_id}` : "/games")}
+                  style={{
+                    background: C.surface, borderRadius: 16, padding: 14,
+                    border: `1px solid ${C.hair}`, display: "flex", alignItems: "center", gap: 12,
+                    cursor: "pointer",
+                  }}
+                >
+                  <div style={{
+                    width: 44, height: 44, borderRadius: 12, background: C.hair2,
+                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20,
+                  }}>🏀</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: 15 }}>{game.title}</div>
+                    <div style={{ fontSize: 12, color: C.ink3, marginTop: 3, display: "flex", gap: 8 }}>
+                      <span>{game.court_name}</span>
+                      <span>·</span>
+                      <span>{formatGameTime(game.date, game.time)}</span>
+                    </div>
+                  </div>
+                  <span style={{
+                    fontSize: 10, padding: "3px 8px", borderRadius: 99,
+                    background: isFull ? C.hair2 : C.greenSoft,
+                    color: isFull ? C.ink3 : C.greenInk,
+                    fontWeight: 600, flexShrink: 0,
+                  }}>{isFull ? "Full" : `${spots} spot${spots > 1 ? "s" : ""} left`}</span>
+                  <ChevIcon />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Courts near you */}
       <div style={{ padding: "12px 14px 0" }}>

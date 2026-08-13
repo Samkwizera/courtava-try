@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./useAuth";
 import { toast } from "sonner";
 
 export interface DbGame {
@@ -34,6 +35,7 @@ export interface GameInsert {
 
 export function useGames() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { data: games = [], isLoading, error } = useQuery({
     queryKey: ["games"],
@@ -46,6 +48,21 @@ export function useGames() {
       if (error) throw error;
       return data as DbGame[];
     },
+  });
+
+  const { data: myParticipantGameIds = [] } = useQuery({
+    queryKey: ["game_participants", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("game_participants")
+        .select("game_id")
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+      return data.map((row) => row.game_id as string);
+    },
+    enabled: !!user,
   });
 
   const addGameMutation = useMutation({
@@ -69,11 +86,58 @@ export function useGames() {
     },
   });
 
+  const joinGameMutation = useMutation({
+    mutationFn: async (gameId: string) => {
+      if (!user) throw new Error("Please sign in to join a game");
+      const { error } = await supabase
+        .from("game_participants")
+        .insert({ game_id: gameId, user_id: user.id });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["games"] });
+      queryClient.invalidateQueries({ queryKey: ["game_participants", user?.id] });
+      toast.success("You're in! See you on the court.");
+    },
+    onError: (error) => {
+      console.error("Error joining game:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to join game. Please try again.");
+    },
+  });
+
+  const leaveGameMutation = useMutation({
+    mutationFn: async (gameId: string) => {
+      if (!user) throw new Error("Please sign in first");
+      const { error } = await supabase
+        .from("game_participants")
+        .delete()
+        .eq("game_id", gameId)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["games"] });
+      queryClient.invalidateQueries({ queryKey: ["game_participants", user?.id] });
+      toast("You've left the game.");
+    },
+    onError: (error) => {
+      console.error("Error leaving game:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to leave game. Please try again.");
+    },
+  });
+
   return {
     games,
     isLoading,
     error,
     addGame: addGameMutation.mutateAsync,
     isAdding: addGameMutation.isPending,
+    myParticipantGameIds,
+    joinGame: joinGameMutation.mutateAsync,
+    isJoining: joinGameMutation.isPending,
+    leaveGame: leaveGameMutation.mutateAsync,
+    isLeaving: leaveGameMutation.isPending,
   };
 }

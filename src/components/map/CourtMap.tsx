@@ -708,14 +708,17 @@ export function CourtMap({
         <button
           onClick={onRequestLocation}
           disabled={isLocating}
-          className={`absolute bottom-24 right-3 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-lg border transition-colors ${
+          className={`absolute bottom-24 right-3 z-10 h-10 pl-3 pr-4 rounded-full flex items-center gap-2 shadow-lg border transition-colors ${
             locationEnabled
               ? "bg-primary text-primary-foreground border-primary"
               : "bg-background text-foreground border-border hover:bg-secondary"
           }`}
           title={locationEnabled ? "Location enabled" : "Show my location"}
         >
-          <Locate className={`w-5 h-5 ${isLocating ? "animate-pulse" : ""}`} />
+          <Locate className={`w-4 h-4 shrink-0 ${isLocating ? "animate-pulse" : ""}`} />
+          <span className="text-sm font-medium whitespace-nowrap">
+            {isLocating ? "Locating…" : locationEnabled ? "You're on the map" : "See where you are"}
+          </span>
         </button>
       )}
 

@@ -32,6 +32,7 @@ export default function AuthPage() {
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isResendingConfirmation, setIsResendingConfirmation] = useState(false);
 
   // Redirect authenticated users away from auth page
   useEffect(() => {
@@ -49,6 +50,8 @@ export default function AuthPage() {
     return msg;
   };
 
+  const getEmailRedirectUrl = () => `${window.location.origin}/`;
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -63,13 +66,11 @@ export default function AuthPage() {
 
     setIsLoading(true);
     try {
-      const redirectUrl = `${window.location.origin}/`;
-
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: redirectUrl,
+          emailRedirectTo: getEmailRedirectUrl(),
           data: {
             display_name: displayName || email.split("@")[0],
           },
@@ -99,6 +100,34 @@ export default function AuthPage() {
       toast.error(getErrorMessage(error) || "An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      toast.error("Please enter your email address first");
+      return;
+    }
+
+    setIsResendingConfirmation(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: {
+          emailRedirectTo: getEmailRedirectUrl(),
+        },
+      });
+
+      if (error) {
+        toast.error(getErrorMessage(error));
+      } else {
+        toast.success("Confirmation email sent again. Check your inbox.");
+      }
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error) || "An error occurred. Please try again.");
+    } finally {
+      setIsResendingConfirmation(false);
     }
   };
 
@@ -267,6 +296,22 @@ export default function AuthPage() {
                       </>
                     ) : (
                       "Create Account"
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full"
+                    onClick={handleResendConfirmation}
+                    disabled={isLoading || isResendingConfirmation}
+                  >
+                    {isResendingConfirmation ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        Sending confirmation...
+                      </>
+                    ) : (
+                      "Resend confirmation email"
                     )}
                   </Button>
                 </form>

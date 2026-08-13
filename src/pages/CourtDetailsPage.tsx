@@ -2,7 +2,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useCourt, useCourts } from "@/hooks/useCourts";
 import { useAuth } from "@/hooks/useAuth";
 import { useCheckIns } from "@/hooks/useCheckIns";
-import { toast } from "sonner";
 
 const C = {
   bg: "hsl(var(--background))",
@@ -47,12 +46,6 @@ const PinIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
     <path d="M12 21s-7-7.5-7-12a7 7 0 1 1 14 0c0 4.5-7 12-7 12z" stroke={C.ink3} strokeWidth="1.8"/>
     <circle cx="12" cy="9" r="2.5" stroke={C.ink3} strokeWidth="1.8"/>
-  </svg>
-);
-
-const WaveIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-    <path d="M2 12c2-4 4-4 6 0s4 4 6 0 4-4 6 0" stroke={C.ink} strokeWidth="1.7" strokeLinecap="round"/>
   </svg>
 );
 
@@ -103,14 +96,13 @@ export default function CourtDetailsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { dbCourts, isLoading: isCourtsLoading } = useCourts();
-  const { checkIns, myCheckIn, checkIn, checkOut } = useCheckIns();
+  const { checkIns } = useCheckIns();
 
   const listCourt = dbCourts.find((c) => c.id === id);
   const { court: routeCourt, isLoading: isRouteCourtLoading } = useCourt(listCourt ? undefined : id);
   const court = listCourt ?? routeCourt;
   const isLoading = !court && (isCourtsLoading || isRouteCourtLoading);
   const courtCheckIns = checkIns.filter((c) => c.court_id === id);
-  const isCheckedInHere = myCheckIn?.court_id === id;
   const playerCount = courtCheckIns.length;
   const heat = getHeat(playerCount);
   const meta = HEAT_META[heat];
@@ -142,15 +134,14 @@ export default function CourtDetailsPage() {
     }
   };
 
-  const handleJoin = async () => {
+  const handleJoinGame = () => {
     if (!user) { navigate("/auth"); return; }
-    if (isCheckedInHere) {
-      await checkOut();
-      toast("Checked out. See you next time!");
-    } else {
-      await checkIn(id!);
-      toast("You're in. See you there ✓");
-    }
+    navigate(`/games?court=${id}`);
+  };
+
+  const handleHostGame = () => {
+    if (!user) { navigate("/auth"); return; }
+    navigate("/create-game", { state: { courtId: id, mode: "host" } });
   };
 
   // Player avatars from check-ins
@@ -310,24 +301,27 @@ export default function CourtDetailsPage() {
         display: "flex", gap: 10,
       }}>
         <button
-          onClick={handleJoin}
+          onClick={handleJoinGame}
           style={{
             flex: 1, height: 54, borderRadius: 16,
-            background: isCheckedInHere ? C.hair2 : C.green,
-            color: isCheckedInHere ? C.ink : "#fff",
-            border: "none", fontSize: 16, fontWeight: 600, cursor: "pointer",
-            boxShadow: isCheckedInHere ? "none" : `0 8px 24px -8px ${C.green}`,
+            background: C.surface, color: C.ink,
+            border: `1px solid ${C.hair}`, fontSize: 15, fontWeight: 600, cursor: "pointer",
             fontFamily: '"Inter", system-ui',
           }}
         >
-          {!user ? "Sign in to join" : isCheckedInHere ? "Check out" : "I'm going"}
+          {!user ? "Sign in to join" : "Join a game"}
         </button>
-        <button style={{
-          width: 54, height: 54, borderRadius: 16,
-          background: C.surface, border: `1px solid ${C.hair}`, cursor: "pointer",
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          <WaveIcon />
+        <button
+          onClick={handleHostGame}
+          style={{
+            flex: 1, height: 54, borderRadius: 16,
+            background: C.green, color: "#fff",
+            border: "none", fontSize: 15, fontWeight: 600, cursor: "pointer",
+            boxShadow: `0 8px 24px -8px ${C.green}`,
+            fontFamily: '"Inter", system-ui',
+          }}
+        >
+          {!user ? "Sign in to host" : "Host a game"}
         </button>
       </div>
     </div>

@@ -23,7 +23,7 @@ export default function CourtsPage() {
   const { checkIns } = useCheckIns();
   const { dbCourts } = useCourts();
   const { userLocation, isLocating, locationEnabled, requestLocation } = useUserLocation();
-  const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  const [viewMode, setViewMode] = useState<"list" | "map">("map");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCourt, setSelectedCourt] = useState<string | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);

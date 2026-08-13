@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useGames, GameInsert } from "@/hooks/useGames";
 import { useCourts } from "@/hooks/useCourts";
@@ -99,6 +99,8 @@ function getTodayDate() {
 
 export default function CreateGamePage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const navState = location.state as { courtId?: string; mode?: "checkin" | "host" } | null;
   const { user } = useAuth();
   const { addGame, isAdding } = useGames();
   const { dbCourts } = useCourts();
@@ -109,8 +111,8 @@ export default function CreateGamePage() {
   const [successMode, setSuccessMode] = useState<"checkin" | "host">("checkin");
 
   // Step 1
-  const [mode, setMode] = useState<"checkin" | "host">("checkin");
-  const [courtId, setCourtId] = useState("");
+  const [mode, setMode] = useState<"checkin" | "host">(navState?.mode ?? "checkin");
+  const [courtId, setCourtId] = useState(navState?.courtId ?? "");
 
   // Step 2
   const [vibe, setVibe] = useState<"casual" | "pickup" | "compete">("casual");
@@ -311,11 +313,11 @@ export default function CreateGamePage() {
 
               {dbCourts.length === 0 && (
                 <div style={{ textAlign: "center", padding: "20px 0", color: C.ink3, fontSize: 13 }}>
-                  No courts yet.{" "}
+                  No courts are available yet.{" "}
                   <button onClick={() => navigate("/courts")} style={{
                     background: "none", border: "none", color: C.green,
                     fontWeight: 600, cursor: "pointer", fontFamily: font, fontSize: 13,
-                  }}>Add one →</button>
+                  }}>Browse courts</button>
                 </div>
               )}
             </div>

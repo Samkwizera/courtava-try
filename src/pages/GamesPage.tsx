@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useGames } from "@/hooks/useGames";
 import { useCheckIns } from "@/hooks/useCheckIns";
 import { useCourts } from "@/hooks/useCourts";
 import { useAuth } from "@/hooks/useAuth";
-import { Plus } from "lucide-react";
+import { Plus, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 
 async function shareGame(game: { title: string; court_name: string; date: string; time: string; format: string; max_players: number }) {
@@ -64,11 +64,25 @@ function isToday(date: string) {
 
 export default function GamesPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const courtFilterId = searchParams.get("court");
   const [tab, setTab] = useState("live");
-  const { games, isLoading } = useGames();
+  const { games, isLoading, myParticipantGameIds, joinGame, leaveGame } = useGames();
   const { checkIns } = useCheckIns();
   const { dbCourts } = useCourts();
   const { user } = useAuth();
+
+  const handleJoin = (gameId: string) => {
+    if (!user) { navigate("/auth"); return; }
+    joinGame(gameId);
+  };
+
+  const filterCourt = courtFilterId ? dbCourts.find((c) => c.id === courtFilterId) : undefined;
+  const courtGames = courtFilterId
+    ? games
+        .filter((g) => g.court_id === courtFilterId)
+        .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
+    : [];
 
   // Courts with heat from check-ins
   const courtsWithHeat = dbCourts.map((c) => ({
@@ -89,6 +103,58 @@ export default function GamesPage() {
   // Recently added courts (last 7 days)
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const newCourts = dbCourts.filter((c) => c.created_at > sevenDaysAgo);
+
+  if (courtFilterId) {
+    return (
+      <div style={{ width: "100%", minHeight: "100vh", background: C.bg, fontFamily: font, color: C.ink, overflowY: "auto", paddingBottom: 120 }}>
+        <div style={{ padding: "70px 22px 8px" }}>
+          <button
+            onClick={() => setSearchParams({})}
+            style={{
+              display: "flex", alignItems: "center", gap: 4, background: "none", border: "none",
+              cursor: "pointer", padding: 0, color: C.ink2, fontSize: 13, fontWeight: 500, fontFamily: font,
+            }}
+          >
+            <ChevronLeft size={16} /> All activity
+          </button>
+          <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: -0.6, marginTop: 8 }}>
+            Games at {filterCourt?.name || "this court"}
+          </div>
+          <div style={{ fontSize: 13, color: C.ink3, marginTop: 4 }}>
+            {courtGames.length} upcoming {courtGames.length === 1 ? "game" : "games"}
+          </div>
+        </div>
+
+        <div style={{ padding: "14px 14px 0" }}>
+          {courtGames.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "48px 0" }}>
+              <div style={{ fontSize: 32, marginBottom: 12 }}>🏀</div>
+              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>No games scheduled yet</div>
+              <div style={{ fontSize: 13, color: C.ink3, marginBottom: 20 }}>Be the first to host a game at this court</div>
+              <button onClick={() => navigate("/create-game", { state: { courtId: courtFilterId, mode: "host" } })} style={{
+                background: C.ink, color: "#fff", border: "none",
+                padding: "12px 24px", borderRadius: 99, fontSize: 14, fontWeight: 600,
+                cursor: "pointer", fontFamily: font,
+              }}>Host a game</button>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {courtGames.map((game) => (
+                <GameListRow
+                  key={game.id}
+                  game={game}
+                  isJoined={myParticipantGameIds.includes(game.id)}
+                  isHost={user?.id === game.host_id}
+                  onJoin={() => handleJoin(game.id)}
+                  onLeave={() => leaveGame(game.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ width: "100%", minHeight: "100vh", background: C.bg, fontFamily: font, color: C.ink, overflowY: "auto", paddingBottom: 120 }}>
@@ -202,6 +268,7 @@ export default function GamesPage() {
                   ))}
                   {todayGames.map((game) => {
                     const spots = game.max_players - game.current_players;
+                    const goToGame = () => navigate(game.court_id ? `/games?court=${game.court_id}` : "/games");
                     return (
                       <FeedRow
                         key={`game-${game.id}`}
@@ -210,7 +277,8 @@ export default function GamesPage() {
                         title={game.title}
                         sub={`${game.court_name} · ${formatTime(game.time)} · ${game.current_players}/${game.max_players} players`}
                         action={spots > 0 ? "Join" : "Full"}
-                        onClick={() => navigate("/games")}
+                        onAction={goToGame}
+                        onClick={goToGame}
                         onShare={() => shareGame(game)}
                       />
                     );
@@ -251,17 +319,23 @@ export default function GamesPage() {
                   UPCOMING
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {upcomingGames.slice(0, 3).map((game) => (
-                    <FeedRow
-                      key={`upcoming-${game.id}`}
-                      icon="🏀"
-                      tint={C.hair2}
-                      title={game.title}
-                      sub={`${game.court_name} · ${formatGameTime(game.date, game.time)}`}
-                      onClick={() => navigate("/games")}
-                      onShare={() => shareGame(game)}
-                    />
-                  ))}
+                  {upcomingGames.slice(0, 3).map((game) => {
+                    const spots = game.max_players - game.current_players;
+                    const goToGame = () => navigate(game.court_id ? `/games?court=${game.court_id}` : "/games");
+                    return (
+                      <FeedRow
+                        key={`upcoming-${game.id}`}
+                        icon="🏀"
+                        tint={C.hair2}
+                        title={game.title}
+                        sub={`${game.court_name} · ${formatGameTime(game.date, game.time)}`}
+                        action={spots > 0 ? "Join" : "Full"}
+                        onAction={goToGame}
+                        onClick={goToGame}
+                        onShare={() => shareGame(game)}
+                      />
+                    );
+                  })}
                 </div>
               </>
             )}
@@ -322,7 +396,14 @@ export default function GamesPage() {
                   <div style={{ padding: "4px 8px 8px", fontSize: 11, color: C.ink3, fontWeight: 600, letterSpacing: 0.4 }}>TODAY</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 16 }}>
                     {todayGames.map((game) => (
-                      <GameListRow key={game.id} game={game} onNavigate={() => navigate("/courts")} />
+                      <GameListRow
+                        key={game.id}
+                        game={game}
+                        isJoined={myParticipantGameIds.includes(game.id)}
+                        isHost={user?.id === game.host_id}
+                        onJoin={() => handleJoin(game.id)}
+                        onLeave={() => leaveGame(game.id)}
+                      />
                     ))}
                   </div>
                 </>
@@ -332,7 +413,14 @@ export default function GamesPage() {
                   <div style={{ padding: "4px 8px 8px", fontSize: 11, color: C.ink3, fontWeight: 600, letterSpacing: 0.4 }}>UPCOMING</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     {upcomingGames.map((game) => (
-                      <GameListRow key={game.id} game={game} onNavigate={() => navigate("/courts")} />
+                      <GameListRow
+                        key={game.id}
+                        game={game}
+                        isJoined={myParticipantGameIds.includes(game.id)}
+                        isHost={user?.id === game.host_id}
+                        onJoin={() => handleJoin(game.id)}
+                        onLeave={() => leaveGame(game.id)}
+                      />
                     ))}
                   </div>
                 </>
@@ -444,13 +532,26 @@ function FeedRow({
   );
 }
 
-function GameListRow({ game, onNavigate }: { game: { id: string; title: string; court_name: string; date: string; time: string; format: string; skill_level: string; current_players: number; max_players: number; host_name: string }; onNavigate: () => void }) {
+function GameListRow({
+  game,
+  isJoined,
+  isHost,
+  onJoin,
+  onLeave,
+}: {
+  game: { id: string; title: string; court_name: string; date: string; time: string; format: string; skill_level: string; current_players: number; max_players: number; host_name: string };
+  isJoined?: boolean;
+  isHost?: boolean;
+  onJoin?: () => void;
+  onLeave?: () => void;
+}) {
   const spots = game.max_players - game.current_players;
   const isFull = spots <= 0;
+  const canJoin = !isHost && !isJoined && !isFull;
   return (
-    <div onClick={onNavigate} style={{
+    <div style={{
       background: C.surface, borderRadius: 16, padding: 14,
-      border: `1px solid ${C.hair}`, cursor: "pointer",
+      border: `1px solid ${C.hair}`,
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
         <div>
@@ -491,14 +592,20 @@ function GameListRow({ game, onNavigate }: { game: { id: string; title: string; 
             </svg>
           </button>
           <button
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              fontSize: 12, fontWeight: 600, color: "#fff",
-              background: isFull ? C.ink3 : C.ink,
-              border: "none", padding: "7px 16px", borderRadius: 99,
-              cursor: isFull ? "default" : "pointer", fontFamily: font,
+            onClick={(e) => {
+              e.stopPropagation();
+              if (isJoined) onLeave?.();
+              else if (canJoin) onJoin?.();
             }}
-          >{isFull ? "Full" : "Join"}</button>
+            disabled={isHost || (!isJoined && isFull)}
+            style={{
+              fontSize: 12, fontWeight: 600,
+              color: isJoined ? C.ink : "#fff",
+              background: isHost ? C.hair2 : isJoined ? C.greenSoft : isFull ? C.ink3 : C.ink,
+              border: "none", padding: "7px 16px", borderRadius: 99,
+              cursor: isHost || (!isJoined && isFull) ? "default" : "pointer", fontFamily: font,
+            }}
+          >{isHost ? "Hosting" : isJoined ? "Joined ✓" : isFull ? "Full" : "Join"}</button>
         </div>
       </div>
     </div>

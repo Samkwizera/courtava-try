@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCourts } from "@/hooks/useCourts";
 import { useCheckIns } from "@/hooks/useCheckIns";
 import { useAuth } from "@/hooks/useAuth";
 import { useGames } from "@/hooks/useGames";
+import { useUserLocation } from "@/hooks/useUserLocation";
+import { CourtMap } from "@/components/map/CourtMap";
+import { getCourtHeat } from "@/lib/courtHeat";
 
 const C = {
   bg: "hsl(var(--background))",
@@ -38,12 +41,6 @@ const FilterIcon = () => (
   </svg>
 );
 
-const NavIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill={C.ink}>
-    <path d="M3 11l18-8-8 18-2-8-8-2z"/>
-  </svg>
-);
-
 const ChevIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
     <path d="M9 6l6 6-6 6" stroke={C.ink3} strokeWidth="2" strokeLinecap="round"/>
@@ -55,12 +52,6 @@ const FlameIcon = () => (
     <path d="M12 2s1 3 3 5 3 3 3 6a6 6 0 1 1-12 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3 0-6 2-10z"/>
   </svg>
 );
-
-function getCourtHeat(playerCount: number): "high" | "medium" | "low" {
-  if (playerCount >= 6) return "high";
-  if (playerCount >= 2) return "medium";
-  return "low";
-}
 
 function formatTime(t: string) {
   const [h, m] = t.split(":");
@@ -75,24 +66,13 @@ function formatGameTime(date: string, time: string) {
   return `${isToday ? "Today" : date} · ${time ? formatTime(time) : ""}`;
 }
 
-function deterministicPos(id: string, index: number, total: number): { cx: number; cy: number } {
-  const hash = id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  const col = index % 3;
-  const row = Math.floor(index / 3);
-  const cols = 3;
-  const rows = Math.ceil(total / 3);
-  return {
-    cx: (col + 0.5) / cols * 0.7 + 0.12 + ((hash % 17) / 17) * 0.1,
-    cy: (row + 0.5) / Math.max(rows, 2) * 0.6 + 0.12 + ((hash % 13) / 13) * 0.1,
-  };
-}
-
 export default function HomePage() {
   const navigate = useNavigate();
   const { dbCourts } = useCourts();
   const { checkIns } = useCheckIns();
   const { games } = useGames();
   const { user } = useAuth();
+  const { userLocation, isLocating, locationEnabled, requestLocation } = useUserLocation();
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -121,6 +101,19 @@ export default function HomePage() {
       court.surface.toLowerCase().includes(normalizedSearch)
     );
   });
+
+  const mapCourts = useMemo(
+    () =>
+      displayedCourts.map((court) => ({
+        id: court.id,
+        name: court.name,
+        address: court.address,
+        lat: court.lat,
+        lng: court.lng,
+        playersNow: court.liveCount,
+      })),
+    [displayedCourts]
+  );
 
   const now = new Date();
   const day = now.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase();
@@ -163,123 +156,86 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Search bar */}
+      <div style={{ padding: "8px 14px 0" }}>
+        <div style={{
+          background: C.surface, borderRadius: 14, height: 42,
+          display: "flex", alignItems: "center", gap: 10, padding: "0 14px",
+          border: `1px solid ${C.hair}`,
+        }}>
+          <SearchIcon />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && displayedCourts.length === 1) {
+                navigate(`/courts/${displayedCourts[0].id}`);
+              }
+            }}
+            placeholder="Search courts near you"
+            aria-label="Search courts near you"
+            style={{
+              flex: 1,
+              minWidth: 0,
+              border: "none",
+              outline: "none",
+              background: "transparent",
+              color: C.ink,
+              fontSize: 14,
+              fontFamily: "inherit",
+            }}
+          />
+          <div style={{ width: 1, height: 18, background: C.hair }} />
+          <button
+            type="button"
+            onClick={() => navigate("/courts")}
+            aria-label="Open court filters"
+            style={{
+              width: 26,
+              height: 26,
+              border: "none",
+              background: "transparent",
+              padding: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+            }}
+          >
+            <FilterIcon />
+          </button>
+        </div>
+      </div>
+
       {/* Map card */}
       <div style={{ padding: "8px 14px 0" }}>
         <div
           style={{
             position: "relative", height: 340, borderRadius: 20, overflow: "hidden",
-            background: "#EEF1EB", border: `1px solid ${C.hair}`,
+            border: `1px solid ${C.hair}`,
             boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
           }}
         >
-          {/* Faux map SVG */}
-          <svg width="100%" height="100%" viewBox="0 0 400 340" preserveAspectRatio="none" style={{ position: "absolute", inset: 0 }}>
-            <defs>
-              <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
-                <path d="M32 0H0V32" fill="none" stroke="#E2E6DC" strokeWidth="1"/>
-              </pattern>
-            </defs>
-            <rect width="400" height="340" fill="#F1F4EB"/>
-            <rect width="400" height="340" fill="url(#grid)"/>
-            <path d="M-20 80 Q 100 90 200 60 T 420 100" stroke="#fff" strokeWidth="14" fill="none" opacity="0.9"/>
-            <path d="M-20 80 Q 100 90 200 60 T 420 100" stroke="#E8ECE1" strokeWidth="12" fill="none"/>
-            <path d="M60 -20 Q 80 120 140 200 T 180 360" stroke="#fff" strokeWidth="10" fill="none" opacity="0.9"/>
-            <path d="M60 -20 Q 80 120 140 200 T 180 360" stroke="#E8ECE1" strokeWidth="8" fill="none"/>
-            <path d="M420 240 Q 300 230 220 260 T -20 290" stroke="#fff" strokeWidth="9" fill="none" opacity="0.9"/>
-            <path d="M420 240 Q 300 230 220 260 T -20 290" stroke="#E8ECE1" strokeWidth="7" fill="none"/>
-            <path d="M260 150 Q 310 130 340 160 Q 370 200 330 230 Q 280 240 260 200 Z" fill="#DDE6CE" opacity="0.7"/>
-            <path d="M-20 300 Q 80 280 180 310 Q 280 340 420 320 L 420 360 L -20 360 Z" fill="#D6E3EA" opacity="0.6"/>
-          </svg>
-
-          {/* Court dots */}
-          {displayedCourts.slice(0, 8).map((court, i) => {
-            const { cx, cy } = deterministicPos(court.id, i, Math.min(displayedCourts.length, 8));
-            const meta = HEAT_META[court.heat];
-            return (
-              <button
-                key={court.id}
-                onClick={() => navigate(`/courts/${court.id}`)}
-                style={{
-                  position: "absolute",
-                  left: `calc(${cx * 100}% - 14px)`,
-                  top: `calc(${cy * 100}% - 14px)`,
-                  width: 28, height: 28, borderRadius: 99,
-                  background: meta.color, border: "3px solid #fff", cursor: "pointer",
-                  boxShadow: `0 0 0 8px ${meta.ring}, 0 4px 10px rgba(0,0,0,0.12)`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  padding: 0,
-                }}
-                className={court.heat === "high" ? "pulse" : ""}
-              >
-                <div style={{ width: 8, height: 8, borderRadius: 99, background: C.surface }} />
-              </button>
-            );
-          })}
-
-          {/* You-are-here dot */}
-          <div style={{
-            position: "absolute", left: "45%", top: "45%",
-            width: 16, height: 16, borderRadius: 99, background: "#2B7CFF",
-            border: "3px solid #fff", boxShadow: "0 0 0 6px rgba(43,124,255,0.18), 0 2px 6px rgba(0,0,0,0.2)",
-          }} />
-
-          {/* Floating search bar */}
-          <div style={{
-            position: "absolute", top: 14, left: 14, right: 14,
-            background: C.surface, borderRadius: 14, height: 42,
-            display: "flex", alignItems: "center", gap: 10, padding: "0 14px",
-            boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
-          }}>
-            <SearchIcon />
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && displayedCourts.length === 1) {
-                  navigate(`/courts/${displayedCourts[0].id}`);
-                }
-              }}
-              placeholder="Search courts near you"
-              aria-label="Search courts near you"
-              style={{
-                flex: 1,
-                minWidth: 0,
-                border: "none",
-                outline: "none",
-                background: "transparent",
-                color: C.ink,
-                fontSize: 14,
-                fontFamily: "inherit",
-              }}
-            />
-            <div style={{ width: 1, height: 18, background: C.hair }} />
-            <button
-              type="button"
-              onClick={() => navigate("/courts")}
-              aria-label="Open court filters"
-              style={{
-                width: 26,
-                height: 26,
-                border: "none",
-                background: "transparent",
-                padding: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-              }}
-            >
-              <FilterIcon />
-            </button>
-          </div>
+          <CourtMap
+            courts={mapCourts}
+            center={[-1.9403, 30.0588]}
+            zoom={13}
+            checkIns={checkIns}
+            onCourtSelect={(court) => navigate(`/courts/${court.id}`)}
+            userLocation={userLocation}
+            isLocating={isLocating}
+            onRequestLocation={requestLocation}
+            locationEnabled={locationEnabled}
+          />
 
           {/* Heat legend */}
           <div style={{
-            position: "absolute", bottom: 14, left: 14,
+            position: "absolute", bottom: 14, left: 14, zIndex: 10,
             background: C.surface, borderRadius: 12, padding: "8px 12px",
             display: "flex", gap: 12, alignItems: "center",
             boxShadow: "0 4px 12px rgba(0,0,0,0.06)", fontSize: 11, color: C.ink2, fontWeight: 500,
+            pointerEvents: "none",
           }}>
             {(["high", "medium", "low"] as const).map((k) => (
               <div key={k} style={{ display: "flex", gap: 5, alignItems: "center" }}>
@@ -287,17 +243,6 @@ export default function HomePage() {
                 {HEAT_META[k].label}
               </div>
             ))}
-          </div>
-
-          {/* Recenter button */}
-          <div style={{
-            position: "absolute", bottom: 14, right: 14,
-            width: 42, height: 42, borderRadius: 14, background: C.surface,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer",
-          }} onClick={() => navigate("/courts")}>
-            <div style={{ transform: "rotate(-20deg)" }}><NavIcon /></div>
           </div>
         </div>
       </div>

@@ -4,6 +4,13 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { CheckIn } from "@/hooks/useCheckIns";
 import { Search, Locate, X, MapPin, Loader2 } from "lucide-react";
 import { formatDistance, getDistanceKm } from "@/hooks/useUserLocation";
+import { getCourtHeat } from "@/lib/courtHeat";
+
+const HEAT_COLORS: Record<ReturnType<typeof getCourtHeat>, string> = {
+  high: "#22c55e",
+  medium: "#f59e0b",
+  low: "#9ca3af",
+};
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || "";
 
@@ -76,6 +83,7 @@ export function CourtMap({
   const userMarker = useRef<mapboxgl.Marker | null>(null);
   const placeMarker = useRef<mapboxgl.Marker | null>(null);
   const courtPopup = useRef<mapboxgl.Popup | null>(null);
+  const hoverPopup = useRef<mapboxgl.Popup | null>(null);
   const initialCenter = useRef(center);
   const initialZoom = useRef(zoom);
   const didFitInitialBounds = useRef(false);
@@ -255,6 +263,8 @@ export function CourtMap({
       m.off("error", reportMapError);
       courtPopup.current?.remove();
       courtPopup.current = null;
+      hoverPopup.current?.remove();
+      hoverPopup.current = null;
       placeMarker.current?.remove();
       placeMarker.current = null;
       m.remove();
@@ -305,6 +315,7 @@ export function CourtMap({
               count,
               countLabel: count ? String(count) : "",
               distText,
+              heat: getCourtHeat(count),
               isSelected: selectedCourtId === court.id,
             },
           };
@@ -328,9 +339,15 @@ export function CourtMap({
         source: COURT_SOURCE_ID,
         paint: {
           "circle-radius": ["case", ["boolean", ["get", "isSelected"], false], 20, 16],
-          "circle-color": ["case", ["boolean", ["get", "isSelected"], false], "#4ade80", "#22c55e"],
+          "circle-color": [
+            "match", ["get", "heat"],
+            "high", HEAT_COLORS.high,
+            "medium", HEAT_COLORS.medium,
+            "low", HEAT_COLORS.low,
+            HEAT_COLORS.low,
+          ],
           "circle-stroke-color": "#ffffff",
-          "circle-stroke-width": 3,
+          "circle-stroke-width": ["case", ["boolean", ["get", "isSelected"], false], 4, 3],
         },
       });
 
@@ -399,6 +416,8 @@ export function CourtMap({
         ? formatDistance(getDistanceKm(userLocation.lat, userLocation.lng, court.lat, court.lng))
         : null;
 
+      hoverPopup.current?.remove();
+      hoverPopup.current = null;
       courtPopup.current?.remove();
       courtPopup.current = new mapboxgl.Popup({ offset: 20, closeButton: true })
         .setLngLat([court.lng, court.lat])
@@ -431,6 +450,32 @@ export function CourtMap({
       m.getCanvas().style.cursor = "";
     };
 
+    const handleCourtHoverEnter = (
+      event: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }
+    ) => {
+      setPointerCursor();
+      const court = findCourtFromFeature(event);
+      if (!court) return;
+
+      hoverPopup.current?.remove();
+      hoverPopup.current = new mapboxgl.Popup({
+        offset: 14,
+        closeButton: false,
+        closeOnClick: false,
+      })
+        .setLngLat([court.lng, court.lat])
+        .setHTML(
+          `<div style="padding:2px 4px; font-size:12px; font-weight:600; white-space:nowrap">${esc(court.name)}</div>`
+        )
+        .addTo(m);
+    };
+
+    const handleCourtHoverLeave = () => {
+      clearPointerCursor();
+      hoverPopup.current?.remove();
+      hoverPopup.current = null;
+    };
+
     const bindLayerEvents = () => {
       if (!m.getLayer(COURT_CIRCLE_LAYER_ID)) return;
 
@@ -438,11 +483,11 @@ export function CourtMap({
       m.on("click", COURT_DOT_LAYER_ID, handleCourtClick);
       m.on("click", COURT_BADGE_LAYER_ID, handleBadgeClick);
       m.on("click", COURT_BADGE_TEXT_LAYER_ID, handleBadgeClick);
-      m.on("mouseenter", COURT_CIRCLE_LAYER_ID, setPointerCursor);
-      m.on("mouseenter", COURT_DOT_LAYER_ID, setPointerCursor);
+      m.on("mouseenter", COURT_CIRCLE_LAYER_ID, handleCourtHoverEnter);
+      m.on("mouseenter", COURT_DOT_LAYER_ID, handleCourtHoverEnter);
       m.on("mouseenter", COURT_BADGE_LAYER_ID, setPointerCursor);
-      m.on("mouseleave", COURT_CIRCLE_LAYER_ID, clearPointerCursor);
-      m.on("mouseleave", COURT_DOT_LAYER_ID, clearPointerCursor);
+      m.on("mouseleave", COURT_CIRCLE_LAYER_ID, handleCourtHoverLeave);
+      m.on("mouseleave", COURT_DOT_LAYER_ID, handleCourtHoverLeave);
       m.on("mouseleave", COURT_BADGE_LAYER_ID, clearPointerCursor);
     };
 
@@ -479,13 +524,13 @@ export function CourtMap({
 
       if (m.getLayer(COURT_CIRCLE_LAYER_ID)) {
         m.off("click", COURT_CIRCLE_LAYER_ID, handleCourtClick);
-        m.off("mouseenter", COURT_CIRCLE_LAYER_ID, setPointerCursor);
-        m.off("mouseleave", COURT_CIRCLE_LAYER_ID, clearPointerCursor);
+        m.off("mouseenter", COURT_CIRCLE_LAYER_ID, handleCourtHoverEnter);
+        m.off("mouseleave", COURT_CIRCLE_LAYER_ID, handleCourtHoverLeave);
       }
       if (m.getLayer(COURT_DOT_LAYER_ID)) {
         m.off("click", COURT_DOT_LAYER_ID, handleCourtClick);
-        m.off("mouseenter", COURT_DOT_LAYER_ID, setPointerCursor);
-        m.off("mouseleave", COURT_DOT_LAYER_ID, clearPointerCursor);
+        m.off("mouseenter", COURT_DOT_LAYER_ID, handleCourtHoverEnter);
+        m.off("mouseleave", COURT_DOT_LAYER_ID, handleCourtHoverLeave);
       }
       if (m.getLayer(COURT_BADGE_LAYER_ID)) {
         m.off("click", COURT_BADGE_LAYER_ID, handleBadgeClick);

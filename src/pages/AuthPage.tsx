@@ -3,11 +3,13 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { setRememberMe } from "@/lib/authStorage";
 import { toast } from "sonner";
 import courtavaLogo from "@/assets/courtava-logo.png";
 
@@ -33,6 +35,7 @@ export default function AuthPage() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isResendingConfirmation, setIsResendingConfirmation] = useState(false);
+  const [rememberMe, setRememberMeChecked] = useState(true);
 
   // Redirect authenticated users away from auth page
   useEffect(() => {
@@ -66,6 +69,7 @@ export default function AuthPage() {
 
     setIsLoading(true);
     try {
+      setRememberMe(rememberMe);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -140,6 +144,7 @@ export default function AuthPage() {
 
     setIsLoading(true);
     try {
+      setRememberMe(rememberMe);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -288,6 +293,17 @@ export default function AuthPage() {
                       </Button>
                     </div>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="signup-remember"
+                      checked={rememberMe}
+                      onCheckedChange={(checked) => setRememberMeChecked(checked === true)}
+                      disabled={isLoading}
+                    />
+                    <Label htmlFor="signup-remember" className="text-sm font-normal cursor-pointer">
+                      Remember me
+                    </Label>
+                  </div>
                   <Button type="submit" className="w-full h-12 text-base" disabled={isLoading}>
                     {isLoading ? (
                       <>
@@ -359,6 +375,17 @@ export default function AuthPage() {
                         )}
                       </Button>
                     </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="signin-remember"
+                      checked={rememberMe}
+                      onCheckedChange={(checked) => setRememberMeChecked(checked === true)}
+                      disabled={isLoading}
+                    />
+                    <Label htmlFor="signin-remember" className="text-sm font-normal cursor-pointer">
+                      Remember me
+                    </Label>
                   </div>
                   <Button type="submit" className="w-full h-12 text-base" disabled={isLoading}>
                     {isLoading ? (

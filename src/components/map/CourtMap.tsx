@@ -102,7 +102,6 @@ export function CourtMap({
   const map = useRef<mapboxgl.Map | null>(null);
   const userMarker = useRef<mapboxgl.Marker | null>(null);
   const placeMarker = useRef<mapboxgl.Marker | null>(null);
-  const courtPopup = useRef<mapboxgl.Popup | null>(null);
   const initialCenter = useRef(center);
   const initialZoom = useRef(zoom);
   const didFitInitialBounds = useRef(false);
@@ -280,8 +279,6 @@ export function CourtMap({
     return () => {
       window.clearTimeout(resizeTimer);
       m.off("error", reportMapError);
-      courtPopup.current?.remove();
-      courtPopup.current = null;
       placeMarker.current?.remove();
       placeMarker.current = null;
       m.remove();
@@ -418,24 +415,6 @@ export function CourtMap({
       if (!court) return;
 
       onCourtSelect?.(court);
-
-      const count = checkIns.filter((c) => c.court_id === court.id).length;
-      const distText = userLocation
-        ? formatDistance(getDistanceKm(userLocation.lat, userLocation.lng, court.lat, court.lng))
-        : null;
-
-      courtPopup.current?.remove();
-      courtPopup.current = new mapboxgl.Popup({ offset: 20, closeButton: true })
-        .setLngLat([court.lng, court.lat])
-        .setHTML(
-          `<div style="padding:4px 2px; min-width:140px">
-            <strong style="font-size:13px">${esc(court.name)}</strong>
-            <p style="font-size:11px; color:#666; margin:2px 0 0">${esc(court.address)}</p>
-            ${distText ? `<p style="font-size:11px; color:#3b82f6; margin:4px 0 0; font-weight:600">${esc(distText)} from you</p>` : ""}
-            ${count > 0 ? `<p style="font-size:11px; color:#22c55e; margin:4px 0 0; font-weight:600">${count} player${count > 1 ? "s" : ""} here</p>` : ""}
-          </div>`
-        )
-        .addTo(m);
     };
 
     const handleBadgeClick = (

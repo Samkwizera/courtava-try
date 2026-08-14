@@ -8,10 +8,37 @@ import { formatDistance, getDistanceKm } from "@/hooks/useUserLocation";
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || "";
 
 const COURT_SOURCE_ID = "court-markers";
-const COURT_CIRCLE_LAYER_ID = "court-marker-circles";
-const COURT_DOT_LAYER_ID = "court-marker-dots";
+const COURT_PIN_LAYER_ID = "court-marker-pins";
 const COURT_BADGE_LAYER_ID = "court-marker-badges";
 const COURT_BADGE_TEXT_LAYER_ID = "court-marker-badge-text";
+const PIN_IMAGE_ID = "court-pin";
+const PIN_IMAGE_SELECTED_ID = "court-pin-selected";
+
+function courtPinSvg(selected: boolean) {
+  const fill = selected ? "#4ade80" : "#16a34a";
+  return `<svg width="34" height="42" viewBox="0 0 34 42" xmlns="http://www.w3.org/2000/svg">
+    <path d="M17 0C7.6 0 0 7.6 0 17c0 12.4 17 25 17 25s17-12.6 17-25C34 7.6 26.4 0 17 0z" fill="${fill}" stroke="#ffffff" stroke-width="2"/>
+    <circle cx="17" cy="17" r="10.5" fill="#ffffff"/>
+    <circle cx="17" cy="17" r="8" fill="#ea580c"/>
+    <path d="M9 17h16M17 9v16M11.3 11.3c2.2 2.2 2.2 8.2 0 10.4M22.7 11.3c-2.2 2.2-2.2 8.2 0 10.4" stroke="#111827" stroke-width="1" fill="none" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function loadPinImage(m: mapboxgl.Map, id: string, svg: string): Promise<void> {
+  return new Promise((resolve) => {
+    if (m.hasImage(id)) {
+      resolve();
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      if (!m.hasImage(id)) m.addImage(id, img, { pixelRatio: 2 });
+      resolve();
+    };
+    img.onerror = () => resolve();
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  });
+}
 
 const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -283,7 +310,7 @@ export function CourtMap({
     const m = map.current;
     if (!m) return;
 
-    const addMarkers = () => {
+    const addMarkers = async () => {
       const courtSourceData = {
         type: "FeatureCollection" as const,
         features: courts.map((court) => {
@@ -317,30 +344,28 @@ export function CourtMap({
         return;
       }
 
+      await Promise.all([
+        loadPinImage(m, PIN_IMAGE_ID, courtPinSvg(false)),
+        loadPinImage(m, PIN_IMAGE_SELECTED_ID, courtPinSvg(true)),
+      ]);
+
+      if (m.getSource(COURT_SOURCE_ID)) return;
+
       m.addSource(COURT_SOURCE_ID, {
         type: "geojson",
         data: courtSourceData,
       });
 
       m.addLayer({
-        id: COURT_CIRCLE_LAYER_ID,
-        type: "circle",
+        id: COURT_PIN_LAYER_ID,
+        type: "symbol",
         source: COURT_SOURCE_ID,
-        paint: {
-          "circle-radius": ["case", ["boolean", ["get", "isSelected"], false], 20, 16],
-          "circle-color": ["case", ["boolean", ["get", "isSelected"], false], "#4ade80", "#22c55e"],
-          "circle-stroke-color": "#ffffff",
-          "circle-stroke-width": 3,
-        },
-      });
-
-      m.addLayer({
-        id: COURT_DOT_LAYER_ID,
-        type: "circle",
-        source: COURT_SOURCE_ID,
-        paint: {
-          "circle-radius": ["case", ["boolean", ["get", "isSelected"], false], 8, 6],
-          "circle-color": "#ffffff",
+        layout: {
+          "icon-image": ["case", ["boolean", ["get", "isSelected"], false], PIN_IMAGE_SELECTED_ID, PIN_IMAGE_ID],
+          "icon-size": ["case", ["boolean", ["get", "isSelected"], false], 1.15, 0.9],
+          "icon-anchor": "bottom",
+          "icon-allow-overlap": true,
+          "icon-ignore-placement": true,
         },
       });
 
@@ -354,7 +379,7 @@ export function CourtMap({
           "circle-color": "#f97316",
           "circle-stroke-color": "#ffffff",
           "circle-stroke-width": 2,
-          "circle-translate": [12, -12],
+          "circle-translate": [13, -38],
           "circle-translate-anchor": "viewport",
         },
       });
@@ -373,7 +398,7 @@ export function CourtMap({
         },
         paint: {
           "text-color": "#ffffff",
-          "text-translate": [12, -12],
+          "text-translate": [13, -38],
           "text-translate-anchor": "viewport",
         },
       });
@@ -432,22 +457,19 @@ export function CourtMap({
     };
 
     const bindLayerEvents = () => {
-      if (!m.getLayer(COURT_CIRCLE_LAYER_ID)) return;
+      if (!m.getLayer(COURT_PIN_LAYER_ID)) return;
 
-      m.on("click", COURT_CIRCLE_LAYER_ID, handleCourtClick);
-      m.on("click", COURT_DOT_LAYER_ID, handleCourtClick);
+      m.on("click", COURT_PIN_LAYER_ID, handleCourtClick);
       m.on("click", COURT_BADGE_LAYER_ID, handleBadgeClick);
       m.on("click", COURT_BADGE_TEXT_LAYER_ID, handleBadgeClick);
-      m.on("mouseenter", COURT_CIRCLE_LAYER_ID, setPointerCursor);
-      m.on("mouseenter", COURT_DOT_LAYER_ID, setPointerCursor);
+      m.on("mouseenter", COURT_PIN_LAYER_ID, setPointerCursor);
       m.on("mouseenter", COURT_BADGE_LAYER_ID, setPointerCursor);
-      m.on("mouseleave", COURT_CIRCLE_LAYER_ID, clearPointerCursor);
-      m.on("mouseleave", COURT_DOT_LAYER_ID, clearPointerCursor);
+      m.on("mouseleave", COURT_PIN_LAYER_ID, clearPointerCursor);
       m.on("mouseleave", COURT_BADGE_LAYER_ID, clearPointerCursor);
     };
 
-    const syncAndBind = () => {
-      addMarkers();
+    const syncAndBind = async () => {
+      await addMarkers();
       bindLayerEvents();
     };
 
@@ -477,15 +499,10 @@ export function CourtMap({
 
       if (map.current !== m) return;
 
-      if (m.getLayer(COURT_CIRCLE_LAYER_ID)) {
-        m.off("click", COURT_CIRCLE_LAYER_ID, handleCourtClick);
-        m.off("mouseenter", COURT_CIRCLE_LAYER_ID, setPointerCursor);
-        m.off("mouseleave", COURT_CIRCLE_LAYER_ID, clearPointerCursor);
-      }
-      if (m.getLayer(COURT_DOT_LAYER_ID)) {
-        m.off("click", COURT_DOT_LAYER_ID, handleCourtClick);
-        m.off("mouseenter", COURT_DOT_LAYER_ID, setPointerCursor);
-        m.off("mouseleave", COURT_DOT_LAYER_ID, clearPointerCursor);
+      if (m.getLayer(COURT_PIN_LAYER_ID)) {
+        m.off("click", COURT_PIN_LAYER_ID, handleCourtClick);
+        m.off("mouseenter", COURT_PIN_LAYER_ID, setPointerCursor);
+        m.off("mouseleave", COURT_PIN_LAYER_ID, clearPointerCursor);
       }
       if (m.getLayer(COURT_BADGE_LAYER_ID)) {
         m.off("click", COURT_BADGE_LAYER_ID, handleBadgeClick);

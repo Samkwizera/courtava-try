@@ -35,7 +35,7 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { profile, isLoading, updateProfile, isUpdating } = useProfile();
-  const { games } = useGames();
+  const { games, myParticipantGameIds } = useGames();
   const { checkIns } = useCheckIns();
   const [editOpen, setEditOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -50,7 +50,9 @@ export default function ProfilePage() {
   const avatarUrl = profile?.avatar_url;
   const initial = displayName.slice(0, 2).toUpperCase();
 
-  const gamesPlayed = games.length;
+  // Games this user hosted or joined
+  const myGames = games.filter((g) => g.host_id === user?.id || myParticipantGameIds.includes(g.id));
+  const gamesPlayed = myGames.length;
   // Courts visited = distinct courts from check-ins
   const distinctCourts = new Set(checkIns.filter((ci) => ci.user_id === user?.id).map((ci) => ci.court_id)).size;
   // Rating placeholder
@@ -63,7 +65,7 @@ export default function ProfilePage() {
   const skillLabel = skillIndex >= 0 ? SKILL_LEVELS[skillIndex] : "Not set";
 
   // Recent games (last 3)
-  const recentGames = games.slice(0, 3);
+  const recentGames = myGames.slice(0, 3);
 
   if (isLoading) {
     return (

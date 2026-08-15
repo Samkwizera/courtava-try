@@ -20,11 +20,21 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-primary transition-opacity duration-500 ${
+      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-primary transition-opacity duration-500 overflow-hidden ${
         fadeOut ? "opacity-0" : "opacity-100"
       }`}
     >
-      <div className="animate-fade-in flex flex-col items-center gap-4">
+      <video
+        src="/splash-video.mp4"
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      <div className="absolute inset-0 bg-primary/60" />
+
+      <div className="relative animate-fade-in flex flex-col items-center gap-4">
         <div className="w-24 h-24 rounded-xl bg-card flex items-center justify-center overflow-hidden">
           <img
             src={courtavaLogo}

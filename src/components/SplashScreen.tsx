@@ -5,6 +5,19 @@ interface SplashScreenProps {
   onComplete: () => void;
 }
 
+const BasketballIcon = () => (
+  <svg width="100%" height="100%" viewBox="0 0 40 40" fill="none">
+    <circle cx="20" cy="20" r="19" fill="#EA580C" stroke="#111827" strokeWidth="1.4" />
+    <path
+      d="M2 20h36M20 1v38M6.5 6.5c4.6 4.6 4.6 22.4 0 27M33.5 6.5c-4.6 4.6-4.6 22.4 0 27"
+      stroke="#111827"
+      strokeWidth="1.4"
+      fill="none"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
 export function SplashScreen({ onComplete }: SplashScreenProps) {
   const [fadeOut, setFadeOut] = useState(false);
 
@@ -24,17 +37,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         fadeOut ? "opacity-0" : "opacity-100"
       }`}
     >
-      <video
-        src="/splash-video.mp4"
-        autoPlay
-        muted
-        loop
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover"
-      />
-      <div className="absolute inset-0 bg-primary/60" />
-
-      <div className="relative animate-fade-in flex flex-col items-center gap-4">
+      <div className="animate-fade-in flex flex-col items-center gap-5">
         <div className="w-24 h-24 rounded-xl bg-card flex items-center justify-center overflow-hidden">
           <img
             src={courtavaLogo}
@@ -45,19 +48,22 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         <h1 className="text-3xl font-bold text-primary-foreground tracking-tight">
           Courtava
         </h1>
-        <p className="text-primary-foreground/80 text-sm">
+        <p className="text-primary-foreground/80 text-sm -mt-3">
           Find your court. Build your squad.
         </p>
-      </div>
 
-      {/* Loading indicator */}
-      <div className="absolute bottom-20 flex gap-1.5">
-        {[0, 1, 2].map((i) => (
+        {/* Bouncing basketball */}
+        <div className="flex flex-col items-center pt-4" style={{ height: 96 }}>
+          <div className="animate-ball-bounce" style={{ width: 34, height: 34 }}>
+            <div className="animate-ball-spin w-full h-full">
+              <BasketballIcon />
+            </div>
+          </div>
           <div
-            key={i}
-            className="w-1.5 h-1.5 rounded-full bg-primary-foreground/40"
+            className="animate-ball-shadow"
+            style={{ width: 26, height: 7, borderRadius: "50%", background: "#000" }}
           />
-        ))}
+        </div>
       </div>
     </div>
   );

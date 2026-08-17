@@ -323,30 +323,13 @@
     animation: ios-slide-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   }
 
-  /* ─── Splash screen: bouncing basketball ─── */
-  @keyframes ball-bounce {
-    0%   { transform: translateY(-64px); animation-timing-function: cubic-bezier(0.5, 0, 1, 1); }
-    50%  { transform: translateY(0);      animation-timing-function: cubic-bezier(0, 0, 0.5, 1); }
-    100% { transform: translateY(-64px); }
+  /* ─── Splash screen: loading bar ─── */
+  @keyframes loading-bar {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
   }
-  .animate-ball-bounce {
-    animation: ball-bounce 0.9s infinite;
-  }
-
-  @keyframes ball-spin {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-  }
-  .animate-ball-spin {
-    animation: ball-spin 0.9s linear infinite;
-  }
-
-  @keyframes ball-shadow {
-    0%, 100% { transform: scaleX(0.55); opacity: 0.12; }
-    50%      { transform: scaleX(1);    opacity: 0.35; }
-  }
-  .animate-ball-shadow {
-    animation: ball-shadow 0.9s infinite;
+  .animate-loading-bar {
+    animation: loading-bar 1.1s ease-in-out infinite;
   }
 
   .animate-ios-pop-in {

@@ -4,6 +4,8 @@ interface SplashScreenProps {
   onComplete: () => void;
 }
 
+const WORD = "Courtava";
+
 export function SplashScreen({ onComplete }: SplashScreenProps) {
   const [fadeOut, setFadeOut] = useState(false);
 
@@ -23,9 +25,17 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         fadeOut ? "opacity-0" : "opacity-100"
       }`}
     >
-      <div className="animate-fade-in flex flex-col items-center gap-6">
+      <div className="flex flex-col items-center gap-6">
         <h1 className="text-3xl font-bold text-primary-foreground tracking-tight">
-          Courtava
+          {WORD.split("").map((letter, i) => (
+            <span
+              key={i}
+              className="animate-letter-in"
+              style={{ animationDelay: `${i * 60}ms` }}
+            >
+              {letter}
+            </span>
+          ))}
         </h1>
 
         <div className="w-32 h-1 rounded-full bg-primary-foreground/25 overflow-hidden">

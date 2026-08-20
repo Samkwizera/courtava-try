@@ -13,6 +13,8 @@ export interface DbCourt {
   water: boolean;
   parking: boolean;
   photo_url: string | null;
+  entry_fee: string | null;
+  availability_note: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;

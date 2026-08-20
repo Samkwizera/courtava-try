@@ -126,8 +126,10 @@ export type Database = {
       courts: {
         Row: {
           address: string
+          availability_note: string | null
           created_at: string
           created_by: string | null
+          entry_fee: string | null
           id: string
           lat: number
           lights: boolean
@@ -141,8 +143,10 @@ export type Database = {
         }
         Insert: {
           address: string
+          availability_note?: string | null
           created_at?: string
           created_by?: string | null
+          entry_fee?: string | null
           id?: string
           lat: number
           lights?: boolean
@@ -156,8 +160,10 @@ export type Database = {
         }
         Update: {
           address?: string
+          availability_note?: string | null
           created_at?: string
           created_by?: string | null
+          entry_fee?: string | null
           id?: string
           lat?: number
           lights?: boolean

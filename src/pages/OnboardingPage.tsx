@@ -131,8 +131,16 @@ export default function OnboardingPage() {
       display: "flex", flexDirection: "column",
     }}>
 
+      {/* Brand */}
+      <div style={{ padding: "56px 24px 0", display: "flex", justifyContent: "center", alignItems: "center", gap: 6 }}>
+        <img src="/courtava-icon.png" alt="" width={16} height={16} style={{ borderRadius: 4 }} />
+        <span className="font-wordmark" style={{ fontSize: 12, fontWeight: 500, letterSpacing: "0.12em", color: C.green, textTransform: "uppercase" }}>
+          Courtava
+        </span>
+      </div>
+
       {/* Progress dots */}
-      <div style={{ padding: "60px 24px 0", display: "flex", justifyContent: "center", gap: 6 }}>
+      <div style={{ padding: "14px 24px 0", display: "flex", justifyContent: "center", gap: 6 }}>
         {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
           <div key={i} style={{
             height: 4, borderRadius: 99,
@@ -189,9 +197,9 @@ export default function OnboardingPage() {
                 const isSelected = skillLevel === s.k;
                 return (
                   <div key={s.k} onClick={() => setSkillLevel(s.k)} style={{
-                    background: isSelected ? C.ink : C.surface,
+                    background: isSelected ? C.green : C.surface,
                     color: isSelected ? "#fff" : C.ink,
-                    border: `1px solid ${isSelected ? C.ink : C.hair}`,
+                    border: `1px solid ${isSelected ? C.green : C.hair}`,
                     borderRadius: 16, padding: "14px 16px", cursor: "pointer",
                     display: "flex", alignItems: "center", gap: 14,
                     transition: "background 0.15s",
@@ -242,9 +250,9 @@ export default function OnboardingPage() {
                   const isSelected = position === p;
                   return (
                     <div key={p} onClick={() => setPosition(p)} style={{
-                      background: isSelected ? C.ink : C.surface,
+                      background: isSelected ? C.green : C.surface,
                       color: isSelected ? "#fff" : C.ink,
-                      border: `1px solid ${isSelected ? C.ink : C.hair}`,
+                      border: `1px solid ${isSelected ? C.green : C.hair}`,
                       borderRadius: 12, padding: "12px 14px", cursor: "pointer",
                       fontSize: 13, fontWeight: 500,
                       transition: "background 0.15s",
@@ -316,9 +324,9 @@ export default function OnboardingPage() {
                   )} style={{
                     padding: "12px 18px", borderRadius: 99, cursor: "pointer",
                     fontSize: 14, fontWeight: 500,
-                    background: isSelected ? C.ink : C.surface,
+                    background: isSelected ? C.green : C.surface,
                     color: isSelected ? "#fff" : C.ink,
-                    border: `1px solid ${isSelected ? C.ink : C.hair}`,
+                    border: `1px solid ${isSelected ? C.green : C.hair}`,
                     transition: "background 0.15s",
                   }}>
                     {a}

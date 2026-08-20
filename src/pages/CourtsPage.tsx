@@ -1,6 +1,6 @@
 import { MapPin, Search, Filter, List, Map as MapIcon, X, Locate } from "lucide-react";
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CourtCard } from "@/components/cards/CourtCard";
@@ -11,6 +11,7 @@ import { useCheckIns } from "@/hooks/useCheckIns";
 import { useCourts } from "@/hooks/useCourts";
 import { useUserLocation, getDistanceKm, formatDistance } from "@/hooks/useUserLocation";
 import { cn } from "@/lib/utils";
+import { Reveal } from "@/components/Reveal";
 
 const defaultFilters: CourtFiltersState = {
   surfaces: [],
@@ -20,10 +21,12 @@ const defaultFilters: CourtFiltersState = {
 
 export default function CourtsPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const navState = location.state as { view?: "list" | "map" } | null;
   const { checkIns } = useCheckIns();
   const { dbCourts } = useCourts();
   const { userLocation, isLocating, locationEnabled, requestLocation } = useUserLocation();
-  const [viewMode, setViewMode] = useState<"list" | "map">("map");
+  const [viewMode, setViewMode] = useState<"list" | "map">(navState?.view ?? "map");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCourt, setSelectedCourt] = useState<string | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -119,8 +122,17 @@ export default function CourtsPage() {
       {/* Header */}
       <header className="sticky top-0 z-40 glass-nav" style={{ boxShadow: "inset 0 -0.5px 0 0 rgba(0,0,0,0.14)" }}>
         <div className="px-4 pt-2 pb-3">
+          <div className="flex items-center gap-1.5 mb-1">
+            <img src="/courtava-icon.png" alt="" width={14} height={14} className="rounded-[3px]" />
+            <span
+              className="font-wordmark uppercase text-primary"
+              style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.12em" }}
+            >
+              Courtava
+            </span>
+          </div>
           <div className="flex items-center justify-between mb-2" style={{ minHeight: 44 }}>
-            <h1 className="ios-large-title text-foreground">Find Courts</h1>
+            <h1 className="font-athletic text-foreground" style={{ fontSize: 30 }}>Find <span className="text-glow-primary">Courts</span></h1>
             <div className="flex items-center gap-2">
               <Button
                 variant={locationEnabled ? "default" : "secondary"}
@@ -168,10 +180,10 @@ export default function CourtsPage() {
               className={cn(
                 "flex-1 flex items-center justify-center gap-1.5 h-7 rounded-[7px] text-sm font-medium ios-tap",
                 viewMode === "list"
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
               )}
-              style={{ transition: "background-color 0.2s cubic-bezier(0.25,0.46,0.45,0.94)" }}
+              style={{ transition: "background-color 0.2s cubic-bezier(0.25,0.46,0.45,0.94), color 0.2s cubic-bezier(0.25,0.46,0.45,0.94)" }}
             >
               <List className="w-3.5 h-3.5" />
               List
@@ -181,10 +193,10 @@ export default function CourtsPage() {
               className={cn(
                 "flex-1 flex items-center justify-center gap-1.5 h-7 rounded-[7px] text-sm font-medium ios-tap",
                 viewMode === "map"
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
               )}
-              style={{ transition: "background-color 0.2s cubic-bezier(0.25,0.46,0.45,0.94)" }}
+              style={{ transition: "background-color 0.2s cubic-bezier(0.25,0.46,0.45,0.94), color 0.2s cubic-bezier(0.25,0.46,0.45,0.94)" }}
             >
               <MapIcon className="w-3.5 h-3.5" />
               Map
@@ -200,22 +212,23 @@ export default function CourtsPage() {
             <MapPin className="w-4 h-4" />
             <span>{filteredCourts.length} courts in Kigali</span>
           </div>
-          {filteredCourts.map((court) => {
+          {filteredCourts.map((court, i) => {
             const liveCount = checkIns.filter((c) => c.court_id === court.id).length;
             return (
-              <CourtCard
-                key={court.id}
-                name={court.name}
-                address={court.address}
-                distance={court.distance}
-                rating={court.rating}
-                reviewCount={court.reviewCount}
-                playersNow={liveCount}
-                surface={court.surface}
-                amenities={court.amenities}
-                variant="compact"
-                onClick={() => navigate(`/courts/${court.id}`)}
-              />
+              <Reveal key={court.id} index={i}>
+                <CourtCard
+                  name={court.name}
+                  address={court.address}
+                  distance={court.distance}
+                  rating={court.rating}
+                  reviewCount={court.reviewCount}
+                  playersNow={liveCount}
+                  surface={court.surface}
+                  amenities={court.amenities}
+                  variant="compact"
+                  onClick={() => navigate(`/courts/${court.id}`)}
+                />
+              </Reveal>
             );
           })}
         </div>

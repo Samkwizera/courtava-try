@@ -32,7 +32,6 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [failedAttempts, setFailedAttempts] = useState(0);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isResendingConfirmation, setIsResendingConfirmation] = useState(false);
   const [rememberMe, setRememberMeChecked] = useState(true);
@@ -155,7 +154,6 @@ export default function AuthPage() {
           const newAttempts = failedAttempts + 1;
           setFailedAttempts(newAttempts);
           if (newAttempts >= 2) {
-            setShowForgotPassword(true);
             toast.error("Invalid email or password. Need to reset your password?");
           } else {
             toast.error("Invalid email or password");
@@ -167,7 +165,6 @@ export default function AuthPage() {
       }
 
       setFailedAttempts(0);
-      setShowForgotPassword(false);
       toast.success("Welcome back!");
       const from = getRedirectPath(location.state);
       navigate(from, { replace: true });
@@ -186,7 +183,7 @@ export default function AuthPage() {
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) {
         toast.error(error.message);
@@ -214,17 +211,18 @@ export default function AuthPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <div className="flex-1 flex flex-col items-center justify-center p-4">
         {/* Logo and branding */}
-        <div className="text-center mb-8">
-          <img 
-            src={courtavaLogo} 
-            alt="Courtava" 
-            className="w-20 h-20 mx-auto mb-4 rounded-xl"
+        <div className="relative text-center mb-8">
+          <div className="ambient-glow" aria-hidden />
+          <img
+            src={courtavaLogo}
+            alt="Courtava"
+            className="relative w-20 h-20 mx-auto mb-4 rounded-xl"
           />
-          <h1 className="text-3xl font-bold text-foreground mb-2">Courtava</h1>
-          <p className="text-muted-foreground">Find courts. Meet players. Play ball.</p>
+          <h1 className="relative font-athletic text-4xl text-foreground mb-2">Courtava</h1>
+          <p className="relative text-muted-foreground">Find courts. Meet players. Play ball.</p>
         </div>
 
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md shadow-xl shadow-primary/10 border-border/60">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-xl">Get Started</CardTitle>
             <CardDescription>
@@ -397,18 +395,16 @@ export default function AuthPage() {
                       "Sign In"
                     )}
                   </Button>
-                  {showForgotPassword && (
-                    <div className="text-center pt-2">
-                      <button
-                        type="button"
-                        onClick={handleForgotPassword}
-                        disabled={isLoading}
-                        className="text-sm text-primary hover:underline font-medium transition-colors"
-                      >
-                        Forgot your password? Reset it here
-                      </button>
-                    </div>
-                  )}
+                  <div className="text-center pt-1">
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      disabled={isLoading}
+                      className="text-sm text-primary hover:underline font-medium transition-colors"
+                    >
+                      Forgot your password?
+                    </button>
+                  </div>
                 </form>
               </TabsContent>
             </Tabs>

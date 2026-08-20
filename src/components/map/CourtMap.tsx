@@ -243,6 +243,7 @@ export function CourtMap({
       style: "mapbox://styles/mapbox/streets-v12",
       center: [initialCenter.current[1], initialCenter.current[0]],
       zoom: initialZoom.current,
+      attributionControl: false,
     });
     map.current = m;
 
@@ -252,6 +253,9 @@ export function CourtMap({
     };
 
     m.addControl(new mapboxgl.NavigationControl(), "bottom-right");
+    // Separate corner from the nav control: sharing bottom-right with it
+    // crowds/overlaps the attribution text when expanded in short map cards
+    m.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-left");
     m.on("error", reportMapError);
 
     requestAnimationFrame(() => m.resize());

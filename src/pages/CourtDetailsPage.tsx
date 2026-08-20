@@ -147,7 +147,7 @@ export default function CourtDetailsPage() {
   // Player avatars from check-ins
   const avatars = courtCheckIns.slice(0, 5).map((ci) => ({
     label: (ci.profile?.display_name || "U").slice(0, 2).toUpperCase(),
-    bg: ["#D9C9A8", "#C4D9AE", "#AFC9D9", "#D9B8AF", "#C0B4D9"][courtCheckIns.indexOf(ci) % 5],
+    bg: ["hsl(143 45% 40%)", "hsl(143 40% 32%)", "hsl(143 50% 48%)", "hsl(143 55% 28%)", "hsl(143 42% 55%)"][courtCheckIns.indexOf(ci) % 5],
   }));
   const extra = Math.max(0, playerCount - 5);
 
@@ -222,7 +222,7 @@ export default function CourtDetailsPage() {
                   background: a.bg, border: "2px solid #fff",
                   marginLeft: i === 0 ? 0 : -8,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 10, fontWeight: 700, color: C.ink,
+                  fontSize: 10, fontWeight: 700, color: "#fff",
                 }}>{a.label}</div>
               ))}
               {extra > 0 && (

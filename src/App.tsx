@@ -32,6 +32,7 @@ const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
 const OnboardingPage = lazy(() => import("@/pages/OnboardingPage"));
 const InstallPage = lazy(() => import("@/pages/InstallPage"));
 const AuthPage = lazy(() => import("@/pages/AuthPage"));
+const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -98,6 +99,7 @@ const App = () => {
                         <Route path="/onboarding" element={<OnboardingPage />} />
                       </Route>
                       <Route path="/auth" element={<AuthPage />} />
+                      <Route path="/reset-password" element={<ResetPasswordPage />} />
                       <Route path="/install" element={<InstallPage />} />
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                         <Route path="*" element={<NotFound />} />

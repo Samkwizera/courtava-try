@@ -77,9 +77,9 @@ export function EditProfileSheet({
     fontSize: 13,
     fontWeight: 500,
     cursor: "pointer",
-    border: `1px solid ${selected ? "hsl(var(--foreground))" : "hsl(var(--border))"}`,
-    background: selected ? "hsl(var(--foreground))" : "hsl(var(--card))",
-    color: selected ? "hsl(var(--background))" : "hsl(var(--foreground))",
+    border: `1px solid ${selected ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
+    background: selected ? "hsl(var(--primary))" : "hsl(var(--card))",
+    color: selected ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))",
     transition: "background 0.15s",
   });
 

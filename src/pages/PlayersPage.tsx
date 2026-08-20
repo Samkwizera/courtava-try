@@ -9,6 +9,7 @@ import { useCommunities } from "@/hooks/useCommunities";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { Reveal } from "@/components/Reveal";
 
 const players = [
   {
@@ -96,6 +97,16 @@ export default function PlayersPage() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background border-b border-border">
         <div className="px-4 py-3">
+          {/* Brand */}
+          <div className="flex items-center gap-1.5 mb-2">
+            <img src="/courtava-icon.png" alt="" width={14} height={14} className="rounded-[3px]" />
+            <span
+              className="font-wordmark uppercase text-primary"
+              style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.12em" }}
+            >
+              Courtava
+            </span>
+          </div>
           {/* Tab Toggle */}
           <div className="flex gap-2 mb-3">
             <Button
@@ -168,12 +179,13 @@ export default function PlayersPage() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               {players.map((player, i) => (
-                <PlayerCard
-                  key={i}
-                  {...player}
-                  onConnect={() => console.log("Connect")}
-                  onMessage={() => console.log("Message")}
-                />
+                <Reveal key={i} index={i}>
+                  <PlayerCard
+                    {...player}
+                    onConnect={() => console.log("Connect")}
+                    onMessage={() => console.log("Message")}
+                  />
+                </Reveal>
               ))}
             </div>
           </>
@@ -211,19 +223,20 @@ export default function PlayersPage() {
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
-                {communities.map((community) => (
-                  <CommunityCard
-                    key={community.id}
-                    id={community.id}
-                    name={community.name}
-                    description={community.description}
-                    courtId={community.court_id}
-                    schedule={community.schedule}
-                    memberCount={community.member_count}
-                    isMember={community.is_member}
-                    onJoin={() => joinCommunity(community.id)}
-                    onLeave={() => leaveCommunity(community.id)}
-                  />
+                {communities.map((community, i) => (
+                  <Reveal key={community.id} index={i}>
+                    <CommunityCard
+                      id={community.id}
+                      name={community.name}
+                      description={community.description}
+                      courtId={community.court_id}
+                      schedule={community.schedule}
+                      memberCount={community.member_count}
+                      isMember={community.is_member}
+                      onJoin={() => joinCommunity(community.id)}
+                      onLeave={() => leaveCommunity(community.id)}
+                    />
+                  </Reveal>
                 ))}
               </div>
             )}

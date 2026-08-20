@@ -6,6 +6,7 @@ import { useCourts } from "@/hooks/useCourts";
 import { useAuth } from "@/hooks/useAuth";
 import { Plus, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
+import { Reveal } from "@/components/Reveal";
 
 async function shareGame(game: { title: string; court_name: string; date: string; time: string; format: string; max_players: number }) {
   const text = `Join my game: ${game.title} at ${game.court_name} — ${game.date} ${game.time ? formatTime(game.time) : ""} · ${game.format} · ${game.max_players} players`;
@@ -96,8 +97,8 @@ export default function GamesPage() {
           >
             <ChevronLeft size={16} /> All activity
           </button>
-          <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: -0.6, marginTop: 8 }}>
-            Games at {filterCourt?.name || "this court"}
+          <div className="font-athletic" style={{ fontSize: 30, marginTop: 8 }}>
+            Games at <span className="text-glow-primary">{filterCourt?.name || "this court"}</span>
           </div>
           <div style={{ fontSize: 13, color: C.ink3, marginTop: 4 }}>
             {isLoading ? "Loading…" : `${courtGames.length} upcoming ${courtGames.length === 1 ? "game" : "games"}`}
@@ -113,22 +114,23 @@ export default function GamesPage() {
               <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>No games scheduled yet</div>
               <div style={{ fontSize: 13, color: C.ink3, marginBottom: 20 }}>Be the first to host a game at this court</div>
               <button onClick={() => navigate("/create-game", { state: { courtId: courtFilterId, mode: "host" } })} style={{
-                background: C.ink, color: "#fff", border: "none",
+                background: C.green, color: "#fff", border: "none",
                 padding: "12px 24px", borderRadius: 99, fontSize: 14, fontWeight: 600,
                 cursor: "pointer", fontFamily: font,
               }}>Host a game</button>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {courtGames.map((game) => (
+              {courtGames.map((game, i) => (
+                <Reveal key={game.id} index={i}>
                 <GameListRow
-                  key={game.id}
                   game={game}
                   isJoined={myParticipantGameIds.includes(game.id)}
                   isHost={user?.id === game.host_id}
                   onJoin={() => handleJoin(game.id)}
                   onLeave={() => leaveGame(game.id)}
                 />
+                </Reveal>
               ))}
             </div>
           )}
@@ -161,15 +163,22 @@ export default function GamesPage() {
     <div style={{ width: "100%", minHeight: "100vh", background: C.bg, fontFamily: font, color: C.ink, overflowY: "auto", paddingBottom: 120 }}>
 
       {/* Header */}
-      <div style={{ padding: "70px 22px 8px" }}>
-        <div style={{ fontSize: 12, color: C.ink3, fontWeight: 500, letterSpacing: 0.2 }}>ACTIVITY</div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
-          <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: -0.6 }}>What's happening</div>
+      <div style={{ position: "relative", padding: "70px 22px 8px", overflow: "hidden" }}>
+        <div className="ambient-glow" aria-hidden />
+        <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+          <img src="/courtava-icon.png" alt="" width={16} height={16} style={{ borderRadius: 4 }} />
+          <span className="font-wordmark" style={{ fontSize: 12, fontWeight: 500, letterSpacing: "0.12em", color: C.green, textTransform: "uppercase" }}>
+            Courtava
+          </span>
+        </div>
+        <div style={{ position: "relative", fontSize: 12, color: C.green, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>Activity</div>
+        <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
+          <div className="font-athletic" style={{ fontSize: 32 }}>What's <span className="text-glow-primary">Happening</span></div>
           <button
             onClick={() => navigate("/create-game")}
             style={{
               width: 36, height: 36, borderRadius: 99,
-              background: C.ink, border: "none", cursor: "pointer",
+              background: C.green, border: "none", cursor: "pointer",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}
           >
@@ -187,7 +196,7 @@ export default function GamesPage() {
         ].map((s) => (
           <button key={s.k} onClick={() => setTab(s.k)} style={{
             padding: "8px 14px", borderRadius: 99, border: "none", cursor: "pointer",
-            background: tab === s.k ? C.ink : "#fff",
+            background: tab === s.k ? C.green : "#fff",
             color: tab === s.k ? "#fff" : C.ink2,
             fontSize: 13, fontWeight: 600,
             display: "flex", gap: 6, alignItems: "center",
@@ -196,14 +205,14 @@ export default function GamesPage() {
             transition: "background 0.2s, color 0.2s",
           }}>
             {s.dot && tab === s.k && (
-              <div className="pulse-dot" style={{ width: 6, height: 6, borderRadius: 99, background: C.green }} />
+              <div className="pulse-dot" style={{ width: 6, height: 6, borderRadius: 99, background: "#fff" }} />
             )}
             {s.label}
             {s.badge !== undefined && s.badge > 0 && (
               <span style={{
                 fontSize: 10, padding: "1px 6px", borderRadius: 99,
-                background: tab === s.k ? "#fff" : C.ink,
-                color: tab === s.k ? C.ink : "#fff",
+                background: tab === s.k ? "#fff" : C.green,
+                color: tab === s.k ? C.green : "#fff",
                 fontWeight: 700,
               }}>{s.badge}</span>
             )}
@@ -239,7 +248,7 @@ export default function GamesPage() {
                 </div>
               </div>
               <button onClick={() => navigate("/courts")} style={{
-                fontSize: 12, fontWeight: 600, color: "#fff", background: C.ink,
+                fontSize: 12, fontWeight: 600, color: "#fff", background: C.green,
                 border: "none", padding: "8px 14px", borderRadius: 99, cursor: "pointer",
                 flexShrink: 0, fontFamily: font,
               }}>Open map</button>
@@ -255,9 +264,10 @@ export default function GamesPage() {
                   NOW
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {hotCourts.map((court) => (
+                  {hotCourts.map((court, i) => (
                     <FeedRow
                       key={`heat-${court.id}`}
+                      index={i}
                       icon="🔥"
                       tint={C.greenSoft}
                       title={`${court.name} is heating up`}
@@ -267,14 +277,15 @@ export default function GamesPage() {
                       onClick={() => navigate(`/courts/${court.id}`)}
                     />
                   ))}
-                  {todayGames.map((game) => {
+                  {todayGames.map((game, i) => {
                     const spots = game.max_players - game.current_players;
                     const goToGame = () => navigate(game.court_id ? `/games?court=${game.court_id}` : "/games");
                     return (
                       <FeedRow
                         key={`game-${game.id}`}
+                        index={hotCourts.length + i}
                         icon="📣"
-                        tint="#F5EFE4"
+                        tint={C.greenSoft}
                         title={game.title}
                         sub={`${game.court_name} · ${formatTime(game.time)} · ${game.current_players}/${game.max_players} players`}
                         action={spots > 0 ? "Join" : "Full"}
@@ -295,12 +306,13 @@ export default function GamesPage() {
                   CHECKED IN
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {otherCheckIns.slice(0, 3).map((ci) => {
+                  {otherCheckIns.slice(0, 3).map((ci, i) => {
                     const court = dbCourts.find((c) => c.id === ci.court_id);
                     const name = (ci as { profile?: { display_name?: string } }).profile?.display_name || "Someone";
                     return (
                       <FeedRow
                         key={`ci-${ci.id}`}
+                        index={i}
                         icon={null}
                         tint={C.hair2}
                         title={`${name} checked into ${court?.name || "a court"}`}
@@ -320,12 +332,13 @@ export default function GamesPage() {
                   UPCOMING
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {upcomingGames.slice(0, 3).map((game) => {
+                  {upcomingGames.slice(0, 3).map((game, i) => {
                     const spots = game.max_players - game.current_players;
                     const goToGame = () => navigate(game.court_id ? `/games?court=${game.court_id}` : "/games");
                     return (
                       <FeedRow
                         key={`upcoming-${game.id}`}
+                        index={i}
                         icon="🏀"
                         tint={C.hair2}
                         title={game.title}
@@ -348,9 +361,10 @@ export default function GamesPage() {
                   NEW COURTS
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {newCourts.map((court) => (
+                  {newCourts.map((court, i) => (
                     <FeedRow
                       key={`new-${court.id}`}
+                      index={i}
                       icon={null}
                       tint={C.hair2}
                       title={`New court added: ${court.name}`}
@@ -385,7 +399,7 @@ export default function GamesPage() {
               <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>No games yet</div>
               <div style={{ fontSize: 13, color: C.ink3, marginBottom: 20 }}>Be the first to host a game in your area</div>
               <button onClick={() => navigate("/create-game")} style={{
-                background: C.ink, color: "#fff", border: "none",
+                background: C.green, color: "#fff", border: "none",
                 padding: "12px 24px", borderRadius: 99, fontSize: 14, fontWeight: 600,
                 cursor: "pointer", fontFamily: font,
               }}>Host a game</button>
@@ -445,12 +459,13 @@ export default function GamesPage() {
             <>
               <div style={{ padding: "4px 8px 8px", fontSize: 11, color: C.ink3, fontWeight: 600, letterSpacing: 0.4 }}>LIVE</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {otherCheckIns.map((ci) => {
+                {otherCheckIns.map((ci, i) => {
                   const court = dbCourts.find((c) => c.id === ci.court_id);
                   const name = (ci as { profile?: { display_name?: string } }).profile?.display_name || "Someone";
                   return (
                     <FeedRow
                       key={`act-${ci.id}`}
+                      index={i}
                       icon={null}
                       tint={C.hair2}
                       title={`${name} checked into ${court?.name || "a court"}`}
@@ -477,6 +492,7 @@ function FeedRow({
   onAction,
   onClick,
   onShare,
+  index = 0,
 }: {
   icon: string | null;
   tint: string;
@@ -486,8 +502,10 @@ function FeedRow({
   onAction?: () => void;
   onClick?: () => void;
   onShare?: () => void;
+  index?: number;
 }) {
   return (
+    <Reveal index={index}>
     <div onClick={onClick} style={{
       background: C.surface, borderRadius: 14, padding: 14,
       border: `1px solid ${C.hair}`, display: "flex", gap: 12, alignItems: "flex-start",
@@ -530,6 +548,7 @@ function FeedRow({
         )}
       </div>
     </div>
+    </Reveal>
   );
 }
 
@@ -602,7 +621,7 @@ function GameListRow({
             style={{
               fontSize: 12, fontWeight: 600,
               color: isJoined ? C.ink : "#fff",
-              background: isHost ? C.hair2 : isJoined ? C.greenSoft : isFull ? C.ink3 : C.ink,
+              background: isHost ? C.hair2 : isJoined ? C.greenSoft : isFull ? C.ink3 : C.green,
               border: "none", padding: "7px 16px", borderRadius: 99,
               cursor: isHost || (!isJoined && isFull) ? "default" : "pointer", fontFamily: font,
             }}

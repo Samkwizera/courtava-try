@@ -43,39 +43,39 @@ export function CourtCard({
     return (
       <button
         onClick={onClick}
-        className="group w-full text-left bg-card rounded-xl px-3.5 py-3 ios-card-tap transition-colors hover:bg-primary active:bg-primary hover:border-primary active:border-primary"
+        className="w-full text-left bg-card rounded-xl px-3.5 py-3 ios-card-tap"
         style={{ border: "0.5px solid hsl(var(--border))" }}
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/10 group-hover:bg-white/20 group-active:bg-white/20 text-primary group-hover:text-white group-active:text-white flex items-center justify-center shrink-0 transition-colors">
+          <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
             <MapPin className="w-5 h-5" strokeWidth={2.25} />
           </div>
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 min-w-0">
-              <h3 className="font-semibold text-foreground group-hover:text-white group-active:text-white text-[15px] truncate transition-colors">
+              <h3 className="font-semibold text-foreground text-[15px] truncate">
                 {name}
               </h3>
-              <Badge variant="secondary" className="capitalize shrink-0 px-1.5 py-0 text-[10px] group-hover:bg-white/90 group-active:bg-white/90 group-hover:text-primary group-active:text-primary">
+              <Badge variant="secondary" className="capitalize shrink-0 px-1.5 py-0 text-[10px]">
                 {surface}
               </Badge>
             </div>
 
-            <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground group-hover:text-white/85 group-active:text-white/85 min-w-0 transition-colors">
+            <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground min-w-0">
               <span className="truncate">{address}</span>
               <span className="shrink-0">&middot; {distance}</span>
             </div>
 
-            <div className="mt-2 flex items-center gap-2.5 text-[11px] text-muted-foreground group-hover:text-white/85 group-active:text-white/85 transition-colors">
+            <div className="mt-2 flex items-center gap-2.5 text-[11px] text-muted-foreground">
               {playersNow && playersNow > 0 ? (
-                <span className="flex items-center gap-1 text-orange-600 group-hover:text-white group-active:text-white font-medium">
+                <span className="flex items-center gap-1 text-orange-600 font-medium">
                   <Users className="w-3.5 h-3.5" />
                   {playersNow} playing
                 </span>
               ) : null}
               {reviewCount > 0 ? (
                 <span className="flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 group-hover:fill-white group-active:fill-white group-hover:text-white group-active:text-white" />
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                   {rating.toFixed(1)}
                 </span>
               ) : null}
@@ -88,7 +88,7 @@ export function CourtCard({
             </div>
           </div>
 
-          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-white group-active:text-white shrink-0 transition-colors" />
+          <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
         </div>
       </button>
     );
@@ -97,7 +97,7 @@ export function CourtCard({
   return (
     <button
       onClick={onClick}
-      className="group w-full text-left bg-card rounded-2xl overflow-hidden ios-card-tap transition-colors hover:bg-primary active:bg-primary"
+      className="w-full text-left bg-card rounded-2xl overflow-hidden ios-card-tap"
       style={{ border: "0.5px solid hsl(var(--border))", boxShadow: "var(--shadow-card)" }}
     >
       {/* Court Image */}
@@ -140,17 +140,17 @@ export function CourtCard({
       {/* Content */}
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="font-semibold text-foreground group-hover:text-white group-active:text-white line-clamp-1 transition-colors">{name}</h3>
+          <h3 className="font-semibold text-foreground line-clamp-1">{name}</h3>
           <div className="flex items-center gap-1 shrink-0">
-            <Star className="w-4 h-4 fill-amber-400 text-amber-400 group-hover:fill-white group-active:fill-white group-hover:text-white group-active:text-white" />
-            <span className="text-sm font-medium text-foreground group-hover:text-white group-active:text-white transition-colors">{rating.toFixed(1)}</span>
-            <span className="text-xs text-muted-foreground group-hover:text-white/85 group-active:text-white/85 transition-colors">
+            <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+            <span className="text-sm font-medium">{rating.toFixed(1)}</span>
+            <span className="text-xs text-muted-foreground">
               ({reviewCount})
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 text-sm text-muted-foreground group-hover:text-white/85 group-active:text-white/85 mb-3 transition-colors">
+        <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
           <MapPin className="w-4 h-4 shrink-0" />
           <span className="line-clamp-1">{address}</span>
           <span className="shrink-0">&middot; {distance}</span>
@@ -159,7 +159,7 @@ export function CourtCard({
         {/* Amenities */}
         <div className="flex items-center gap-2">
           {amenityItems.map(({ icon: Icon, label }) => (
-            <div key={label} className="flex items-center gap-1 text-xs text-muted-foreground group-hover:text-white/85 group-active:text-white/85 transition-colors">
+            <div key={label} className="flex items-center gap-1 text-xs text-muted-foreground">
               <Icon className="w-3.5 h-3.5" />
               <span>{label}</span>
             </div>

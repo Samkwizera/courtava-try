@@ -147,7 +147,7 @@ export default function CourtDetailsPage() {
   // Player avatars from check-ins
   const avatars = courtCheckIns.slice(0, 5).map((ci) => ({
     label: (ci.profile?.display_name || "U").slice(0, 2).toUpperCase(),
-    bg: ["hsl(143 45% 40%)", "hsl(143 40% 32%)", "hsl(143 50% 48%)", "hsl(143 55% 28%)", "hsl(143 42% 55%)"][courtCheckIns.indexOf(ci) % 5],
+    bg: ["#D9C9A8", "#C4D9AE", "#AFC9D9", "#D9B8AF", "#C0B4D9"][courtCheckIns.indexOf(ci) % 5],
   }));
   const extra = Math.max(0, playerCount - 5);
 
@@ -201,15 +201,6 @@ export default function CourtDetailsPage() {
           {court.address || "Kigali"} · {surfaceLabel}
         </div>
 
-        {court.availability_note && (
-          <div style={{
-            marginTop: 12, background: C.greenSoft, color: C.greenInk, borderRadius: 12,
-            padding: "8px 12px", fontSize: 12, fontWeight: 600, display: "flex", gap: 6, alignItems: "center",
-          }}>
-            🕕 {court.availability_note}
-          </div>
-        )}
-
         {/* Live player strip */}
         <div style={{ marginTop: 18, background: C.surface, borderRadius: 16, border: `1px solid ${C.hair}`, padding: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -231,7 +222,7 @@ export default function CourtDetailsPage() {
                   background: a.bg, border: "2px solid #fff",
                   marginLeft: i === 0 ? 0 : -8,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 10, fontWeight: 700, color: "#fff",
+                  fontSize: 10, fontWeight: 700, color: C.ink,
                 }}>{a.label}</div>
               ))}
               {extra > 0 && (
@@ -275,11 +266,10 @@ export default function CourtDetailsPage() {
         </div>
 
         {/* Stats grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(96px, 1fr))", gap: 8, marginTop: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginTop: 10 }}>
           <StatCell label="Surface" value={surfaceLabel} />
           <StatCell label="Lights" value={court.lights ? "Yes" : "No"} />
           <StatCell label="Parking" value={court.parking ? "Yes" : "No"} />
-          {court.entry_fee && <StatCell label="Entry fee" value={court.entry_fee} />}
         </div>
 
         {/* Recent games section */}

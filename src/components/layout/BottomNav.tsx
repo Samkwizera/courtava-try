@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
 
 const GREEN = "oklch(0.68 0.14 150)";
+const INK = "hsl(var(--foreground))";
 const INK3 = "hsl(var(--muted-foreground))";
 const HAIR = "hsl(var(--border))";
 
@@ -50,7 +50,6 @@ const TABS = [
 export function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   const activeId = (() => {
     if (location.pathname === "/") return "home";
@@ -82,19 +81,17 @@ export function BottomNav() {
               <button
                 key={tab.id}
                 onClick={() => navigate(tab.to)}
-                className="ios-tap"
                 style={{
                   display: "flex", alignItems: "center", justifyContent: "center",
                   border: "none", background: "transparent", cursor: "pointer", height: "100%",
                 }}
               >
                 <div
-                  className="fab-3d"
                   style={{
-                    width: 52, height: 52, borderRadius: 16,
-                    marginTop: -22,
-                    background: `linear-gradient(180deg, hsl(143 45% 54%), ${GREEN} 55%, hsl(143 45% 38%))`,
+                    width: 46, height: 46, borderRadius: 14,
+                    background: GREEN,
                     display: "flex", alignItems: "center", justifyContent: "center",
+                    boxShadow: `0 6px 14px -4px ${GREEN}`,
                   }}
                 >
                   <PlusIcon />
@@ -103,23 +100,16 @@ export function BottomNav() {
             );
           }
           const isActive = activeId === tab.id;
-          const isHighlighted = isActive || hoveredId === tab.id;
-          const color = isHighlighted ? "#fff" : INK3;
+          const color = isActive ? INK : INK3;
           return (
             <button
               key={tab.id}
               onClick={() => navigate(tab.to)}
-              onMouseEnter={() => setHoveredId(tab.id)}
-              onMouseLeave={() => setHoveredId(null)}
-              className="ios-tap"
               style={{
                 display: "flex", flexDirection: "column", alignItems: "center",
-                justifyContent: "center", gap: 3, margin: "0 3px",
-                borderRadius: 16,
-                border: "none", background: isHighlighted ? GREEN : "transparent",
-                cursor: "pointer", height: "80%",
+                justifyContent: "center", gap: 3,
+                border: "none", background: "transparent", cursor: "pointer", height: "100%",
                 color, fontFamily: '"Inter", system-ui, sans-serif',
-                transition: "background-color 0.15s ease, color 0.15s ease",
               }}
             >
               {tab.icon!(color)}

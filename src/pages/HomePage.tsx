@@ -7,8 +7,6 @@ import { useGames } from "@/hooks/useGames";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { CourtMap } from "@/components/map/CourtMap";
 import { getCourtHeat } from "@/lib/courtHeat";
-import { Reveal } from "@/components/Reveal";
-import { useTilt } from "@/hooks/useTilt";
 
 const C = {
   bg: "hsl(var(--background))",
@@ -77,8 +75,6 @@ export default function HomePage() {
   const { userLocation, isLocating, locationEnabled, requestLocation } = useUserLocation();
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
-  const tiltRef = useTilt<HTMLDivElement>();
 
   const displayName = user?.user_metadata?.display_name || user?.email?.split("@")[0] || "Player";
   const initials = displayName.slice(0, 2).toUpperCase();
@@ -88,8 +84,6 @@ export default function HomePage() {
     return { ...court, liveCount, heat: getCourtHeat(liveCount) };
   });
   const activeCourts = courtsWithActivity.filter((c) => c.liveCount > 0).length;
-  const featuredCourt = [...courtsWithActivity].sort((a, b) => b.liveCount - a.liveCount)[0];
-  const hasFeaturedCourt = featuredCourt && featuredCourt.liveCount > 0;
 
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const displayedCourts = courtsWithActivity.filter((c) => {
@@ -134,38 +128,27 @@ export default function HomePage() {
     <div style={{ width: "100%", minHeight: "100vh", background: C.bg, fontFamily: '"Inter", system-ui, sans-serif', color: C.ink, overflowY: "auto", paddingBottom: 120 }}>
 
       {/* Header */}
-      <div style={{ position: "relative", padding: "70px 22px 14px", overflow: "hidden" }}>
-        <div className="ambient-glow" aria-hidden />
-        <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ padding: "70px 22px 14px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
-              <img src="/courtava-icon.png" alt="" width={16} height={16} style={{ borderRadius: 4 }} />
-              <span className="font-wordmark" style={{ fontSize: 12, fontWeight: 500, letterSpacing: "0.12em", color: C.green, textTransform: "uppercase" }}>
-                Courtava
-              </span>
+            <div style={{ fontSize: 12, color: C.ink3, fontWeight: 500, letterSpacing: 0.2 }}>
+              {day} · {time}
             </div>
-            <div style={{
-              display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700,
-              letterSpacing: "0.1em", textTransform: "uppercase", color: C.green,
-            }}>
-              <span className="pulse-dot" style={{ width: 6, height: 6, borderRadius: 99, background: C.green, boxShadow: `0 0 8px 2px ${C.green}88` }} />
-              {activeCourts > 0 ? `${activeCourts} court${activeCourts > 1 ? "s" : ""} live right now` : `${day} · ${time}`}
-            </div>
-            <div className="font-athletic" style={{ fontSize: 40, marginTop: 8 }}>
+            <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: -0.6, marginTop: 4 }}>
               {activeCourts > 0 ? (
-                <>WHO'S<br /><span className="text-glow-primary">HOOPING?</span></>
+                <>{activeCourts} courts active<span style={{ color: C.ink3 }}> nearby</span></>
               ) : (
-                <>COURTS<br /><span className="text-glow-primary">NEAR YOU</span></>
+                <>Courts<span style={{ color: C.ink3 }}> near you</span></>
               )}
             </div>
           </div>
           <button
             onClick={() => navigate("/profile")}
             style={{
-              width: 40, height: 40, borderRadius: 99, border: "none",
-              background: C.greenSoft, cursor: "pointer",
+              width: 40, height: 40, borderRadius: 99, border: `1px solid ${C.hair}`,
+              background: C.surface, cursor: "pointer",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontWeight: 700, fontSize: 13, color: C.greenInk, flexShrink: 0,
+              fontWeight: 600, fontSize: 13, color: C.ink2,
             }}
           >
             {initials}
@@ -248,7 +231,7 @@ export default function HomePage() {
 
           {/* Heat legend */}
           <div style={{
-            position: "absolute", bottom: 46, left: 14, zIndex: 10,
+            position: "absolute", bottom: 14, left: 14, zIndex: 10,
             background: C.surface, borderRadius: 12, padding: "8px 12px",
             display: "flex", gap: 12, alignItems: "center",
             boxShadow: "0 4px 12px rgba(0,0,0,0.06)", fontSize: 11, color: C.ink2, fontWeight: 500,
@@ -264,46 +247,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Featured court spotlight */}
-      {hasFeaturedCourt && (
-        <div className="tilt-stage" style={{ padding: "18px 22px 0" }}>
-          <div
-            ref={tiltRef}
-            className="tilt-card ios-card-tap"
-            onClick={() => navigate(`/courts/${featuredCourt.id}`)}
-            style={{
-              position: "relative", height: 176, borderRadius: 22, overflow: "hidden", cursor: "pointer",
-              background: "linear-gradient(155deg, #4CBE6C 0%, #2E8B4F 55%, #1F6B3C 100%)",
-            }}
-          >
-            <div style={{
-              position: "absolute", inset: 0,
-              backgroundImage: "repeating-linear-gradient(135deg, rgba(255,255,255,0.08) 0 2px, transparent 2px 16px)",
-            }} />
-            <div style={{
-              position: "absolute", inset: 0,
-              background: "radial-gradient(circle at 78% 15%, rgba(255,255,255,0.35), transparent 45%)",
-            }} />
-            <div style={{
-              position: "absolute", top: 14, left: 14,
-              background: "rgba(255,255,255,0.92)", padding: "5px 10px", borderRadius: 99,
-              fontSize: 11, fontWeight: 700, letterSpacing: "0.03em", color: "#1F6B3C",
-              display: "flex", alignItems: "center", gap: 6,
-              boxShadow: "0 4px 10px rgba(0,0,0,0.12)",
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: 99, background: "#2E8B4F" }} className="pulse-dot" />
-              LIVE · {featuredCourt.liveCount} PLAYING
-            </div>
-            <div style={{ position: "absolute", left: 18, right: 18, bottom: 16 }}>
-              <div className="font-athletic" style={{ fontSize: 22, color: "#fff" }}>{featuredCourt.name}</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", marginTop: 2, textTransform: "capitalize" }}>
-                {featuredCourt.surface} {featuredCourt.address ? `· ${featuredCourt.address}` : ""}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Filter chips */}
       <div style={{ display: "flex", gap: 8, padding: "18px 22px 6px", overflowX: "auto" }}>
         {[
@@ -317,9 +260,9 @@ export default function HomePage() {
             onClick={() => setActiveFilter(chip.k)}
             style={{
               padding: "8px 14px", borderRadius: 99,
-              background: activeFilter === chip.k ? C.green : "#fff",
+              background: activeFilter === chip.k ? C.ink : "#fff",
               color: activeFilter === chip.k ? "#fff" : C.ink2,
-              border: `1px solid ${activeFilter === chip.k ? C.green : C.hair}`,
+              border: `1px solid ${activeFilter === chip.k ? C.ink : C.hair}`,
               fontSize: 13, fontWeight: 500, whiteSpace: "nowrap", cursor: "pointer",
               transition: "background 0.2s, color 0.2s",
             }}
@@ -339,31 +282,26 @@ export default function HomePage() {
             </div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {upcomingGames.slice(0, 3).map((game, i) => {
+            {upcomingGames.slice(0, 3).map((game) => {
               const spots = game.max_players - game.current_players;
               const isFull = spots <= 0;
-              const rowKey = `game-${game.id}`;
-              const isHovered = hoveredRowId === rowKey;
               return (
-                <Reveal key={game.id} index={i}>
                 <div
+                  key={game.id}
                   onClick={() => navigate(game.court_id ? `/games?court=${game.court_id}` : "/games")}
-                  onMouseEnter={() => setHoveredRowId(rowKey)}
-                  onMouseLeave={() => setHoveredRowId(null)}
                   style={{
-                    background: isHovered ? C.green : C.surface, borderRadius: 16, padding: 14,
-                    border: `1px solid ${isHovered ? C.green : C.hair}`, display: "flex", alignItems: "center", gap: 12,
-                    cursor: "pointer", transition: "background-color 0.15s, border-color 0.15s",
+                    background: C.surface, borderRadius: 16, padding: 14,
+                    border: `1px solid ${C.hair}`, display: "flex", alignItems: "center", gap: 12,
+                    cursor: "pointer",
                   }}
                 >
                   <div style={{
-                    width: 44, height: 44, borderRadius: 12, background: isHovered ? "rgba(255,255,255,0.2)" : C.greenSoft,
+                    width: 44, height: 44, borderRadius: 12, background: C.hair2,
                     display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20,
-                    transition: "background-color 0.15s",
                   }}>🏀</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, fontSize: 15, color: isHovered ? "#fff" : C.ink }}>{game.title}</div>
-                    <div style={{ fontSize: 12, color: isHovered ? "rgba(255,255,255,0.85)" : C.ink3, marginTop: 3, display: "flex", gap: 8 }}>
+                    <div style={{ fontWeight: 600, fontSize: 15 }}>{game.title}</div>
+                    <div style={{ fontSize: 12, color: C.ink3, marginTop: 3, display: "flex", gap: 8 }}>
                       <span>{game.court_name}</span>
                       <span>·</span>
                       <span>{formatGameTime(game.date, game.time)}</span>
@@ -371,17 +309,12 @@ export default function HomePage() {
                   </div>
                   <span style={{
                     fontSize: 10, padding: "3px 8px", borderRadius: 99,
-                    background: isHovered ? "rgba(255,255,255,0.9)" : isFull ? C.hair2 : C.greenSoft,
-                    color: isHovered ? C.greenInk : isFull ? C.ink3 : C.greenInk,
+                    background: isFull ? C.hair2 : C.greenSoft,
+                    color: isFull ? C.ink3 : C.greenInk,
                     fontWeight: 600, flexShrink: 0,
                   }}>{isFull ? "Full" : `${spots} spot${spots > 1 ? "s" : ""} left`}</span>
-                  {isHovered ? (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>
-                  ) : (
-                    <ChevIcon />
-                  )}
+                  <ChevIcon />
                 </div>
-                </Reveal>
               );
             })}
           </div>
@@ -416,57 +349,46 @@ export default function HomePage() {
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {displayedCourts.map((court, i) => {
+            {displayedCourts.map((court) => {
               const meta = HEAT_META[court.heat];
-              const rowKey = `court-${court.id}`;
-              const isHovered = hoveredRowId === rowKey;
               return (
-                <Reveal key={court.id} index={i}>
                 <div
+                  key={court.id}
                   onClick={() => navigate(`/courts/${court.id}`)}
-                  onMouseEnter={() => setHoveredRowId(rowKey)}
-                  onMouseLeave={() => setHoveredRowId(null)}
                   style={{
-                    background: isHovered ? C.green : C.surface, borderRadius: 16, padding: 14,
-                    border: `1px solid ${isHovered ? C.green : C.hair}`, display: "flex", alignItems: "center", gap: 12,
-                    cursor: "pointer", transition: "background-color 0.15s, border-color 0.15s",
+                    background: C.surface, borderRadius: 16, padding: 14,
+                    border: `1px solid ${C.hair}`, display: "flex", alignItems: "center", gap: 12,
+                    cursor: "pointer",
                   }}
                 >
                   <div style={{
-                    width: 44, height: 44, borderRadius: 12, background: isHovered ? "rgba(255,255,255,0.2)" : C.hair2,
+                    width: 44, height: 44, borderRadius: 12, background: C.hair2,
                     display: "flex", alignItems: "center", justifyContent: "center", position: "relative",
-                    transition: "background-color 0.15s",
                   }}>
                     <div style={{
-                      width: 14, height: 14, borderRadius: 99, background: isHovered ? "#fff" : meta.color,
-                      boxShadow: isHovered ? "none" : `0 0 0 4px ${meta.ring}`,
+                      width: 14, height: 14, borderRadius: 99, background: meta.color,
+                      boxShadow: `0 0 0 4px ${meta.ring}`,
                     }} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <div style={{ fontWeight: 600, fontSize: 15, color: isHovered ? "#fff" : C.ink }}>{court.name}</div>
+                      <div style={{ fontWeight: 600, fontSize: 15 }}>{court.name}</div>
                       {court.heat === "high" && (
                         <span style={{
                           fontSize: 10, padding: "2px 6px", borderRadius: 99,
-                          background: isHovered ? "rgba(255,255,255,0.9)" : C.greenSoft,
-                          color: C.greenInk, fontWeight: 600,
+                          background: C.greenSoft, color: C.greenInk, fontWeight: 600,
                         }}>Heating up</span>
                       )}
                     </div>
-                    <div style={{ fontSize: 12, color: isHovered ? "rgba(255,255,255,0.85)" : C.ink3, marginTop: 3, display: "flex", gap: 8 }}>
+                    <div style={{ fontSize: 12, color: C.ink3, marginTop: 3, display: "flex", gap: 8 }}>
                       {court.liveCount > 0 && <span>{court.liveCount} playing</span>}
                       {court.liveCount > 0 && <span>·</span>}
                       <span style={{ textTransform: "capitalize" }}>{court.surface}</span>
                       {court.address && <><span>·</span><span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 120 }}>{court.address}</span></>}
                     </div>
                   </div>
-                  {isHovered ? (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>
-                  ) : (
-                    <ChevIcon />
-                  )}
+                  <ChevIcon />
                 </div>
-                </Reveal>
               );
             })}
           </div>

@@ -74,17 +74,16 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <div className="flex-1 flex flex-col items-center justify-center p-4">
-        <div className="relative text-center mb-8">
-          <div className="ambient-glow" aria-hidden />
+        <div className="text-center mb-8">
           <img
             src={courtavaLogo}
             alt="Courtava"
-            className="relative w-20 h-20 mx-auto mb-4 rounded-xl"
+            className="w-20 h-20 mx-auto mb-4 rounded-xl"
           />
-          <h1 className="relative font-athletic text-4xl text-foreground">Courtava</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Courtava</h1>
         </div>
 
-        <Card className="w-full max-w-md shadow-xl shadow-primary/10 border-border/60">
+        <Card className="w-full max-w-md">
           {isVerifying ? (
             <CardContent className="py-10 flex flex-col items-center gap-3">
               <Loader2 className="w-6 h-6 animate-spin text-primary" />

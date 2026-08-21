@@ -78,15 +78,8 @@ export default function ProfilePage() {
   return (
     <div style={{ width: "100%", minHeight: "100vh", background: C.bg, fontFamily: font, color: C.ink, overflowY: "auto", paddingBottom: 120 }}>
 
-      {/* Top bar */}
-      <div style={{ padding: "60px 18px 0", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <img src="/courtava-icon.png" alt="" width={16} height={16} style={{ borderRadius: 4 }} />
-          <span className="font-wordmark" style={{ fontSize: 12, fontWeight: 500, letterSpacing: "0.12em", color: C.green, textTransform: "uppercase" }}>
-            Courtava
-          </span>
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
+      {/* Top right buttons */}
+      <div style={{ padding: "60px 18px 0", display: "flex", justifyContent: "flex-end", gap: 8 }}>
         <button
           onClick={() => setEditOpen(true)}
           style={{
@@ -107,7 +100,6 @@ export default function ProfilePage() {
         >
           <Settings size={15} color={C.ink2} />
         </button>
-        </div>
       </div>
 
       {/* Settings panel */}
@@ -127,16 +119,13 @@ export default function ProfilePage() {
       )}
 
       {/* Avatar + identity */}
-      <div style={{ position: "relative", padding: "20px 22px 0", textAlign: "center", overflow: "hidden" }}>
-        <div className="ambient-glow" aria-hidden />
+      <div style={{ padding: "20px 22px 0", textAlign: "center" }}>
         <div style={{
-          position: "relative",
           width: 88, height: 88, borderRadius: 99, margin: "0 auto",
-          background: "linear-gradient(135deg, hsl(143 45% 56%), hsl(143 45% 38%))",
+          background: "linear-gradient(135deg, #D9C9A8, #B5956B)",
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 28, fontWeight: 700, color: "#fff",
-          border: "3px solid #fff",
-          boxShadow: "0 6px 16px rgba(0,0,0,0.08), 0 0 0 4px hsl(143 45% 46% / 0.14)",
+          border: "3px solid #fff", boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
           overflow: "hidden",
         }}>
           {avatarUrl ? (
@@ -146,7 +135,7 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <div className="font-athletic" style={{ position: "relative", fontSize: 26, marginTop: 14 }}>
+        <div style={{ fontSize: 22, fontWeight: 700, marginTop: 14, letterSpacing: -0.4 }}>
           {displayName}
         </div>
         <div style={{ fontSize: 13, color: C.ink3, marginTop: 2 }}>@{username}</div>
@@ -179,7 +168,7 @@ export default function ProfilePage() {
             background: C.surface, border: `1px solid ${C.hair}`,
             borderRadius: 16, padding: "14px 10px", textAlign: "center",
           }}>
-            <div style={{ fontSize: 22, fontWeight: 700, color: s.v === "—" ? C.ink3 : C.ink }}>{s.v}</div>
+            <div style={{ fontSize: 22, fontWeight: 700 }}>{s.v}</div>
             <div style={{ fontSize: 11, color: C.ink3, marginTop: 2 }}>{s.l}</div>
           </div>
         ))}
@@ -198,7 +187,7 @@ export default function ProfilePage() {
             {SKILL_LEVELS.map((l, i) => (
               <div key={l} style={{
                 flex: 1, height: 5, borderRadius: 99,
-                background: skillIndex >= 0 && i <= skillIndex ? C.green : C.hair,
+                background: skillIndex >= 0 && i <= skillIndex ? C.ink : C.hair,
               }} />
             ))}
           </div>

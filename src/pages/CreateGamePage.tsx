@@ -109,7 +109,6 @@ export default function CreateGamePage() {
   const [step, setStep] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMode, setSuccessMode] = useState<"checkin" | "host">("checkin");
-  const [hoveredCourtId, setHoveredCourtId] = useState<string | null>(null);
 
   // Step 1
   const [mode, setMode] = useState<"checkin" | "host">(navState?.mode ?? "checkin");
@@ -274,61 +273,40 @@ export default function CreateGamePage() {
             <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
               {courtsForDisplay.map((c) => {
                 const meta = HEAT_META[c.heat];
-                const isSelected = courtId === c.id;
-                const isHighlighted = isSelected || hoveredCourtId === c.id;
                 return (
-                  <label
-                    key={c.id}
-                    onClick={() => setCourtId(c.id)}
-                    onMouseEnter={() => setHoveredCourtId(c.id)}
-                    onMouseLeave={() => setHoveredCourtId(null)}
-                    style={{
-                      display: "flex", alignItems: "center", gap: 12,
-                      background: isHighlighted ? C.green : C.surface,
-                      border: `1px solid ${isHighlighted ? C.green : C.hair}`,
-                      borderRadius: 14, padding: 12, cursor: "pointer",
-                      transition: "background-color 0.15s, border-color 0.15s",
-                    }}
-                  >
+                  <label key={c.id} onClick={() => setCourtId(c.id)} style={{
+                    display: "flex", alignItems: "center", gap: 12,
+                    background: C.surface, border: `1px solid ${courtId === c.id ? C.ink : C.hair}`,
+                    borderRadius: 14, padding: 12, cursor: "pointer",
+                    transition: "border-color 0.15s",
+                  }}>
                     <div style={{
                       width: 20, height: 20, borderRadius: 99, flexShrink: 0,
-                      border: `2px solid ${isHighlighted ? "#fff" : C.hair}`,
+                      border: `2px solid ${courtId === c.id ? C.ink : C.hair}`,
                       display: "flex", alignItems: "center", justifyContent: "center",
                     }}>
-                      {isSelected && (
-                        <div style={{ width: 10, height: 10, borderRadius: 99, background: "#fff" }} />
+                      {courtId === c.id && (
+                        <div style={{ width: 10, height: 10, borderRadius: 99, background: C.ink }} />
                       )}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 14, fontWeight: 500, color: isHighlighted ? "#fff" : C.ink }}>{c.name}</div>
-                      <div style={{ fontSize: 12, color: isHighlighted ? "rgba(255,255,255,0.85)" : C.ink3 }}>
+                      <div style={{ fontSize: 14, fontWeight: 500 }}>{c.name}</div>
+                      <div style={{ fontSize: 12, color: C.ink3 }}>
                         {c.address}
                         {c.liveCount > 0 && ` · ${c.liveCount} here`}
                       </div>
                     </div>
-                    <div style={{
-                      width: 8, height: 8, borderRadius: 99, flexShrink: 0,
-                      background: isHighlighted ? "#fff" : meta.color,
-                    }} />
+                    <div style={{ width: 8, height: 8, borderRadius: 99, background: meta.color, flexShrink: 0 }} />
                   </label>
                 );
               })}
 
               {dbCourts.length > 5 && (
-                <button
-                  onClick={() => navigate("/courts", { state: { view: "list" } })}
-                  onMouseEnter={() => setHoveredCourtId("__see_all__")}
-                  onMouseLeave={() => setHoveredCourtId(null)}
-                  style={{
-                    padding: "10px 14px", borderRadius: 14,
-                    border: `1px solid ${hoveredCourtId === "__see_all__" ? C.green : C.hair}`,
-                    background: hoveredCourtId === "__see_all__" ? C.green : C.surface,
-                    fontSize: 13, fontWeight: 500,
-                    color: hoveredCourtId === "__see_all__" ? "#fff" : C.ink3,
-                    cursor: "pointer", fontFamily: font, textAlign: "left",
-                    transition: "background-color 0.15s, border-color 0.15s, color 0.15s",
-                  }}
-                >
+                <button onClick={() => navigate("/courts")} style={{
+                  padding: "10px 14px", borderRadius: 14, border: `1px solid ${C.hair}`,
+                  background: C.surface, fontSize: 13, fontWeight: 500, color: C.ink3,
+                  cursor: "pointer", fontFamily: font, textAlign: "left",
+                }}>
                   See all courts →
                 </button>
               )}
@@ -362,9 +340,9 @@ export default function CreateGamePage() {
                   { k: "compete", label: "Compete", sub: "Bring it" },
                 ] as const).map((v) => (
                   <div key={v.k} onClick={() => setVibe(v.k)} style={{
-                    background: vibe === v.k ? C.green : "#fff",
+                    background: vibe === v.k ? C.ink : "#fff",
                     color: vibe === v.k ? "#fff" : C.ink,
-                    border: `1px solid ${vibe === v.k ? C.green : C.hair}`,
+                    border: `1px solid ${vibe === v.k ? C.ink : C.hair}`,
                     borderRadius: 14, padding: 12, cursor: "pointer", textAlign: "center",
                     transition: "background 0.15s, color 0.15s",
                   }}>
@@ -537,9 +515,9 @@ function ModeCard({ active, onClick, title, sub, emoji }: {
 }) {
   return (
     <div onClick={onClick} style={{
-      background: active ? C.green : "#fff",
+      background: active ? C.ink : "#fff",
       color: active ? "#fff" : C.ink,
-      border: `1px solid ${active ? C.green : C.hair}`,
+      border: `1px solid ${active ? C.ink : C.hair}`,
       borderRadius: 16, padding: 16, cursor: "pointer",
       display: "flex", gap: 14, alignItems: "center",
       transition: "background 0.15s, color 0.15s",

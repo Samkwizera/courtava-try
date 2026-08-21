@@ -211,18 +211,17 @@ export default function AuthPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <div className="flex-1 flex flex-col items-center justify-center p-4">
         {/* Logo and branding */}
-        <div className="relative text-center mb-8">
-          <div className="ambient-glow" aria-hidden />
-          <img
-            src={courtavaLogo}
-            alt="Courtava"
-            className="relative w-20 h-20 mx-auto mb-4 rounded-xl"
+        <div className="text-center mb-8">
+          <img 
+            src={courtavaLogo} 
+            alt="Courtava" 
+            className="w-20 h-20 mx-auto mb-4 rounded-xl"
           />
-          <h1 className="relative font-athletic text-4xl text-foreground mb-2">Courtava</h1>
-          <p className="relative text-muted-foreground">Find courts. Meet players. Play ball.</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Courtava</h1>
+          <p className="text-muted-foreground">Find courts. Meet players. Play ball.</p>
         </div>
 
-        <Card className="w-full max-w-md shadow-xl shadow-primary/10 border-border/60">
+        <Card className="w-full max-w-md">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-xl">Get Started</CardTitle>
             <CardDescription>
@@ -395,7 +394,7 @@ export default function AuthPage() {
                       "Sign In"
                     )}
                   </Button>
-                  <div className="text-center pt-1">
+                  <div className="text-center pt-2">
                     <button
                       type="button"
                       onClick={handleForgotPassword}

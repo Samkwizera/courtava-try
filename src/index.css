@@ -1,7 +1,5 @@
 /* Geist variable font — system-font-style fallback for non-Apple platforms */
 @import "@fontsource-variable/geist";
-/* Bodoni Moda — display serif used for the Courtava wordmark only */
-@import "@fontsource-variable/bodoni-moda";
 
 @tailwind base;
 @tailwind components;
@@ -108,17 +106,14 @@
 
   /* Courtava wordmark — brand logotype, used on splash + interior headers */
   .font-wordmark {
-    font-family: "Bodoni Moda Variable", "Bodoni Moda", Didot, "Playfair Display", Georgia, serif;
-    font-optical-sizing: auto;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Geist Variable", "DM Sans", system-ui, sans-serif;
   }
 
-  /* Athletic display type — condensed, bold, uppercase energy for headlines */
+  /* Display headline type used across page headers */
   .font-athletic {
-    font-family: "Barlow Condensed", "Bodoni Moda Variable", -apple-system, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Geist Variable", "DM Sans", system-ui, sans-serif;
     font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: -0.01em;
-    line-height: 0.95;
+    letter-spacing: -0.02em;
   }
 }
 

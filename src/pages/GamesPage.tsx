@@ -6,6 +6,8 @@ import { useCourts } from "@/hooks/useCourts";
 import { useAuth } from "@/hooks/useAuth";
 import { Plus, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
+import { ScrollReveal } from "@/components/motion/ScrollReveal";
+import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
 
 async function shareGame(game: { title: string; court_name: string; date: string; time: string; format: string; max_players: number }) {
   const text = `Join my game: ${game.title} at ${game.court_name} — ${game.date} ${game.time ? formatTime(game.time) : ""} · ${game.format} · ${game.max_players} players`;
@@ -119,18 +121,19 @@ export default function GamesPage() {
               }}>Host a game</button>
             </div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <StaggerGroup style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {courtGames.map((game) => (
-                <GameListRow
-                  key={game.id}
-                  game={game}
-                  isJoined={myParticipantGameIds.includes(game.id)}
-                  isHost={user?.id === game.host_id}
-                  onJoin={() => handleJoin(game.id)}
-                  onLeave={() => leaveGame(game.id)}
-                />
+                <StaggerItem key={game.id}>
+                  <GameListRow
+                    game={game}
+                    isJoined={myParticipantGameIds.includes(game.id)}
+                    isHost={user?.id === game.host_id}
+                    onJoin={() => handleJoin(game.id)}
+                    onLeave={() => leaveGame(game.id)}
+                  />
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerGroup>
           )}
         </div>
       </div>
@@ -215,6 +218,7 @@ export default function GamesPage() {
       {tab === "live" && (
         <>
           {/* Live courts banner */}
+          <ScrollReveal>
           <div style={{ padding: "14px 14px 0" }}>
             <div style={{
               background: C.surface, borderRadius: 16, padding: 16,
@@ -245,121 +249,127 @@ export default function GamesPage() {
               }}>Open map</button>
             </div>
           </div>
+          </ScrollReveal>
 
           {/* NOW section */}
           <div style={{ padding: "12px 14px 0" }}>
             {/* Hot courts */}
             {hotCourts.length > 0 && (
-              <>
+              <ScrollReveal>
                 <div style={{ padding: "10px 8px 6px", fontSize: 11, color: C.ink3, fontWeight: 600, letterSpacing: 0.4 }}>
                   NOW
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <StaggerGroup style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {hotCourts.map((court) => (
-                    <FeedRow
-                      key={`heat-${court.id}`}
-                      icon="🔥"
-                      tint={C.greenSoft}
-                      title={`${court.name} is heating up`}
-                      sub={`${court.liveCount} players just checked in`}
-                      action="View"
-                      onAction={() => navigate(`/courts/${court.id}`)}
-                      onClick={() => navigate(`/courts/${court.id}`)}
-                    />
+                    <StaggerItem key={`heat-${court.id}`}>
+                      <FeedRow
+                        icon="🔥"
+                        tint={C.greenSoft}
+                        title={`${court.name} is heating up`}
+                        sub={`${court.liveCount} players just checked in`}
+                        action="View"
+                        onAction={() => navigate(`/courts/${court.id}`)}
+                        onClick={() => navigate(`/courts/${court.id}`)}
+                      />
+                    </StaggerItem>
                   ))}
                   {todayGames.map((game) => {
                     const spots = game.max_players - game.current_players;
                     const goToGame = () => navigate(game.court_id ? `/games?court=${game.court_id}` : "/games");
                     return (
-                      <FeedRow
-                        key={`game-${game.id}`}
-                        icon="📣"
-                        tint="#F5EFE4"
-                        title={game.title}
-                        sub={`${game.court_name} · ${formatTime(game.time)} · ${game.current_players}/${game.max_players} players`}
-                        action={spots > 0 ? "Join" : "Full"}
-                        onAction={goToGame}
-                        onClick={goToGame}
-                        onShare={() => shareGame(game)}
-                      />
+                      <StaggerItem key={`game-${game.id}`}>
+                        <FeedRow
+                          icon="📣"
+                          tint="#F5EFE4"
+                          title={game.title}
+                          sub={`${game.court_name} · ${formatTime(game.time)} · ${game.current_players}/${game.max_players} players`}
+                          action={spots > 0 ? "Join" : "Full"}
+                          onAction={goToGame}
+                          onClick={goToGame}
+                          onShare={() => shareGame(game)}
+                        />
+                      </StaggerItem>
                     );
                   })}
-                </div>
-              </>
+                </StaggerGroup>
+              </ScrollReveal>
             )}
 
             {/* Other check-ins */}
             {otherCheckIns.length > 0 && (
-              <>
+              <ScrollReveal>
                 <div style={{ padding: "16px 8px 6px", fontSize: 11, color: C.ink3, fontWeight: 600, letterSpacing: 0.4 }}>
                   CHECKED IN
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <StaggerGroup style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {otherCheckIns.slice(0, 3).map((ci) => {
                     const court = dbCourts.find((c) => c.id === ci.court_id);
                     const name = (ci as { profile?: { display_name?: string } }).profile?.display_name || "Someone";
                     return (
-                      <FeedRow
-                        key={`ci-${ci.id}`}
-                        icon={null}
-                        tint={C.hair2}
-                        title={`${name} checked into ${court?.name || "a court"}`}
-                        sub="Just now"
-                        onClick={() => court && navigate(`/courts/${court.id}`)}
-                      />
+                      <StaggerItem key={`ci-${ci.id}`}>
+                        <FeedRow
+                          icon={null}
+                          tint={C.hair2}
+                          title={`${name} checked into ${court?.name || "a court"}`}
+                          sub="Just now"
+                          onClick={() => court && navigate(`/courts/${court.id}`)}
+                        />
+                      </StaggerItem>
                     );
                   })}
-                </div>
-              </>
+                </StaggerGroup>
+              </ScrollReveal>
             )}
 
             {/* Upcoming games */}
             {upcomingGames.length > 0 && (
-              <>
+              <ScrollReveal>
                 <div style={{ padding: "16px 8px 6px", fontSize: 11, color: C.ink3, fontWeight: 600, letterSpacing: 0.4 }}>
                   UPCOMING
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <StaggerGroup style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {upcomingGames.slice(0, 3).map((game) => {
                     const spots = game.max_players - game.current_players;
                     const goToGame = () => navigate(game.court_id ? `/games?court=${game.court_id}` : "/games");
                     return (
-                      <FeedRow
-                        key={`upcoming-${game.id}`}
-                        icon="🏀"
-                        tint={C.hair2}
-                        title={game.title}
-                        sub={`${game.court_name} · ${formatGameTime(game.date, game.time)}`}
-                        action={spots > 0 ? "Join" : "Full"}
-                        onAction={goToGame}
-                        onClick={goToGame}
-                        onShare={() => shareGame(game)}
-                      />
+                      <StaggerItem key={`upcoming-${game.id}`}>
+                        <FeedRow
+                          icon="🏀"
+                          tint={C.hair2}
+                          title={game.title}
+                          sub={`${game.court_name} · ${formatGameTime(game.date, game.time)}`}
+                          action={spots > 0 ? "Join" : "Full"}
+                          onAction={goToGame}
+                          onClick={goToGame}
+                          onShare={() => shareGame(game)}
+                        />
+                      </StaggerItem>
                     );
                   })}
-                </div>
-              </>
+                </StaggerGroup>
+              </ScrollReveal>
             )}
 
             {/* New courts */}
             {newCourts.length > 0 && (
-              <>
+              <ScrollReveal>
                 <div style={{ padding: "16px 8px 6px", fontSize: 11, color: C.ink3, fontWeight: 600, letterSpacing: 0.4 }}>
                   NEW COURTS
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <StaggerGroup style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {newCourts.map((court) => (
-                    <FeedRow
-                      key={`new-${court.id}`}
-                      icon={null}
-                      tint={C.hair2}
-                      title={`New court added: ${court.name}`}
-                      sub={court.address || "Newly verified location"}
-                      onClick={() => navigate(`/courts/${court.id}`)}
-                    />
+                    <StaggerItem key={`new-${court.id}`}>
+                      <FeedRow
+                        icon={null}
+                        tint={C.hair2}
+                        title={`New court added: ${court.name}`}
+                        sub={court.address || "Newly verified location"}
+                        onClick={() => navigate(`/courts/${court.id}`)}
+                      />
+                    </StaggerItem>
                   ))}
-                </div>
-              </>
+                </StaggerGroup>
+              </ScrollReveal>
             )}
 
             {/* Empty state */}
@@ -393,38 +403,40 @@ export default function GamesPage() {
           ) : (
             <>
               {todayGames.length > 0 && (
-                <>
+                <ScrollReveal>
                   <div style={{ padding: "4px 8px 8px", fontSize: 11, color: C.ink3, fontWeight: 600, letterSpacing: 0.4 }}>TODAY</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 16 }}>
+                  <StaggerGroup style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 16 }}>
                     {todayGames.map((game) => (
-                      <GameListRow
-                        key={game.id}
-                        game={game}
-                        isJoined={myParticipantGameIds.includes(game.id)}
-                        isHost={user?.id === game.host_id}
-                        onJoin={() => handleJoin(game.id)}
-                        onLeave={() => leaveGame(game.id)}
-                      />
+                      <StaggerItem key={game.id}>
+                        <GameListRow
+                          game={game}
+                          isJoined={myParticipantGameIds.includes(game.id)}
+                          isHost={user?.id === game.host_id}
+                          onJoin={() => handleJoin(game.id)}
+                          onLeave={() => leaveGame(game.id)}
+                        />
+                      </StaggerItem>
                     ))}
-                  </div>
-                </>
+                  </StaggerGroup>
+                </ScrollReveal>
               )}
               {upcomingGames.length > 0 && (
-                <>
+                <ScrollReveal>
                   <div style={{ padding: "4px 8px 8px", fontSize: 11, color: C.ink3, fontWeight: 600, letterSpacing: 0.4 }}>UPCOMING</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <StaggerGroup style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     {upcomingGames.map((game) => (
-                      <GameListRow
-                        key={game.id}
-                        game={game}
-                        isJoined={myParticipantGameIds.includes(game.id)}
-                        isHost={user?.id === game.host_id}
-                        onJoin={() => handleJoin(game.id)}
-                        onLeave={() => leaveGame(game.id)}
-                      />
+                      <StaggerItem key={game.id}>
+                        <GameListRow
+                          game={game}
+                          isJoined={myParticipantGameIds.includes(game.id)}
+                          isHost={user?.id === game.host_id}
+                          onJoin={() => handleJoin(game.id)}
+                          onLeave={() => leaveGame(game.id)}
+                        />
+                      </StaggerItem>
                     ))}
-                  </div>
-                </>
+                  </StaggerGroup>
+                </ScrollReveal>
               )}
             </>
           )}
@@ -442,25 +454,26 @@ export default function GamesPage() {
             </div>
           )}
           {otherCheckIns.length > 0 && (
-            <>
+            <ScrollReveal>
               <div style={{ padding: "4px 8px 8px", fontSize: 11, color: C.ink3, fontWeight: 600, letterSpacing: 0.4 }}>LIVE</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <StaggerGroup style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {otherCheckIns.map((ci) => {
                   const court = dbCourts.find((c) => c.id === ci.court_id);
                   const name = (ci as { profile?: { display_name?: string } }).profile?.display_name || "Someone";
                   return (
-                    <FeedRow
-                      key={`act-${ci.id}`}
-                      icon={null}
-                      tint={C.hair2}
-                      title={`${name} checked into ${court?.name || "a court"}`}
-                      sub="Active now"
-                      onClick={() => court && navigate(`/courts/${court.id}`)}
-                    />
+                    <StaggerItem key={`act-${ci.id}`}>
+                      <FeedRow
+                        icon={null}
+                        tint={C.hair2}
+                        title={`${name} checked into ${court?.name || "a court"}`}
+                        sub="Active now"
+                        onClick={() => court && navigate(`/courts/${court.id}`)}
+                      />
+                    </StaggerItem>
                   );
                 })}
-              </div>
-            </>
+              </StaggerGroup>
+            </ScrollReveal>
           )}
         </div>
       )}

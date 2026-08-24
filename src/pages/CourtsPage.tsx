@@ -11,6 +11,7 @@ import { useCheckIns } from "@/hooks/useCheckIns";
 import { useCourts } from "@/hooks/useCourts";
 import { useUserLocation, getDistanceKm, formatDistance } from "@/hooks/useUserLocation";
 import { cn } from "@/lib/utils";
+import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
 
 const defaultFilters: CourtFiltersState = {
   surfaces: [],
@@ -197,7 +198,7 @@ export default function CourtsPage() {
 
       {/* Content */}
       {viewMode === "list" ? (
-        <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
+        <StaggerGroup className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
           <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
             <MapPin className="w-4 h-4" />
             <span>{filteredCourts.length} courts in Kigali</span>
@@ -205,22 +206,23 @@ export default function CourtsPage() {
           {filteredCourts.map((court) => {
             const liveCount = checkIns.filter((c) => c.court_id === court.id).length;
             return (
-              <CourtCard
-                key={court.id}
-                name={court.name}
-                address={court.address}
-                distance={court.distance}
-                rating={court.rating}
-                reviewCount={court.reviewCount}
-                playersNow={liveCount}
-                surface={court.surface}
-                amenities={court.amenities}
-                variant="compact"
-                onClick={() => navigate(`/courts/${court.id}`)}
-              />
+              <StaggerItem key={court.id}>
+                <CourtCard
+                  name={court.name}
+                  address={court.address}
+                  distance={court.distance}
+                  rating={court.rating}
+                  reviewCount={court.reviewCount}
+                  playersNow={liveCount}
+                  surface={court.surface}
+                  amenities={court.amenities}
+                  variant="compact"
+                  onClick={() => navigate(`/courts/${court.id}`)}
+                />
+              </StaggerItem>
             );
           })}
-        </div>
+        </StaggerGroup>
       ) : (
         <div className="relative flex-1 min-h-0">
           {/* Interactive Map */}

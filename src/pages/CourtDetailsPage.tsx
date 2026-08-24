@@ -2,6 +2,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useCourt, useCourts } from "@/hooks/useCourts";
 import { useAuth } from "@/hooks/useAuth";
 import { useCheckIns } from "@/hooks/useCheckIns";
+import { ScrollReveal } from "@/components/motion/ScrollReveal";
+import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
 
 const C = {
   bg: "hsl(var(--background))",
@@ -202,6 +204,7 @@ export default function CourtDetailsPage() {
         </div>
 
         {/* Live player strip */}
+        <ScrollReveal>
         <div style={{ marginTop: 18, background: C.surface, borderRadius: 16, border: `1px solid ${C.hair}`, padding: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -242,8 +245,10 @@ export default function CourtDetailsPage() {
             </div>
           )}
         </div>
+        </ScrollReveal>
 
         {/* Activity heatmap */}
+        <ScrollReveal>
         <div style={{ marginTop: 10, background: C.surface, borderRadius: 16, border: `1px solid ${C.hair}`, padding: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
             <div style={{ fontSize: 14, fontWeight: 600 }}>Usually busy around 6–7 PM</div>
@@ -264,22 +269,27 @@ export default function CourtDetailsPage() {
             ))}
           </div>
         </div>
+        </ScrollReveal>
 
         {/* Stats grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginTop: 10 }}>
-          <StatCell label="Surface" value={surfaceLabel} />
-          <StatCell label="Lights" value={court.lights ? "Yes" : "No"} />
-          <StatCell label="Parking" value={court.parking ? "Yes" : "No"} />
-        </div>
+        <ScrollReveal>
+        <StaggerGroup style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginTop: 10 }}>
+          <StaggerItem><StatCell label="Surface" value={surfaceLabel} /></StaggerItem>
+          <StaggerItem><StatCell label="Lights" value={court.lights ? "Yes" : "No"} /></StaggerItem>
+          <StaggerItem><StatCell label="Parking" value={court.parking ? "Yes" : "No"} /></StaggerItem>
+        </StaggerGroup>
+        </ScrollReveal>
 
         {/* Recent games section */}
+        <ScrollReveal>
         <div style={{ marginTop: 20, fontSize: 14, fontWeight: 600 }}>Recent games</div>
-        <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
+        <StaggerGroup style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
           {[
             { t: "5v5 pickup · 2 hours ago",       s: "Ended · 12 players" },
             { t: "Shootaround · yesterday 7 PM",   s: "4 players" },
           ].map((r, i) => (
-            <div key={i} style={{
+            <StaggerItem key={i}>
+            <div style={{
               background: C.surface, border: `1px solid ${C.hair}`, borderRadius: 12, padding: 12,
               display: "flex", justifyContent: "space-between", alignItems: "center",
             }}>
@@ -289,8 +299,10 @@ export default function CourtDetailsPage() {
               </div>
               <ChevIcon />
             </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerGroup>
+        </ScrollReveal>
       </div>
 
       {/* Sticky CTA — sits above the bottom nav (nav: bottom 24 + height 62 = 86px) */}

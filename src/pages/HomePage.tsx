@@ -7,6 +7,8 @@ import { useGames } from "@/hooks/useGames";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { CourtMap } from "@/components/map/CourtMap";
 import { getCourtHeat } from "@/lib/courtHeat";
+import { ScrollReveal } from "@/components/motion/ScrollReveal";
+import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
 
 const C = {
   bg: "hsl(var(--background))",
@@ -209,6 +211,7 @@ export default function HomePage() {
       </div>
 
       {/* Map card */}
+      <ScrollReveal>
       <div style={{ padding: "8px 14px 0" }}>
         <div
           style={{
@@ -246,8 +249,10 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+      </ScrollReveal>
 
       {/* Filter chips */}
+      <ScrollReveal delay={80}>
       <div style={{ display: "flex", gap: 8, padding: "18px 22px 6px", overflowX: "auto" }}>
         {[
           { k: "all",         label: "All" },
@@ -271,9 +276,11 @@ export default function HomePage() {
           </div>
         ))}
       </div>
+      </ScrollReveal>
 
       {/* Upcoming games */}
       {upcomingGames.length > 0 && (
+        <ScrollReveal>
         <div style={{ padding: "12px 14px 0" }}>
           <div style={{ padding: "8px 8px 10px", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
             <div style={{ fontSize: 17, fontWeight: 600 }}>Upcoming games</div>
@@ -281,13 +288,13 @@ export default function HomePage() {
               {upcomingGames.length} {upcomingGames.length === 1 ? "game" : "games"}
             </div>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <StaggerGroup style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {upcomingGames.slice(0, 3).map((game) => {
               const spots = game.max_players - game.current_players;
               const isFull = spots <= 0;
               return (
+                <StaggerItem key={game.id}>
                 <div
-                  key={game.id}
                   onClick={() => navigate(game.court_id ? `/games?court=${game.court_id}` : "/games")}
                   style={{
                     background: C.surface, borderRadius: 16, padding: 14,
@@ -315,13 +322,16 @@ export default function HomePage() {
                   }}>{isFull ? "Full" : `${spots} spot${spots > 1 ? "s" : ""} left`}</span>
                   <ChevIcon />
                 </div>
+                </StaggerItem>
               );
             })}
-          </div>
+          </StaggerGroup>
         </div>
+        </ScrollReveal>
       )}
 
       {/* Courts near you */}
+      <ScrollReveal>
       <div style={{ padding: "12px 14px 0" }}>
         <div style={{ padding: "8px 8px 10px", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
           <div style={{ fontSize: 17, fontWeight: 600 }}>
@@ -348,12 +358,12 @@ export default function HomePage() {
             </button>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <StaggerGroup style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {displayedCourts.map((court) => {
               const meta = HEAT_META[court.heat];
               return (
+                <StaggerItem key={court.id}>
                 <div
-                  key={court.id}
                   onClick={() => navigate(`/courts/${court.id}`)}
                   style={{
                     background: C.surface, borderRadius: 16, padding: 14,
@@ -389,11 +399,13 @@ export default function HomePage() {
                   </div>
                   <ChevIcon />
                 </div>
+                </StaggerItem>
               );
             })}
-          </div>
+          </StaggerGroup>
         )}
       </div>
+      </ScrollReveal>
     </div>
   );
 }

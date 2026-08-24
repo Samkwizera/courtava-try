@@ -6,6 +6,8 @@ import { useProfile } from "@/hooks/useProfile";
 import { useGames } from "@/hooks/useGames";
 import { useCheckIns } from "@/hooks/useCheckIns";
 import { EditProfileSheet } from "@/components/profile/EditProfileSheet";
+import { ScrollReveal } from "@/components/motion/ScrollReveal";
+import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
 
 const C = {
   bg: "hsl(var(--background))",
@@ -119,6 +121,7 @@ export default function ProfilePage() {
       )}
 
       {/* Avatar + identity */}
+      <ScrollReveal>
       <div style={{ padding: "20px 22px 0", textAlign: "center" }}>
         <div style={{
           width: 88, height: 88, borderRadius: 99, margin: "0 auto",
@@ -156,25 +159,31 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
+      </ScrollReveal>
 
       {/* Stats row */}
-      <div style={{ padding: "20px 14px 0", display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
+      <ScrollReveal>
+      <StaggerGroup style={{ padding: "20px 14px 0", display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
         {[
           { v: String(gamesPlayed), l: "Games" },
           { v: String(rating), l: "Rating" },
           { v: String(distinctCourts || "—"), l: "Courts" },
         ].map((s) => (
-          <div key={s.l} style={{
+          <StaggerItem key={s.l}>
+          <div style={{
             background: C.surface, border: `1px solid ${C.hair}`,
             borderRadius: 16, padding: "14px 10px", textAlign: "center",
           }}>
             <div style={{ fontSize: 22, fontWeight: 700 }}>{s.v}</div>
             <div style={{ fontSize: 11, color: C.ink3, marginTop: 2 }}>{s.l}</div>
           </div>
+          </StaggerItem>
         ))}
-      </div>
+      </StaggerGroup>
+      </ScrollReveal>
 
       {/* Skill level */}
+      <ScrollReveal>
       <div style={{ padding: "10px 14px 0" }}>
         <div style={{
           background: C.surface, border: `1px solid ${C.hair}`, borderRadius: 16, padding: 16,
@@ -197,8 +206,10 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+      </ScrollReveal>
 
       {/* Preferences */}
+      <ScrollReveal>
       <div style={{ padding: "10px 14px 0" }}>
         <div style={{
           background: C.surface, border: `1px solid ${C.hair}`, borderRadius: 16, overflow: "hidden",
@@ -219,14 +230,16 @@ export default function ProfilePage() {
           ))}
         </div>
       </div>
+      </ScrollReveal>
 
       {/* Recent games */}
       {recentGames.length > 0 && (
-        <>
+        <ScrollReveal>
           <div style={{ padding: "20px 22px 4px", fontSize: 14, fontWeight: 600 }}>Recent games</div>
-          <div style={{ padding: "0 14px 0", display: "flex", flexDirection: "column", gap: 6 }}>
+          <StaggerGroup style={{ padding: "0 14px 0", display: "flex", flexDirection: "column", gap: 6 }}>
             {recentGames.map((game) => (
-              <div key={game.id} style={{
+              <StaggerItem key={game.id}>
+              <div style={{
                 background: C.surface, border: `1px solid ${C.hair}`, borderRadius: 12,
                 padding: 12, display: "flex", alignItems: "center", gap: 12,
                 cursor: "pointer",
@@ -238,9 +251,10 @@ export default function ProfilePage() {
                 </div>
                 <ChevIcon />
               </div>
+              </StaggerItem>
             ))}
-          </div>
-        </>
+          </StaggerGroup>
+        </ScrollReveal>
       )}
 
       {/* Empty games state */}

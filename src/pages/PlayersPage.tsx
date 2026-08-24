@@ -9,6 +9,7 @@ import { useCommunities } from "@/hooks/useCommunities";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
 
 const players = [
   {
@@ -166,16 +167,17 @@ export default function PlayersPage() {
               <MapPin className="w-4 h-4" />
               <span>{players.length} players near you</span>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <StaggerGroup className="grid gap-4 sm:grid-cols-2">
               {players.map((player, i) => (
-                <PlayerCard
-                  key={i}
-                  {...player}
-                  onConnect={() => console.log("Connect")}
-                  onMessage={() => console.log("Message")}
-                />
+                <StaggerItem key={i}>
+                  <PlayerCard
+                    {...player}
+                    onConnect={() => console.log("Connect")}
+                    onMessage={() => console.log("Message")}
+                  />
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerGroup>
           </>
         ) : (
           <>
@@ -210,22 +212,23 @@ export default function PlayersPage() {
                 </Button>
               </div>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2">
+              <StaggerGroup className="grid gap-4 sm:grid-cols-2">
                 {communities.map((community) => (
-                  <CommunityCard
-                    key={community.id}
-                    id={community.id}
-                    name={community.name}
-                    description={community.description}
-                    courtId={community.court_id}
-                    schedule={community.schedule}
-                    memberCount={community.member_count}
-                    isMember={community.is_member}
-                    onJoin={() => joinCommunity(community.id)}
-                    onLeave={() => leaveCommunity(community.id)}
-                  />
+                  <StaggerItem key={community.id}>
+                    <CommunityCard
+                      id={community.id}
+                      name={community.name}
+                      description={community.description}
+                      courtId={community.court_id}
+                      schedule={community.schedule}
+                      memberCount={community.member_count}
+                      isMember={community.is_member}
+                      onJoin={() => joinCommunity(community.id)}
+                      onLeave={() => leaveCommunity(community.id)}
+                    />
+                  </StaggerItem>
                 ))}
-              </div>
+              </StaggerGroup>
             )}
           </>
         )}

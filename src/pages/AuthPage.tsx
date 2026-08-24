@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Eye, EyeOff, Loader2, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { setRememberMe } from "@/lib/authStorage";
@@ -35,6 +36,9 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isResendingConfirmation, setIsResendingConfirmation] = useState(false);
   const [rememberMe, setRememberMeChecked] = useState(true);
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
+  const [otpCode, setOtpCode] = useState("");
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
 
   // Redirect authenticated users away from auth page
   useEffect(() => {
@@ -51,8 +55,6 @@ export default function AuthPage() {
     }
     return msg;
   };
-
-  const getEmailRedirectUrl = () => `${window.location.origin}/`;
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,7 +75,6 @@ export default function AuthPage() {
         email,
         password,
         options: {
-          emailRedirectTo: getEmailRedirectUrl(),
           data: {
             display_name: displayName || email.split("@")[0],
           },
@@ -97,7 +98,8 @@ export default function AuthPage() {
         toast.success("Welcome to Courtava!");
         navigate("/onboarding");
       } else if (data.user && !data.session) {
-        toast.success("Check your email to confirm your account!");
+        setPendingVerificationEmail(email);
+        toast.success("We sent a 6-digit code to your email.");
       }
     } catch (error: unknown) {
       toast.error(getErrorMessage(error) || "An error occurred. Please try again.");
@@ -106,8 +108,44 @@ export default function AuthPage() {
     }
   };
 
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pendingVerificationEmail || otpCode.length !== 6) return;
+
+    setIsVerifyingOtp(true);
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: pendingVerificationEmail,
+        token: otpCode,
+        type: "signup",
+      });
+
+      if (error) {
+        toast.error(getErrorMessage(error) || "Invalid or expired code. Try again.");
+        return;
+      }
+
+      if (data.user) {
+        await supabase.from("profiles").upsert({
+          id: data.user.id,
+          display_name: displayName || pendingVerificationEmail.split("@")[0],
+        });
+      }
+
+      toast.success("Email verified! Welcome to Courtava.");
+      setPendingVerificationEmail(null);
+      setOtpCode("");
+      navigate("/onboarding");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error) || "An error occurred. Please try again.");
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  };
+
   const handleResendConfirmation = async () => {
-    if (!email) {
+    const targetEmail = pendingVerificationEmail || email;
+    if (!targetEmail) {
       toast.error("Please enter your email address first");
       return;
     }
@@ -116,16 +154,14 @@ export default function AuthPage() {
     try {
       const { error } = await supabase.auth.resend({
         type: "signup",
-        email,
-        options: {
-          emailRedirectTo: getEmailRedirectUrl(),
-        },
+        email: targetEmail,
       });
 
       if (error) {
         toast.error(getErrorMessage(error));
       } else {
-        toast.success("Confirmation email sent again. Check your inbox.");
+        setOtpCode("");
+        toast.success("Code sent again. Check your inbox.");
       }
     } catch (error: unknown) {
       toast.error(getErrorMessage(error) || "An error occurred. Please try again.");
@@ -150,7 +186,11 @@ export default function AuthPage() {
       });
 
       if (error) {
-        if (error.message.includes("Invalid login credentials")) {
+        if (error.message.toLowerCase().includes("email not confirmed")) {
+          await supabase.auth.resend({ type: "signup", email });
+          setPendingVerificationEmail(email);
+          toast.info("Please verify your email. We sent you a new 6-digit code.");
+        } else if (error.message.includes("Invalid login credentials")) {
           const newAttempts = failedAttempts + 1;
           setFailedAttempts(newAttempts);
           if (newAttempts >= 2) {
@@ -203,6 +243,91 @@ export default function AuthPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (pendingVerificationEmail) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <div className="flex-1 flex flex-col items-center justify-center p-4">
+          <div className="text-center mb-8">
+            <img
+              src={courtavaLogo}
+              alt="Courtava"
+              className="w-20 h-20 mx-auto mb-4 rounded-xl"
+            />
+            <h1 className="text-3xl font-bold text-foreground mb-2">Courtava</h1>
+            <p className="text-muted-foreground">Find courts. Meet players. Play ball.</p>
+          </div>
+
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center pb-2">
+              <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                <Mail className="h-6 w-6 text-primary" />
+              </div>
+              <CardTitle className="text-xl">Check your email</CardTitle>
+              <CardDescription>
+                Enter the 6-digit code we sent to <span className="font-medium text-foreground">{pendingVerificationEmail}</span>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleVerifyOtp} className="space-y-6">
+                <div className="flex justify-center">
+                  <InputOTP
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={setOtpCode}
+                    disabled={isVerifyingOtp}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full h-12 text-base"
+                  disabled={isVerifyingOtp || otpCode.length !== 6}
+                >
+                  {isVerifyingOtp ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Verifying...
+                    </>
+                  ) : (
+                    "Verify email"
+                  )}
+                </Button>
+                <div className="flex items-center justify-between text-sm">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPendingVerificationEmail(null);
+                      setOtpCode("");
+                    }}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Use a different email
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleResendConfirmation}
+                    disabled={isResendingConfirmation}
+                    className="text-primary hover:underline font-medium transition-colors disabled:opacity-50"
+                  >
+                    {isResendingConfirmation ? "Sending..." : "Resend code"}
+                  </button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -309,22 +434,6 @@ export default function AuthPage() {
                       </>
                     ) : (
                       "Create Account"
-                    )}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="w-full"
-                    onClick={handleResendConfirmation}
-                    disabled={isLoading || isResendingConfirmation}
-                  >
-                    {isResendingConfirmation ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                        Sending confirmation...
-                      </>
-                    ) : (
-                      "Resend confirmation email"
                     )}
                   </Button>
                 </form>

@@ -1,9 +1,10 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { C, SHADOW } from "@/lib/tokens";
 
-const GREEN = "oklch(0.68 0.14 150)";
-const INK = "hsl(var(--foreground))";
-const INK3 = "hsl(var(--muted-foreground))";
-const HAIR = "hsl(var(--border))";
+const GREEN = C.green;
+const INK = C.ink;
+const INK3 = C.ink3;
+const HAIR = C.hair;
 
 const HomeIcon = (color: string) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
@@ -69,9 +70,9 @@ export function BottomNav() {
       <div
         style={{
           display: "grid", gridTemplateColumns: "repeat(5, 1fr)",
-          background: "hsl(var(--card))", borderRadius: 24,
+          background: C.surface, borderRadius: 24,
           border: `1px solid ${HAIR}`,
-          boxShadow: "0 6px 24px -8px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.03)",
+          boxShadow: SHADOW.float,
           height: 62, alignItems: "center",
         }}
       >
@@ -88,7 +89,7 @@ export function BottomNav() {
               >
                 <div
                   style={{
-                    width: 46, height: 46, borderRadius: 14,
+                    width: 46, height: 46, borderRadius: 16,
                     background: GREEN,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     boxShadow: `0 6px 14px -4px ${GREEN}`,
@@ -113,7 +114,7 @@ export function BottomNav() {
               }}
             >
               {tab.icon!(color)}
-              <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: 0.1 }}>{tab.label}</span>
+              <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: 0.1 }}>{tab.label}</span>
             </button>
           );
         })}

@@ -4,20 +4,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCheckIns } from "@/hooks/useCheckIns";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
+import { C, RING, SHADOW, FADE_UP } from "@/lib/tokens";
+import { IconButton } from "@/components/ui/IconButton";
+import { ChevronLeft, Share, MapPin, ChevronRight } from "lucide-react";
 
-const C = {
-  bg: "hsl(var(--background))",
-  surface: "hsl(var(--card))",
-  ink: "hsl(var(--foreground))",
-  ink2: "hsl(var(--muted-foreground))",
-  ink3: "hsl(var(--muted-foreground))",
-  hair: "hsl(var(--border))",
-  hair2: "hsl(var(--muted))",
-  green: "oklch(0.68 0.14 150)",
-  greenSoft: "hsl(var(--secondary))",
-  greenInk: "hsl(var(--secondary-foreground))",
-  amber: "oklch(0.78 0.12 75)",
-};
+const PinIcon = () => <MapPin size={13} color={C.ink3} strokeWidth={1.8} />;
+const ChevIcon = () => <ChevronRight size={14} color={C.ink3} strokeWidth={2} />;
+
 
 function getHeat(n: number): "high" | "medium" | "low" {
   if (n >= 6) return "high";
@@ -26,59 +19,16 @@ function getHeat(n: number): "high" | "medium" | "low" {
 }
 
 const HEAT_META = {
-  high:   { color: C.green, ring: "rgba(46,160,100,0.22)", label: "Heating up" },
-  medium: { color: C.amber, ring: "rgba(220,170,70,0.22)",  label: "Active" },
-  low:    { color: C.ink3,  ring: "rgba(138,138,136,0.2)",  label: "Quiet" },
+  high:   { color: C.green, ring: RING.green, label: "Heating up" },
+  medium: { color: C.amber, ring: RING.amber,  label: "Active" },
+  low:    { color: C.ink3,  ring: RING.neutral,  label: "Quiet" },
 };
-
-const BackIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-    <path d="M15 18L9 12L15 6" stroke={C.ink} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-
-const ShareIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-    <path d="M12 3v13m0-13l-4 4m4-4l4 4M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"
-      stroke={C.ink} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-
-const PinIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-    <path d="M12 21s-7-7.5-7-12a7 7 0 1 1 14 0c0 4.5-7 12-7 12z" stroke={C.ink3} strokeWidth="1.8"/>
-    <circle cx="12" cy="9" r="2.5" stroke={C.ink3} strokeWidth="1.8"/>
-  </svg>
-);
-
-const ChevIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-    <path d="M9 6l6 6-6 6" stroke={C.ink3} strokeWidth="2" strokeLinecap="round"/>
-  </svg>
-);
-
-function CircleBtn({ onClick, children }: { onClick?: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        width: 38, height: 38, borderRadius: 99,
-        background: "rgba(255,255,255,0.92)", backdropFilter: "blur(10px)",
-        border: "none", cursor: "pointer",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-      }}
-    >
-      {children}
-    </button>
-  );
-}
 
 function StatCell({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ background: C.surface, border: `1px solid ${C.hair}`, borderRadius: 12, padding: "10px 12px" }}>
-      <div style={{ fontSize: 10, color: C.ink3, fontWeight: 500, letterSpacing: 0.3, textTransform: "uppercase" }}>{label}</div>
-      <div style={{ fontSize: 14, fontWeight: 600, marginTop: 2 }}>{value}</div>
+      <div style={{ fontSize: 11, color: C.ink3, fontWeight: 500, letterSpacing: 0.3, textTransform: "uppercase" }}>{label}</div>
+      <div style={{ fontSize: 15, fontWeight: 600, marginTop: 2 }}>{value}</div>
     </div>
   );
 }
@@ -124,8 +74,8 @@ export default function CourtDetailsPage() {
   if (!court) {
     return (
       <div style={{ minHeight: "100vh", background: C.bg, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12 }}>
-        <div style={{ fontSize: 18, fontWeight: 700 }}>Court not found</div>
-        <button onClick={() => navigate("/courts")} style={{ background: C.green, color: "#fff", border: "none", borderRadius: 99, padding: "10px 20px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Back to Courts</button>
+        <div style={{ fontSize: 17, fontWeight: 700 }}>Court not found</div>
+        <button onClick={() => navigate("/courts")} style={{ background: C.green, color: C.onGreen, border: "none", borderRadius: 99, padding: "10px 20px", fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Back to Courts</button>
       </div>
     );
   }
@@ -178,15 +128,19 @@ export default function CourtDetailsPage() {
 
         {/* Nav buttons */}
         <div style={{ position: "absolute", top: 58, left: 14, right: 14, display: "flex", justifyContent: "space-between" }}>
-          <CircleBtn onClick={() => navigate(-1)}><BackIcon /></CircleBtn>
-          <CircleBtn onClick={handleShare}><ShareIcon /></CircleBtn>
+          <IconButton label="Go back" variant="glass" onClick={() => navigate(-1)}>
+            <ChevronLeft size={18} strokeWidth={2} />
+          </IconButton>
+          <IconButton label="Share court" variant="glass" onClick={handleShare}>
+            <Share size={16} strokeWidth={1.8} />
+          </IconButton>
         </div>
 
         {/* Heat badge */}
         <div style={{
           position: "absolute", bottom: 16, left: 16,
-          background: "rgba(0,0,0,0.5)", backdropFilter: "blur(10px)",
-          color: "#fff", padding: "6px 12px", borderRadius: 99,
+          background: C.overlayInk, backdropFilter: "blur(10px)",
+          color: C.onOverlay, padding: "6px 12px", borderRadius: 99,
           fontSize: 12, fontWeight: 600, display: "flex", gap: 6, alignItems: "center",
         }}>
           <div className="pulse-dot" style={{ width: 8, height: 8, borderRadius: 99, background: meta.color }} />
@@ -197,7 +151,7 @@ export default function CourtDetailsPage() {
       {/* Main sheet */}
       <div style={{ background: C.bg, marginTop: -20, borderRadius: "24px 24px 0 0", padding: "22px 22px 10px", position: "relative" }}>
 
-        <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: -0.5 }}>{court.name}</div>
+        <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: -0.5 }}>{court.name}</div>
         <div style={{ fontSize: 13, color: C.ink3, marginTop: 4, display: "flex", gap: 6, alignItems: "center" }}>
           <PinIcon />
           {court.address || "Kigali"} · {surfaceLabel}
@@ -222,19 +176,19 @@ export default function CourtDetailsPage() {
               {avatars.map((a, i) => (
                 <div key={i} style={{
                   width: 32, height: 32, borderRadius: 99,
-                  background: a.bg, border: "2px solid #fff",
+                  background: a.bg, border: `2px solid ${C.surface}`,
                   marginLeft: i === 0 ? 0 : -8,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 10, fontWeight: 700, color: C.ink,
+                  fontSize: 11, fontWeight: 700, color: C.ink,
                 }}>{a.label}</div>
               ))}
               {extra > 0 && (
                 <div style={{
                   width: 32, height: 32, borderRadius: 99,
-                  background: C.ink, border: "2px solid #fff",
+                  background: C.ink, border: `2px solid ${C.surface}`,
                   marginLeft: -8,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 10, fontWeight: 700, color: "#fff",
+                  fontSize: 11, fontWeight: 700, color: C.onOverlay,
                 }}>+{extra}</div>
               )}
               <div style={{ flex: 1 }} />
@@ -251,7 +205,7 @@ export default function CourtDetailsPage() {
         <ScrollReveal>
         <div style={{ marginTop: 10, background: C.surface, borderRadius: 16, border: `1px solid ${C.hair}`, padding: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>Usually busy around 6–7 PM</div>
+            <div style={{ fontSize: 15, fontWeight: 600 }}>Usually busy around 6–7 PM</div>
             <div style={{ fontSize: 11, color: C.ink3 }}>Today</div>
           </div>
           <div style={{ display: "flex", gap: 4, alignItems: "flex-end", marginTop: 14, height: 60 }}>
@@ -262,7 +216,7 @@ export default function CourtDetailsPage() {
                   background: i === nowIdx ? C.green : `rgba(46,160,100,${0.15 + v * 0.35})`,
                   borderRadius: 4,
                 }} />
-                <div style={{ fontSize: 9, color: i === nowIdx ? C.ink : C.ink3, fontWeight: i === nowIdx ? 600 : 400 }}>
+                <div style={{ fontSize: 11, color: i === nowIdx ? C.ink : C.ink3, fontWeight: i === nowIdx ? 600 : 400 }}>
                   {hours[i]}
                 </div>
               </div>
@@ -282,7 +236,7 @@ export default function CourtDetailsPage() {
 
         {/* Recent games section */}
         <ScrollReveal>
-        <div style={{ marginTop: 20, fontSize: 14, fontWeight: 600 }}>Recent games</div>
+        <div style={{ marginTop: 20, fontSize: 15, fontWeight: 600 }}>Recent games</div>
         <StaggerGroup style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
           {[
             { t: "5v5 pickup · 2 hours ago",       s: "Ended · 12 players" },
@@ -309,7 +263,7 @@ export default function CourtDetailsPage() {
       <div style={{
         position: "fixed", left: 0, right: 0, bottom: 92, zIndex: 30,
         padding: "14px 16px 14px",
-        background: "linear-gradient(to top, rgba(255,255,255,0.98) 60%, rgba(255,255,255,0))",
+        background: FADE_UP,
         display: "flex", gap: 10,
       }}>
         <button
@@ -327,7 +281,7 @@ export default function CourtDetailsPage() {
           onClick={handleHostGame}
           style={{
             flex: 1, height: 54, borderRadius: 16,
-            background: C.green, color: "#fff",
+            background: C.green, color: C.onGreen,
             border: "none", fontSize: 15, fontWeight: 600, cursor: "pointer",
             boxShadow: `0 8px 24px -8px ${C.green}`,
             fontFamily: '"Inter", system-ui',

@@ -1,5 +1,4 @@
 import {
-  ChevronLeft,
   Bell,
   Lock,
   Globe,
@@ -8,9 +7,12 @@ import {
   LogOut,
   Trash2,
   ChevronRight,
+  Palette,
+  Sun,
+  Moon,
+  Smartphone,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
@@ -26,10 +28,20 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Section } from "@/components/layout/Section";
+import { useTheme, type Theme } from "@/hooks/useTheme";
+
+const THEME_OPTIONS: { value: Theme; label: string; Icon: typeof Sun }[] = [
+  { value: "light", label: "Light", Icon: Sun },
+  { value: "dark", label: "Dark", Icon: Moon },
+  { value: "system", label: "Auto", Icon: Smartphone },
+];
 
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const [notifications, setNotifications] = useState({
     checkIns: true,
@@ -72,29 +84,12 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background safe-top pb-24">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
-        <div className="px-4 py-3 flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-            className="shrink-0"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-xl font-bold text-foreground">Settings</h1>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background pb-24">
+      <PageHeader title="Settings" back />
 
-      <div className="p-4 space-y-6">
+      <div className="p-4">
         {/* Notifications Section */}
-        <section>
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 px-1">
-            Notifications
-          </h2>
-          <div className="bg-card rounded-xl shadow-card border border-border overflow-hidden divide-y divide-border">
+        <Section label="Notifications" grouped>
             <div className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
                 <Bell className="w-5 h-5 text-primary" />
@@ -155,15 +150,49 @@ export default function SettingsPage() {
                 onCheckedChange={() => handleNotificationToggle("communities")}
               />
             </div>
-          </div>
-        </section>
+        </Section>
+
+        {/* Appearance Section */}
+        <Section label="Appearance" grouped>
+            <div className="flex items-center gap-3 p-4">
+              <Palette className="w-5 h-5 text-primary shrink-0" />
+              <div className="min-w-0">
+                <p className="font-medium text-foreground">Theme</p>
+                <p className="text-sm text-muted-foreground">
+                  Match your device or pick one
+                </p>
+              </div>
+            </div>
+            <div
+              role="radiogroup"
+              aria-label="Theme"
+              className="flex gap-2 px-4 pb-4"
+            >
+              {THEME_OPTIONS.map(({ value, label, Icon }) => {
+                const active = theme === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setTheme(value)}
+                    className={`ios-tap flex-1 flex flex-col items-center gap-1.5 rounded-xl border py-3 transition-colors ${
+                      active
+                        ? "border-primary bg-secondary text-secondary-foreground"
+                        : "border-border bg-background text-muted-foreground hover:bg-muted/50"
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="text-13 font-semibold">{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+        </Section>
 
         {/* Privacy & Security Section */}
-        <section>
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 px-1">
-            Privacy & Security
-          </h2>
-          <div className="bg-card rounded-xl shadow-card border border-border overflow-hidden divide-y divide-border">
+        <Section label="Privacy & Security" grouped>
             <button
               type="button"
               onClick={() =>
@@ -196,15 +225,10 @@ export default function SettingsPage() {
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </button>
-          </div>
-        </section>
+        </Section>
 
         {/* General Section */}
-        <section>
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 px-1">
-            General
-          </h2>
-          <div className="bg-card rounded-xl shadow-card border border-border overflow-hidden divide-y divide-border">
+        <Section label="General" grouped>
             <button
               type="button"
               onClick={() =>
@@ -240,15 +264,10 @@ export default function SettingsPage() {
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </button>
-          </div>
-        </section>
+        </Section>
 
         {/* Account Actions Section */}
-        <section>
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 px-1">
-            Account
-          </h2>
-          <div className="bg-card rounded-xl shadow-card border border-border overflow-hidden divide-y divide-border">
+        <Section label="Account" grouped>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <button
@@ -313,8 +332,7 @@ export default function SettingsPage() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-          </div>
-        </section>
+        </Section>
 
         {/* App Info */}
         <div className="text-center text-sm text-muted-foreground py-4">

@@ -9,51 +9,23 @@ import { CourtMap } from "@/components/map/CourtMap";
 import { getCourtHeat } from "@/lib/courtHeat";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
+import { C, RING, SHADOW } from "@/lib/tokens";
+import { Chip } from "@/components/ui/Chip";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { IconButton } from "@/components/ui/IconButton";
+import { Search, SlidersHorizontal, ChevronRight, Flame } from "lucide-react";
 
-const C = {
-  bg: "hsl(var(--background))",
-  surface: "hsl(var(--card))",
-  ink: "hsl(var(--foreground))",
-  ink2: "hsl(var(--muted-foreground))",
-  ink3: "hsl(var(--muted-foreground))",
-  hair: "hsl(var(--border))",
-  hair2: "hsl(var(--muted))",
-  green: "oklch(0.68 0.14 150)",
-  greenSoft: "hsl(var(--secondary))",
-  greenInk: "hsl(var(--secondary-foreground))",
-  amber: "oklch(0.78 0.12 75)",
-};
+const SearchIcon = () => <Search size={16} color={C.ink3} strokeWidth={1.8} />;
+const FilterIcon = () => <SlidersHorizontal size={14} color={C.ink} strokeWidth={1.8} />;
+const ChevIcon = () => <ChevronRight size={14} color={C.ink3} strokeWidth={2} />;
+const FlameIcon = () => <Flame size={14} color={C.green} fill={C.green} strokeWidth={0} />;
+
 
 const HEAT_META: Record<string, { color: string; label: string; ring: string }> = {
-  high:   { color: C.green,  label: "Hot",   ring: "rgba(46,160,100,0.22)" },
-  medium: { color: C.amber,  label: "Warm",  ring: "rgba(220,170,70,0.22)" },
-  low:    { color: C.ink3,   label: "Quiet", ring: "rgba(138,138,136,0.2)" },
+  high:   { color: C.green,  label: "Hot",   ring: RING.green },
+  medium: { color: C.amber,  label: "Warm",  ring: RING.amber },
+  low:    { color: C.ink3,   label: "Quiet", ring: RING.neutral },
 };
-
-const SearchIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-    <circle cx="11" cy="11" r="7" stroke={C.ink3} strokeWidth="1.8"/>
-    <path d="m20 20-3.5-3.5" stroke={C.ink3} strokeWidth="1.8" strokeLinecap="round"/>
-  </svg>
-);
-
-const FilterIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-    <path d="M3 5h18M6 12h12M10 19h4" stroke={C.ink} strokeWidth="1.8" strokeLinecap="round"/>
-  </svg>
-);
-
-const ChevIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-    <path d="M9 6l6 6-6 6" stroke={C.ink3} strokeWidth="2" strokeLinecap="round"/>
-  </svg>
-);
-
-const FlameIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill={C.green}>
-    <path d="M12 2s1 3 3 5 3 3 3 6a6 6 0 1 1-12 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3 0-6 2-10z"/>
-  </svg>
-);
 
 function formatTime(t: string) {
   const [h, m] = t.split(":");
@@ -129,39 +101,27 @@ export default function HomePage() {
   return (
     <div style={{ width: "100%", minHeight: "100vh", background: C.bg, fontFamily: '"Inter", system-ui, sans-serif', color: C.ink, overflowY: "auto", paddingBottom: 120 }}>
 
-      {/* Header */}
-      <div style={{ padding: "70px 22px 14px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <div style={{ fontSize: 12, color: C.ink3, fontWeight: 500, letterSpacing: 0.2 }}>
-              {day} · {time}
-            </div>
-            <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: -0.6, marginTop: 4 }}>
-              {activeCourts > 0 ? (
-                <>{activeCourts} courts active<span style={{ color: C.ink3 }}> nearby</span></>
-              ) : (
-                <>Courts<span style={{ color: C.ink3 }}> near you</span></>
-              )}
-            </div>
-          </div>
-          <button
-            onClick={() => navigate("/profile")}
-            style={{
-              width: 40, height: 40, borderRadius: 99, border: `1px solid ${C.hair}`,
-              background: C.surface, cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontWeight: 600, fontSize: 13, color: C.ink2,
-            }}
-          >
-            {initials}
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        sticky={false}
+        eyebrow={`${day} · ${time}`}
+        title={
+          activeCourts > 0 ? (
+            <>{activeCourts} courts active<span style={{ color: C.ink3 }}> nearby</span></>
+          ) : (
+            <>Courts<span style={{ color: C.ink3 }}> near you</span></>
+          )
+        }
+        actions={
+          <IconButton label="Your profile" size={40} onClick={() => navigate("/profile")}>
+            <span className="text-13 font-semibold">{initials}</span>
+          </IconButton>
+        }
+      />
 
       {/* Search bar */}
       <div style={{ padding: "8px 14px 0" }}>
         <div style={{
-          background: C.surface, borderRadius: 14, height: 42,
+          background: C.surface, borderRadius: 16, height: 42,
           display: "flex", alignItems: "center", gap: 10, padding: "0 14px",
           border: `1px solid ${C.hair}`,
         }}>
@@ -184,7 +144,7 @@ export default function HomePage() {
               outline: "none",
               background: "transparent",
               color: C.ink,
-              fontSize: 14,
+              fontSize: 15,
               fontFamily: "inherit",
             }}
           />
@@ -215,12 +175,13 @@ export default function HomePage() {
       <div style={{ padding: "8px 14px 0" }}>
         <div
           style={{
-            position: "relative", height: 340, borderRadius: 20, overflow: "hidden",
+            position: "relative", height: 340, borderRadius: 24, overflow: "hidden",
             border: `1px solid ${C.hair}`,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+            boxShadow: SHADOW.card,
           }}
         >
           <CourtMap
+            showSearch={false}
             courts={mapCourts}
             center={[-1.9403, 30.0588]}
             zoom={13}
@@ -253,27 +214,20 @@ export default function HomePage() {
 
       {/* Filter chips */}
       <ScrollReveal delay={80}>
-      <div style={{ display: "flex", gap: 8, padding: "18px 22px 6px", overflowX: "auto" }}>
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide" style={{ padding: "18px 22px 6px" }}>
         {[
           { k: "all",         label: "All" },
           { k: "hot",         label: "🔥 Hot now" },
           { k: "casual",      label: "Casual" },
           { k: "competitive", label: "Competitive" },
         ].map((chip) => (
-          <div
+          <Chip
             key={chip.k}
+            selected={activeFilter === chip.k}
             onClick={() => setActiveFilter(chip.k)}
-            style={{
-              padding: "8px 14px", borderRadius: 99,
-              background: activeFilter === chip.k ? C.ink : "#fff",
-              color: activeFilter === chip.k ? "#fff" : C.ink2,
-              border: `1px solid ${activeFilter === chip.k ? C.ink : C.hair}`,
-              fontSize: 13, fontWeight: 500, whiteSpace: "nowrap", cursor: "pointer",
-              transition: "background 0.2s, color 0.2s",
-            }}
           >
             {chip.label}
-          </div>
+          </Chip>
         ))}
       </div>
       </ScrollReveal>
@@ -315,7 +269,7 @@ export default function HomePage() {
                     </div>
                   </div>
                   <span style={{
-                    fontSize: 10, padding: "3px 8px", borderRadius: 99,
+                    fontSize: 11, padding: "3px 8px", borderRadius: 99,
                     background: isFull ? C.hair2 : C.greenSoft,
                     color: isFull ? C.ink3 : C.greenInk,
                     fontWeight: 600, flexShrink: 0,
@@ -344,14 +298,14 @@ export default function HomePage() {
 
         {displayedCourts.length === 0 ? (
           <div style={{ textAlign: "center", padding: "40px 0" }}>
-            <div style={{ fontSize: 14, color: C.ink3, marginBottom: 12 }}>
+            <div style={{ fontSize: 15, color: C.ink3, marginBottom: 12 }}>
               {normalizedSearch ? "No courts match your search." : "No courts are available yet."}
             </div>
             <button
               onClick={() => normalizedSearch ? setSearchQuery("") : navigate("/courts")}
               style={{
-                background: C.green, color: "#fff", border: "none", borderRadius: 99,
-                padding: "10px 20px", fontSize: 14, fontWeight: 600, cursor: "pointer",
+                background: C.green, color: C.onGreen, border: "none", borderRadius: 99,
+                padding: "10px 20px", fontSize: 15, fontWeight: 600, cursor: "pointer",
               }}
             >
               {normalizedSearch ? "Clear search" : "Explore courts"}
@@ -385,7 +339,7 @@ export default function HomePage() {
                       <div style={{ fontWeight: 600, fontSize: 15 }}>{court.name}</div>
                       {court.heat === "high" && (
                         <span style={{
-                          fontSize: 10, padding: "2px 6px", borderRadius: 99,
+                          fontSize: 11, padding: "2px 6px", borderRadius: 99,
                           background: C.greenSoft, color: C.greenInk, fontWeight: 600,
                         }}>Heating up</span>
                       )}

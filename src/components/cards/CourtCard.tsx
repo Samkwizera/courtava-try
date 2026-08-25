@@ -53,10 +53,10 @@ export function CourtCard({
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 min-w-0">
-              <h3 className="font-semibold text-foreground text-[15px] truncate">
+              <h3 className="font-semibold text-foreground text-15 truncate">
                 {name}
               </h3>
-              <Badge variant="secondary" className="capitalize shrink-0 px-1.5 py-0 text-[10px]">
+              <Badge variant="secondary" className="capitalize shrink-0 px-1.5 py-0 text-11">
                 {surface}
               </Badge>
             </div>
@@ -66,7 +66,7 @@ export function CourtCard({
               <span className="shrink-0">&middot; {distance}</span>
             </div>
 
-            <div className="mt-2 flex items-center gap-2.5 text-[11px] text-muted-foreground">
+            <div className="mt-2 flex items-center gap-2.5 text-11 text-muted-foreground">
               {playersNow && playersNow > 0 ? (
                 <span className="flex items-center gap-1 text-orange-600 font-medium">
                   <Users className="w-3.5 h-3.5" />

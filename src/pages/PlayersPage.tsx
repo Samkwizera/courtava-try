@@ -2,12 +2,13 @@ import { Search, Filter, MapPin, Plus, Users2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Chip } from "@/components/ui/Chip";
 import { PlayerCard } from "@/components/cards/PlayerCard";
 import { CommunityCard } from "@/components/cards/CommunityCard";
 import { CreateCommunitySheet } from "@/components/communities/CreateCommunitySheet";
 import { useCommunities } from "@/hooks/useCommunities";
 import { useAuth } from "@/hooks/useAuth";
-import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
 
@@ -93,10 +94,9 @@ export default function PlayersPage() {
   } = useCommunities();
 
   return (
-    <div className="min-h-screen bg-background safe-top">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background border-b border-border">
-        <div className="px-4 py-3">
+    <div className="min-h-screen bg-background">
+      <PageHeader title="Players">
+        <>
           {/* Tab Toggle */}
           <div className="flex gap-2 mb-3">
             <Button
@@ -141,23 +141,18 @@ export default function PlayersPage() {
           {activeTab === "players" && (
             <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-1">
               {skillFilters.map((filter) => (
-                <button
+                <Chip
                   key={filter}
+                  selected={activeFilter === filter}
                   onClick={() => setActiveFilter(filter)}
-                  className={cn(
-                    "px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors",
-                    activeFilter === filter
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                  )}
                 >
                   {filter}
-                </button>
+                </Chip>
               ))}
             </div>
           )}
-        </div>
-      </header>
+        </>
+      </PageHeader>
 
       {/* Content */}
       <div className="p-4">

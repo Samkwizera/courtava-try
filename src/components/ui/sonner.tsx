@@ -1,15 +1,17 @@
 /* eslint-disable react-refresh/only-export-components */
-import { useTheme } from "next-themes";
+import { useTheme } from "@/hooks/useTheme";
 import { Toaster as Sonner, toast } from "sonner";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme();
+  // Use the app's own theme context — `next-themes` has no provider mounted,
+  // so importing from there would silently fall back to the OS preference.
+  const { resolvedTheme } = useTheme();
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme={resolvedTheme}
       className="toaster group"
       toastOptions={{
         classNames: {

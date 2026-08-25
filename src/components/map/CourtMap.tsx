@@ -5,11 +5,26 @@ import { CheckIn } from "@/hooks/useCheckIns";
 import { Search, Locate, X, MapPin, Loader2 } from "lucide-react";
 import { formatDistance, getDistanceKm } from "@/hooks/useUserLocation";
 import { getCourtHeat } from "@/lib/courtHeat";
+import { resolveColor, resolveColors } from "@/lib/resolveColor";
+import { useTheme } from "@/hooks/useTheme";
 
-const HEAT_COLORS: Record<ReturnType<typeof getCourtHeat>, string> = {
-  high: "#22c55e",
-  medium: "#f59e0b",
-  low: "#9ca3af",
+/**
+ * Heat tokens, kept as CSS expressions and resolved at paint time so the map
+ * uses the same green/amber/neutral as the rest of the app — and follows the
+ * theme. Previously these were raw Tailwind defaults, so a "Hot" pin and the
+ * "Hot" legend chip beside it were two different greens.
+ */
+const HEAT_TOKENS: Record<ReturnType<typeof getCourtHeat>, string> = {
+  high: "var(--c-green)",
+  medium: "var(--c-amber)",
+  low: "hsl(var(--ink-3))",
+};
+
+/** Marker chrome that must contrast with the pin fill. */
+const MAP_TOKENS = {
+  onPin: "hsl(var(--card))",
+  badge: "var(--c-amber)",
+  onBadge: "hsl(var(--card))",
 };
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || "";
@@ -63,6 +78,9 @@ interface CourtMapProps {
   isLocating?: boolean;
   onRequestLocation?: () => void;
   locationEnabled?: boolean;
+  /** Show the map's own floating search field. Turn off when the page
+   *  already renders a search input above the map (Home does). */
+  showSearch?: boolean;
 }
 
 export function CourtMap({
@@ -77,7 +95,9 @@ export function CourtMap({
   isLocating,
   onRequestLocation,
   locationEnabled,
+  showSearch = true,
 }: CourtMapProps) {
+  const { resolvedTheme } = useTheme();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const userMarker = useRef<mapboxgl.Marker | null>(null);
@@ -179,8 +199,8 @@ export function CourtMap({
       `;
       pin.style.cssText = `
         width: 28px; height: 28px;
-        background: #ef4444;
-        border: 3px solid white;
+        background: ${resolveColor("var(--c-red)")};
+        border: 3px solid ${resolveColor("hsl(var(--card))")};
         border-radius: 50% 50% 50% 0;
         transform: rotate(-45deg);
         box-shadow: 0 2px 8px rgba(0,0,0,0.3);
@@ -294,6 +314,11 @@ export function CourtMap({
     const m = map.current;
     if (!m) return;
 
+    // Resolved here rather than at module scope: the values depend on the
+    // active theme, and `resolvedTheme` in the deps re-paints on a flip.
+    const heat = resolveColors(HEAT_TOKENS);
+    const chrome = resolveColors(MAP_TOKENS);
+
     const addMarkers = () => {
       const courtSourceData = {
         type: "FeatureCollection" as const,
@@ -344,12 +369,12 @@ export function CourtMap({
           "circle-radius": ["case", ["boolean", ["get", "isSelected"], false], 20, 16],
           "circle-color": [
             "match", ["get", "heat"],
-            "high", HEAT_COLORS.high,
-            "medium", HEAT_COLORS.medium,
-            "low", HEAT_COLORS.low,
-            HEAT_COLORS.low,
+            "high", heat.high,
+            "medium", heat.medium,
+            "low", heat.low,
+            heat.low,
           ],
-          "circle-stroke-color": "#ffffff",
+          "circle-stroke-color": chrome.onPin,
           "circle-stroke-width": ["case", ["boolean", ["get", "isSelected"], false], 4, 3],
         },
       });
@@ -360,7 +385,7 @@ export function CourtMap({
         source: COURT_SOURCE_ID,
         paint: {
           "circle-radius": ["case", ["boolean", ["get", "isSelected"], false], 8, 6],
-          "circle-color": "#ffffff",
+          "circle-color": chrome.onPin,
         },
       });
 
@@ -371,8 +396,8 @@ export function CourtMap({
         filter: [">", ["get", "count"], 0],
         paint: {
           "circle-radius": 9,
-          "circle-color": "#f97316",
-          "circle-stroke-color": "#ffffff",
+          "circle-color": chrome.badge,
+          "circle-stroke-color": chrome.onPin,
           "circle-stroke-width": 2,
           "circle-translate": [12, -12],
           "circle-translate-anchor": "viewport",
@@ -392,7 +417,7 @@ export function CourtMap({
           "text-ignore-placement": true,
         },
         paint: {
-          "text-color": "#ffffff",
+          "text-color": chrome.onBadge,
           "text-translate": [12, -12],
           "text-translate-anchor": "viewport",
         },
@@ -527,7 +552,7 @@ export function CourtMap({
         m.off("click", COURT_BADGE_TEXT_LAYER_ID, handleBadgeClick);
       }
     };
-  }, [courts, selectedCourtId, checkIns, onCourtSelect, onAvatarClick, userLocation, fitToCourts]);
+  }, [courts, selectedCourtId, checkIns, onCourtSelect, onAvatarClick, userLocation, fitToCourts, resolvedTheme]);
 
   // ── 3. Fly to new center ──
   useEffect(() => {
@@ -550,10 +575,10 @@ export function CourtMap({
     const el = document.createElement("div");
     el.style.cssText = `
       width: 20px; height: 20px;
-      background: #3b82f6;
-      border: 3px solid white;
+      background: ${resolveColor("var(--c-green)")};
+      border: 3px solid ${resolveColor("hsl(var(--card))")};
       border-radius: 50%;
-      box-shadow: 0 0 0 6px rgba(59,130,246,0.25), 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 0 0 6px ${resolveColor("var(--c-green-ring)")}, 0 2px 8px rgba(0,0,0,0.3);
     `;
 
     userMarker.current = new mapboxgl.Marker({ element: el, anchor: "center" })
@@ -595,14 +620,14 @@ export function CourtMap({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#f1f5f9",
+          background: "hsl(var(--muted))",
           borderRadius: 8,
           flexDirection: "column",
           gap: 8,
         }}
       >
-        <p style={{ color: "#64748b", fontSize: 14 }}>Map not configured</p>
-        <p style={{ color: "#94a3b8", fontSize: 12 }}>
+        <p style={{ color: "hsl(var(--foreground))", fontSize: 15 }}>Map not configured</p>
+        <p style={{ color: "hsl(var(--ink-3))", fontSize: 12 }}>
           Add <code>VITE_MAPBOX_ACCESS_TOKEN</code> to .env
         </p>
       </div>
@@ -617,7 +642,8 @@ export function CourtMap({
         </div>
       )}
 
-      {/* Floating search bar on the map */}
+      {/* Floating search bar — hidden when the host page supplies its own */}
+      {showSearch && (
       <div className="absolute top-3 left-3 right-3 z-10">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
@@ -733,6 +759,7 @@ export function CourtMap({
           </div>
         )}
       </div>
+      )}
 
       {/* My Location button */}
       {onRequestLocation && (

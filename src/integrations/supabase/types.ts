@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       check_ins: {
@@ -37,6 +62,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "check_ins_court_id_fkey"
+            columns: ["court_id"]
+            isOneToOne: false
+            referencedRelation: "courts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "check_ins_user_id_fkey"
             columns: ["user_id"]
@@ -78,6 +110,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "communities_court_id_fkey"
+            columns: ["court_id"]
+            isOneToOne: false
+            referencedRelation: "courts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "communities_created_by_fkey"
             columns: ["created_by"]
@@ -132,14 +171,14 @@ export type Database = {
           entry_fee: string | null
           id: string
           lat: number
-          lights: boolean
+          lights: boolean | null
           lng: number
           name: string
-          parking: boolean
+          parking: boolean | null
           photo_url: string | null
-          surface: string
+          surface: string | null
           updated_at: string
-          water: boolean
+          water: boolean | null
         }
         Insert: {
           address: string
@@ -149,14 +188,14 @@ export type Database = {
           entry_fee?: string | null
           id?: string
           lat: number
-          lights?: boolean
+          lights?: boolean | null
           lng: number
           name: string
-          parking?: boolean
+          parking?: boolean | null
           photo_url?: string | null
-          surface?: string
+          surface?: string | null
           updated_at?: string
-          water?: boolean
+          water?: boolean | null
         }
         Update: {
           address?: string
@@ -166,19 +205,47 @@ export type Database = {
           entry_fee?: string | null
           id?: string
           lat?: number
-          lights?: boolean
+          lights?: boolean | null
           lng?: number
           name?: string
-          parking?: boolean
+          parking?: boolean | null
           photo_url?: string | null
-          surface?: string
+          surface?: string | null
           updated_at?: string
-          water?: boolean
+          water?: boolean | null
+        }
+        Relationships: []
+      }
+      game_participants: {
+        Row: {
+          created_at: string
+          game_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          id?: string
+          user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "courts_created_by_fkey"
-            columns: ["created_by"]
+            foreignKeyName: "game_participants_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_participants_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -208,12 +275,12 @@ export type Database = {
           created_at?: string
           current_players?: number
           date: string
-          format: string
+          format?: string
           host_id: string
           host_name: string
           id?: string
-          max_players: number
-          skill_level: string
+          max_players?: number
+          skill_level?: string
           time: string
           title: string
           updated_at?: string
@@ -240,13 +307,6 @@ export type Database = {
             columns: ["court_id"]
             isOneToOne: false
             referencedRelation: "courts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "games_host_id_fkey"
-            columns: ["host_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -430,6 +490,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

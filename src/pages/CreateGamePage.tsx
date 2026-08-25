@@ -5,26 +5,16 @@ import { useGames, GameInsert } from "@/hooks/useGames";
 import { useCourts } from "@/hooks/useCourts";
 import { useCheckIns } from "@/hooks/useCheckIns";
 import { IosDateTimePicker } from "@/components/ui/IosDrumPicker";
+import { C, RING } from "@/lib/tokens";
+import { OptionCard } from "@/components/ui/OptionCard";
 
-const C = {
-  bg: "hsl(var(--background))",
-  surface: "hsl(var(--card))",
-  ink: "hsl(var(--foreground))",
-  ink2: "hsl(var(--muted-foreground))",
-  ink3: "hsl(var(--muted-foreground))",
-  hair: "hsl(var(--border))",
-  hair2: "hsl(var(--muted))",
-  green: "oklch(0.68 0.14 150)",
-  greenSoft: "hsl(var(--secondary))",
-  greenInk: "hsl(var(--secondary-foreground))",
-};
 
 const font = `"Inter", -apple-system, system-ui, sans-serif`;
 
 const HEAT_META: Record<string, { color: string; ring: string }> = {
-  high:   { color: C.green,  ring: "rgba(46,160,100,0.22)" },
-  medium: { color: "oklch(0.78 0.12 75)", ring: "rgba(220,170,70,0.22)" },
-  low:    { color: C.ink3,   ring: "rgba(138,138,136,0.2)" },
+  high:   { color: C.green,  ring: RING.green },
+  medium: { color: C.amber, ring: RING.amber },
+  low:    { color: C.ink3,   ring: RING.neutral },
 };
 
 function getHeat(count: number): "high" | "medium" | "low" {
@@ -192,22 +182,22 @@ export default function CreateGamePage() {
           <div style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>
             {successMode === "checkin" ? "Checked in!" : "Game posted!"}
           </div>
-          <div style={{ fontSize: 14, color: C.ink3, marginBottom: 32 }}>
+          <div style={{ fontSize: 15, color: C.ink3, marginBottom: 32 }}>
             {successMode === "checkin"
               ? `You're now checked in at ${selectedCourt?.name}. Let the neighborhood know you're hooping!`
               : `Your game at ${selectedCourt?.name} is live. Others can now see and join it.`}
           </div>
           <button onClick={() => navigate("/")} style={{
             width: "100%", height: 54, borderRadius: 16,
-            background: C.green, color: "#fff", border: "none",
-            fontSize: 16, fontWeight: 600, cursor: "pointer",
+            background: C.green, color: C.onGreen, border: "none",
+            fontSize: 15, fontWeight: 600, cursor: "pointer",
             boxShadow: `0 8px 24px -8px ${C.green}`, fontFamily: font,
             marginBottom: 10,
           }}>Back to home</button>
           <button onClick={() => navigate("/games")} style={{
             width: "100%", height: 54, borderRadius: 16,
             background: C.surface, color: C.ink, border: `1px solid ${C.hair}`,
-            fontSize: 16, fontWeight: 600, cursor: "pointer", fontFamily: font,
+            fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: font,
           }}>View feed</button>
         </div>
       </div>
@@ -247,8 +237,8 @@ export default function CreateGamePage() {
         {/* ── STEP 0: Mode + Court ── */}
         {step === 0 && (
           <>
-            <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: -0.6 }}>What are you up to?</div>
-            <div style={{ fontSize: 14, color: C.ink3, marginTop: 6 }}>Let the neighborhood know you're hooping.</div>
+            <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: -0.6 }}>What are you up to?</div>
+            <div style={{ fontSize: 15, color: C.ink3, marginTop: 6 }}>Let the neighborhood know you're hooping.</div>
 
             {/* Mode cards */}
             <div style={{ marginTop: 22, display: "flex", flexDirection: "column", gap: 10 }}>
@@ -277,7 +267,7 @@ export default function CreateGamePage() {
                   <label key={c.id} onClick={() => setCourtId(c.id)} style={{
                     display: "flex", alignItems: "center", gap: 12,
                     background: C.surface, border: `1px solid ${courtId === c.id ? C.ink : C.hair}`,
-                    borderRadius: 14, padding: 12, cursor: "pointer",
+                    borderRadius: 16, padding: 12, cursor: "pointer",
                     transition: "border-color 0.15s",
                   }}>
                     <div style={{
@@ -290,7 +280,7 @@ export default function CreateGamePage() {
                       )}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 14, fontWeight: 500 }}>{c.name}</div>
+                      <div style={{ fontSize: 15, fontWeight: 500 }}>{c.name}</div>
                       <div style={{ fontSize: 12, color: C.ink3 }}>
                         {c.address}
                         {c.liveCount > 0 && ` · ${c.liveCount} here`}
@@ -303,7 +293,7 @@ export default function CreateGamePage() {
 
               {dbCourts.length > 5 && (
                 <button onClick={() => navigate("/courts")} style={{
-                  padding: "10px 14px", borderRadius: 14, border: `1px solid ${C.hair}`,
+                  padding: "10px 14px", borderRadius: 16, border: `1px solid ${C.hair}`,
                   background: C.surface, fontSize: 13, fontWeight: 500, color: C.ink3,
                   cursor: "pointer", fontFamily: font, textAlign: "left",
                 }}>
@@ -327,8 +317,8 @@ export default function CreateGamePage() {
         {/* ── STEP 1: Vibe + When + Players ── */}
         {step === 1 && (
           <>
-            <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: -0.6 }}>Set the vibe</div>
-            <div style={{ fontSize: 14, color: C.ink3, marginTop: 6 }}>Help others know what to expect.</div>
+            <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: -0.6 }}>Set the vibe</div>
+            <div style={{ fontSize: 15, color: C.ink3, marginTop: 6 }}>Help others know what to expect.</div>
 
             {/* Vibe */}
             <div style={{ marginTop: 22 }}>
@@ -339,16 +329,13 @@ export default function CreateGamePage() {
                   { k: "pickup", label: "Pickup", sub: "5v5 for fun" },
                   { k: "compete", label: "Compete", sub: "Bring it" },
                 ] as const).map((v) => (
-                  <div key={v.k} onClick={() => setVibe(v.k)} style={{
-                    background: vibe === v.k ? C.ink : "#fff",
-                    color: vibe === v.k ? "#fff" : C.ink,
-                    border: `1px solid ${vibe === v.k ? C.ink : C.hair}`,
-                    borderRadius: 14, padding: 12, cursor: "pointer", textAlign: "center",
-                    transition: "background 0.15s, color 0.15s",
-                  }}>
-                    <div style={{ fontSize: 13, fontWeight: 600 }}>{v.label}</div>
-                    <div style={{ fontSize: 10, opacity: 0.7, marginTop: 2 }}>{v.sub}</div>
-                  </div>
+                  <OptionCard
+                    key={v.k}
+                    label={v.label}
+                    sub={v.sub}
+                    selected={vibe === v.k}
+                    onClick={() => setVibe(v.k)}
+                  />
                 ))}
               </div>
             </div>
@@ -362,19 +349,21 @@ export default function CreateGamePage() {
                   { k: "30", label: "In 30 min", sub: "Time to gather" },
                   { k: "later", label: "Pick time", sub: "Schedule ahead" },
                 ] as const).map((w) => (
-                  <div key={w.k} onClick={() => { setWhen(w.k); if (w.k === "later") setPickerOpen(true); }} style={{
-                    flex: 1,
-                    background: when === w.k ? C.greenSoft : "#fff",
-                    border: `1px solid ${when === w.k ? C.green : C.hair}`,
-                    borderRadius: 14, padding: 12, cursor: "pointer", textAlign: "center",
-                    transition: "background 0.15s",
-                  }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: when === w.k ? C.greenInk : C.ink }}>{w.label}</div>
-                    <div style={{ fontSize: 10, color: C.ink3, marginTop: 2 }}>
-                      {w.k === "later" && pickedDate && pickedTime
-                        ? `${pickedDate} ${formatTime(pickedTime)}`
-                        : w.sub}
-                    </div>
+                  <div key={w.k} style={{ flex: 1 }}>
+                    <OptionCard
+                      label={w.label}
+                      tone="green"
+                      sub={
+                        w.k === "later" && pickedDate && pickedTime
+                          ? `${pickedDate} ${formatTime(pickedTime)}`
+                          : w.sub
+                      }
+                      selected={when === w.k}
+                      onClick={() => {
+                        setWhen(w.k);
+                        if (w.k === "later") setPickerOpen(true);
+                      }}
+                    />
                   </div>
                 ))}
               </div>
@@ -388,19 +377,19 @@ export default function CreateGamePage() {
                 </div>
                 <div style={{
                   marginTop: 12, background: C.surface, border: `1px solid ${C.hair}`,
-                  borderRadius: 14, padding: 14, display: "flex", alignItems: "center", gap: 14,
+                  borderRadius: 16, padding: 14, display: "flex", alignItems: "center", gap: 14,
                 }}>
                   <button onClick={() => setSize(Math.max(2, size - 2))} style={{
-                    width: 36, height: 36, borderRadius: 10, background: C.hair2, border: "none",
-                    fontSize: 18, fontWeight: 600, cursor: "pointer",
+                    width: 36, height: 36, borderRadius: 12, background: C.hair2, border: "none",
+                    fontSize: 17, fontWeight: 600, cursor: "pointer",
                   }}>−</button>
                   <div style={{ flex: 1, textAlign: "center" }}>
                     <div style={{ fontSize: 24, fontWeight: 700 }}>{size}</div>
-                    <div style={{ fontSize: 10, color: C.ink3 }}>players</div>
+                    <div style={{ fontSize: 11, color: C.ink3 }}>players</div>
                   </div>
                   <button onClick={() => setSize(Math.min(20, size + 2))} style={{
-                    width: 36, height: 36, borderRadius: 10, background: C.hair2, border: "none",
-                    fontSize: 18, fontWeight: 600, cursor: "pointer",
+                    width: 36, height: 36, borderRadius: 12, background: C.hair2, border: "none",
+                    fontSize: 17, fontWeight: 600, cursor: "pointer",
                   }}>+</button>
                 </div>
               </div>
@@ -420,26 +409,26 @@ export default function CreateGamePage() {
         {/* ── STEP 2: Preview ── */}
         {step === 2 && (
           <>
-            <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: -0.6 }}>Looking good</div>
-            <div style={{ fontSize: 14, color: C.ink3, marginTop: 6 }}>
+            <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: -0.6 }}>Looking good</div>
+            <div style={{ fontSize: 15, color: C.ink3, marginTop: 6 }}>
               {mode === "host" ? "Here's what we'll post to the feed." : "Here's your check-in."}
             </div>
 
             {/* Preview card */}
             <div style={{
-              marginTop: 22, background: C.surface, borderRadius: 18,
+              marginTop: 22, background: C.surface, borderRadius: 16,
               border: `1px solid ${C.hair}`, overflow: "hidden",
             }}>
               <div style={{
                 height: 90,
                 background: `linear-gradient(135deg, ${C.greenSoft}, #EDE8D3)`,
-                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 42,
+                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 44,
               }}>🏀</div>
               <div style={{ padding: 16 }}>
                 <div style={{ fontSize: 11, color: C.greenInk, fontWeight: 700, letterSpacing: 0.3 }}>
                   {mode === "host" ? "OPEN GAME" : "CHECKED IN"}
                 </div>
-                <div style={{ fontSize: 18, fontWeight: 700, marginTop: 3 }}>
+                <div style={{ fontSize: 17, fontWeight: 700, marginTop: 3 }}>
                   {selectedCourt?.name || "Unknown court"}
                 </div>
                 <div style={{ display: "flex", gap: 16, marginTop: 10, flexWrap: "wrap" }}>
@@ -459,11 +448,11 @@ export default function CreateGamePage() {
             {/* Notify friends toggle */}
             <div onClick={() => setNotifyFriends((v) => !v)} style={{
               marginTop: 14, background: C.surface, border: `1px solid ${C.hair}`,
-              borderRadius: 14, padding: 14, display: "flex", gap: 12, alignItems: "center",
+              borderRadius: 16, padding: 14, display: "flex", gap: 12, alignItems: "center",
               cursor: "pointer",
             }}>
               <div style={{
-                width: 20, height: 20, borderRadius: 6,
+                width: 20, height: 20, borderRadius: 8,
                 background: notifyFriends ? C.green : C.hair,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 flexShrink: 0, transition: "background 0.15s",
@@ -491,8 +480,8 @@ export default function CreateGamePage() {
           style={{
             width: "100%", height: 54, borderRadius: 16,
             background: canProceed() ? C.green : C.hair,
-            color: canProceed() ? "#fff" : C.ink3,
-            border: "none", fontSize: 16, fontWeight: 600, cursor: canProceed() ? "pointer" : "default",
+            color: canProceed() ? C.onGreen : C.ink3,
+            border: "none", fontSize: 15, fontWeight: 600, cursor: canProceed() ? "pointer" : "default",
             boxShadow: canProceed() ? `0 8px 24px -8px ${C.green}` : "none",
             fontFamily: font, transition: "background 0.2s",
           }}
@@ -515,8 +504,8 @@ function ModeCard({ active, onClick, title, sub, emoji }: {
 }) {
   return (
     <div onClick={onClick} style={{
-      background: active ? C.ink : "#fff",
-      color: active ? "#fff" : C.ink,
+      background: active ? C.ink : C.surface,
+      color: active ? C.onInk : C.ink,
       border: `1px solid ${active ? C.ink : C.hair}`,
       borderRadius: 16, padding: 16, cursor: "pointer",
       display: "flex", gap: 14, alignItems: "center",
@@ -525,7 +514,7 @@ function ModeCard({ active, onClick, title, sub, emoji }: {
       <div style={{
         width: 44, height: 44, borderRadius: 12,
         background: active ? "rgba(255,255,255,0.12)" : C.hair2,
-        display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22,
+        display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20,
         flexShrink: 0,
       }}>{emoji}</div>
       <div style={{ flex: 1 }}>
@@ -534,7 +523,7 @@ function ModeCard({ active, onClick, title, sub, emoji }: {
       </div>
       <div style={{
         width: 20, height: 20, borderRadius: 99, flexShrink: 0,
-        border: `2px solid ${active ? "#fff" : C.hair}`,
+        border: `2px solid ${active ? C.onInk : C.hair}`,
         display: "flex", alignItems: "center", justifyContent: "center",
       }}>
         {active && <div style={{ width: 10, height: 10, borderRadius: 99, background: C.surface }} />}

@@ -2,6 +2,7 @@ import { MapPin, Search, Filter, List, Map as MapIcon, X, Locate } from "lucide-
 import { useState, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { CourtCard } from "@/components/cards/CourtCard";
 import { CourtMap } from "@/components/map/CourtMap";
@@ -120,23 +121,22 @@ export default function CourtsPage() {
   return (
     <div className="flex flex-col bg-background safe-top" style={{ height: "100dvh" }}>
       {/* Header */}
-      <header className="sticky top-0 z-40 glass-nav" style={{ boxShadow: "inset 0 -0.5px 0 0 rgba(0,0,0,0.14)" }}>
-        <div className="px-4 pt-2 pb-3">
-          <div className="flex items-center justify-between mb-2" style={{ minHeight: 44 }}>
-            <h1 className="ios-large-title text-foreground">Find Courts</h1>
-            <div className="flex items-center gap-2">
-              <Button
-                variant={locationEnabled ? "default" : "secondary"}
-                size="sm"
-                onClick={requestLocation}
-                disabled={isLocating}
-                className="gap-1.5 rounded-full h-8 px-3 text-xs ios-tap"
-              >
-                <Locate className={`w-3.5 h-3.5 ${isLocating ? "animate-pulse" : ""}`} />
-                {isLocating ? "…" : locationEnabled ? "On" : "Location"}
-              </Button>
-            </div>
-          </div>
+      <PageHeader
+        title="Find Courts"
+        actions={
+          <Button
+            variant={locationEnabled ? "default" : "secondary"}
+            size="sm"
+            onClick={requestLocation}
+            disabled={isLocating}
+            className="gap-1.5 rounded-full h-8 px-3 text-xs ios-tap"
+          >
+            <Locate className={`w-3.5 h-3.5 ${isLocating ? "animate-pulse" : ""}`} />
+            {isLocating ? "…" : locationEnabled ? "On" : "Location"}
+          </Button>
+        }
+      >
+        <>
 
           {/* Search bar */}
           <div className="flex gap-2 mb-2">
@@ -147,17 +147,17 @@ export default function CourtsPage() {
                 placeholder="Search courts…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-9 pl-9 pr-4 rounded-[10px] bg-muted/70 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring border-0"
+                className="w-full h-9 pl-9 pr-4 rounded-xl bg-muted/70 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring border-0"
                 style={{ fontFamily: "inherit" }}
               />
             </div>
             <button
-              className="w-9 h-9 rounded-[10px] bg-muted/70 flex items-center justify-center relative ios-tap"
+              className="w-9 h-9 rounded-xl bg-muted/70 flex items-center justify-center relative ios-tap"
               onClick={() => setFiltersOpen(true)}
             >
               <Filter className="w-4 h-4 text-foreground" />
               {activeFilterCount > 0 && (
-                <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]">
+                <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-11">
                   {activeFilterCount}
                 </Badge>
               )}
@@ -165,11 +165,11 @@ export default function CourtsPage() {
           </div>
 
           {/* View toggle — iOS segmented control */}
-          <div className="flex gap-1 p-0.5 bg-muted/70 rounded-[9px]">
+          <div className="flex gap-1 p-0.5 bg-muted/70 rounded-xl">
             <button
               onClick={() => setViewMode("list")}
               className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 h-7 rounded-[7px] text-sm font-medium ios-tap",
+                "flex-1 flex items-center justify-center gap-1.5 h-7 rounded-lg text-sm font-medium ios-tap",
                 viewMode === "list"
                   ? "bg-card text-foreground shadow-sm"
                   : "text-muted-foreground"
@@ -182,7 +182,7 @@ export default function CourtsPage() {
             <button
               onClick={() => setViewMode("map")}
               className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 h-7 rounded-[7px] text-sm font-medium ios-tap",
+                "flex-1 flex items-center justify-center gap-1.5 h-7 rounded-lg text-sm font-medium ios-tap",
                 viewMode === "map"
                   ? "bg-card text-foreground shadow-sm"
                   : "text-muted-foreground"
@@ -193,8 +193,8 @@ export default function CourtsPage() {
               Map
             </button>
           </div>
-        </div>
-      </header>
+        </>
+      </PageHeader>
 
       {/* Content */}
       {viewMode === "list" ? (

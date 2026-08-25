@@ -4,19 +4,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { markOnboardingDone } from "@/lib/onboarding";
+import { C } from "@/lib/tokens";
+import { OptionCard } from "@/components/ui/OptionCard";
+import { Chip } from "@/components/ui/Chip";
 
-const C = {
-  bg: "hsl(var(--background))",
-  surface: "hsl(var(--card))",
-  ink: "hsl(var(--foreground))",
-  ink2: "hsl(var(--muted-foreground))",
-  ink3: "hsl(var(--muted-foreground))",
-  hair: "hsl(var(--border))",
-  hair2: "hsl(var(--muted))",
-  green: "oklch(0.68 0.14 150)",
-  greenSoft: "hsl(var(--secondary))",
-  greenInk: "hsl(var(--secondary-foreground))",
-};
 
 const font = `"Inter", -apple-system, system-ui, sans-serif`;
 
@@ -150,10 +141,10 @@ export default function OnboardingPage() {
         {step === 0 && (
           <div style={{ textAlign: "center", paddingTop: 32 }}>
             <div style={{ fontSize: 56, marginBottom: 24 }}>🏀</div>
-            <div style={{ fontSize: 30, fontWeight: 800, letterSpacing: -0.8, marginBottom: 12 }}>
+            <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: -0.8, marginBottom: 12 }}>
               Welcome, {displayName}!
             </div>
-            <div style={{ fontSize: 16, color: C.ink2, lineHeight: 1.6, maxWidth: 300, margin: "0 auto" }}>
+            <div style={{ fontSize: 15, color: C.ink2, lineHeight: 1.6, maxWidth: 300, margin: "0 auto" }}>
               Let's set up your player profile so you can find the right games and courts near you.
             </div>
 
@@ -165,10 +156,10 @@ export default function OnboardingPage() {
               ].map((item) => (
                 <div key={item.label} style={{
                   display: "flex", alignItems: "center", gap: 14,
-                  background: C.surface, borderRadius: 14,
+                  background: C.surface, borderRadius: 16,
                   border: `1px solid ${C.hair}`, padding: "14px 16px",
                 }}>
-                  <span style={{ fontSize: 22 }}>{item.emoji}</span>
+                  <span style={{ fontSize: 20 }}>{item.emoji}</span>
                   <span style={{ fontSize: 15, fontWeight: 500 }}>{item.label}</span>
                 </div>
               ))}
@@ -180,7 +171,7 @@ export default function OnboardingPage() {
         {step === 1 && (
           <>
             <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: -0.6 }}>What's your level?</div>
-            <div style={{ fontSize: 14, color: C.ink2, marginTop: 8, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 15, color: C.ink2, marginTop: 8, lineHeight: 1.5 }}>
               This helps us match you with the right games. You can always change it later.
             </div>
 
@@ -188,38 +179,34 @@ export default function OnboardingPage() {
               {SKILL_LEVELS.map((s, i) => {
                 const isSelected = skillLevel === s.k;
                 return (
-                  <div key={s.k} onClick={() => setSkillLevel(s.k)} style={{
-                    background: isSelected ? C.ink : C.surface,
-                    color: isSelected ? "#fff" : C.ink,
-                    border: `1px solid ${isSelected ? C.ink : C.hair}`,
-                    borderRadius: 16, padding: "14px 16px", cursor: "pointer",
-                    display: "flex", alignItems: "center", gap: 14,
-                    transition: "background 0.15s",
-                  }}>
-                    {/* level bar */}
-                    <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
-                      {Array.from({ length: 5 }).map((_, j) => (
-                        <div key={j} style={{
-                          width: 5, height: 18, borderRadius: 3,
-                          background: j <= i
-                            ? (isSelected ? "#fff" : C.green)
-                            : (isSelected ? "rgba(255,255,255,0.25)" : C.hair),
-                          transition: "background 0.15s",
-                        }} />
-                      ))}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 15, fontWeight: 600 }}>{s.k}</div>
-                      <div style={{ fontSize: 12, opacity: 0.65, marginTop: 1 }}>{s.sub}</div>
-                    </div>
-                    <div style={{
-                      width: 20, height: 20, borderRadius: 99, flexShrink: 0,
-                      border: `2px solid ${isSelected ? "#fff" : C.hair}`,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                      {isSelected && <div style={{ width: 10, height: 10, borderRadius: 99, background: "#fff" }} />}
-                    </div>
-                  </div>
+                  <OptionCard
+                    key={s.k}
+                    label={s.k}
+                    sub={s.sub}
+                    selected={isSelected}
+                    onClick={() => setSkillLevel(s.k)}
+                    layout="row"
+                    radio
+                    leading={
+                      <span className="flex gap-[3px]" aria-hidden>
+                        {Array.from({ length: 5 }).map((_, j) => (
+                          <span
+                            key={j}
+                            className={
+                              j <= i
+                                ? isSelected
+                                  ? "bg-current"
+                                  : "bg-primary"
+                                : isSelected
+                                  ? "bg-current opacity-25"
+                                  : "bg-border"
+                            }
+                            style={{ width: 5, height: 18, borderRadius: 4 }}
+                          />
+                        ))}
+                      </span>
+                    }
+                  />
                 );
               })}
             </div>
@@ -230,7 +217,7 @@ export default function OnboardingPage() {
         {step === 2 && (
           <>
             <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: -0.6 }}>Your game style</div>
-            <div style={{ fontSize: 14, color: C.ink2, marginTop: 8 }}>Tell others what to expect from you.</div>
+            <div style={{ fontSize: 15, color: C.ink2, marginTop: 8 }}>Tell others what to expect from you.</div>
 
             {/* Position */}
             <div style={{ marginTop: 28 }}>
@@ -241,16 +228,12 @@ export default function OnboardingPage() {
                 {POSITIONS.map((p) => {
                   const isSelected = position === p;
                   return (
-                    <div key={p} onClick={() => setPosition(p)} style={{
-                      background: isSelected ? C.ink : C.surface,
-                      color: isSelected ? "#fff" : C.ink,
-                      border: `1px solid ${isSelected ? C.ink : C.hair}`,
-                      borderRadius: 12, padding: "12px 14px", cursor: "pointer",
-                      fontSize: 13, fontWeight: 500,
-                      transition: "background 0.15s",
-                    }}>
-                      {p}
-                    </div>
+                    <OptionCard
+                      key={p}
+                      label={p}
+                      selected={isSelected}
+                      onClick={() => setPosition(p)}
+                    />
                   );
                 })}
               </div>
@@ -259,7 +242,7 @@ export default function OnboardingPage() {
             {/* Vibe */}
             <div style={{ marginTop: 24 }}>
               <div style={{ fontSize: 12, color: C.ink3, fontWeight: 600, letterSpacing: 0.4, textTransform: "uppercase", marginBottom: 10 }}>
-                Preferred game vibe <span style={{ fontSize: 10, fontWeight: 400, textTransform: "none" }}>(pick all that apply)</span>
+                Preferred game vibe <span style={{ fontSize: 11, fontWeight: 400, textTransform: "none" }}>(pick all that apply)</span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {VIBES.map((v) => {
@@ -270,13 +253,13 @@ export default function OnboardingPage() {
                     )} style={{
                       background: isSelected ? C.greenSoft : C.surface,
                       border: `1px solid ${isSelected ? C.green : C.hair}`,
-                      borderRadius: 14, padding: "12px 14px", cursor: "pointer",
+                      borderRadius: 16, padding: "12px 14px", cursor: "pointer",
                       display: "flex", alignItems: "center", gap: 12,
                       transition: "background 0.15s",
                     }}>
                       <span style={{ fontSize: 20 }}>{v.emoji}</span>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: isSelected ? C.greenInk : C.ink }}>{v.k}</div>
+                        <div style={{ fontSize: 15, fontWeight: 600, color: isSelected ? C.greenInk : C.ink }}>{v.k}</div>
                         <div style={{ fontSize: 12, color: C.ink3, marginTop: 1 }}>{v.sub}</div>
                       </div>
                       <div style={{
@@ -303,7 +286,7 @@ export default function OnboardingPage() {
         {step === 3 && (
           <>
             <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: -0.6 }}>When do you play?</div>
-            <div style={{ fontSize: 14, color: C.ink2, marginTop: 8, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 15, color: C.ink2, marginTop: 8, lineHeight: 1.5 }}>
               Help us show you games that fit your schedule.
             </div>
 
@@ -311,18 +294,17 @@ export default function OnboardingPage() {
               {AVAILABILITY_OPTIONS.map((a) => {
                 const isSelected = availability.includes(a);
                 return (
-                  <div key={a} onClick={() => setAvailability((prev) =>
-                    prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]
-                  )} style={{
-                    padding: "12px 18px", borderRadius: 99, cursor: "pointer",
-                    fontSize: 14, fontWeight: 500,
-                    background: isSelected ? C.ink : C.surface,
-                    color: isSelected ? "#fff" : C.ink,
-                    border: `1px solid ${isSelected ? C.ink : C.hair}`,
-                    transition: "background 0.15s",
-                  }}>
+                  <Chip
+                    key={a}
+                    selected={isSelected}
+                    onClick={() =>
+                      setAvailability((prev) =>
+                        prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]
+                      )
+                    }
+                  >
                     {a}
-                  </div>
+                  </Chip>
                 );
               })}
             </div>
@@ -337,7 +319,7 @@ export default function OnboardingPage() {
         {step === 4 && (
           <div style={{ textAlign: "center", paddingTop: 16 }}>
             <div style={{
-              width: 96, height: 96, borderRadius: 28, background: C.greenSoft,
+              width: 96, height: 96, borderRadius: 24, background: C.greenSoft,
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 44, margin: "0 auto 28px",
             }}>📍</div>
@@ -351,8 +333,8 @@ export default function OnboardingPage() {
             {locationGranted === null && (
               <button onClick={requestLocation} disabled={isLocating} style={{
                 width: "100%", maxWidth: 320, height: 54, borderRadius: 16,
-                background: C.green, color: "#fff", border: "none",
-                fontSize: 16, fontWeight: 600, cursor: "pointer",
+                background: C.green, color: C.onGreen, border: "none",
+                fontSize: 15, fontWeight: 600, cursor: "pointer",
                 boxShadow: `0 8px 24px -8px ${C.green}`, fontFamily: font,
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 margin: "0 auto",
@@ -367,7 +349,7 @@ export default function OnboardingPage() {
 
             {locationGranted === true && (
               <div style={{
-                background: C.greenSoft, borderRadius: 14, padding: "16px 20px",
+                background: C.greenSoft, borderRadius: 16, padding: "16px 20px",
                 display: "inline-flex", alignItems: "center", gap: 10,
                 color: C.greenInk, fontWeight: 600, fontSize: 15,
               }}>
@@ -379,7 +361,7 @@ export default function OnboardingPage() {
             )}
 
             {locationGranted === false && (
-              <div style={{ color: C.ink3, fontSize: 14, lineHeight: 1.6 }}>
+              <div style={{ color: C.ink3, fontSize: 15, lineHeight: 1.6 }}>
                 No problem — you can enable this later in your browser settings.
               </div>
             )}
@@ -400,8 +382,8 @@ export default function OnboardingPage() {
           style={{
             height: 54, borderRadius: 16, border: "none",
             background: canContinue() ? C.green : C.hair,
-            color: canContinue() ? "#fff" : C.ink3,
-            fontSize: 16, fontWeight: 600, cursor: canContinue() ? "pointer" : "default",
+            color: canContinue() ? C.onGreen : C.ink3,
+            fontSize: 15, fontWeight: 600, cursor: canContinue() ? "pointer" : "default",
             boxShadow: canContinue() ? `0 8px 24px -8px ${C.green}` : "none",
             fontFamily: font, transition: "background 0.2s",
           }}
@@ -412,7 +394,7 @@ export default function OnboardingPage() {
         {step > 0 && step < TOTAL_STEPS - 1 && (
           <button onClick={handleSkip} style={{
             height: 40, borderRadius: 12, border: "none", background: "transparent",
-            fontSize: 14, color: C.ink3, cursor: "pointer", fontFamily: font,
+            fontSize: 15, color: C.ink3, cursor: "pointer", fontFamily: font,
           }}>
             Skip for now
           </button>

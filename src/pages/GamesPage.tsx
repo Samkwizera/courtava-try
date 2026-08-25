@@ -4,10 +4,16 @@ import { useGames } from "@/hooks/useGames";
 import { useCheckIns } from "@/hooks/useCheckIns";
 import { useCourts } from "@/hooks/useCourts";
 import { useAuth } from "@/hooks/useAuth";
-import { Plus, ChevronLeft } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
+import { C } from "@/lib/tokens";
+import { Chip } from "@/components/ui/Chip";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { IconButton } from "@/components/ui/IconButton";
+
+const ChevIcon = () => <ChevronRight size={14} color={C.ink3} strokeWidth={2} />;
 
 async function shareGame(game: { title: string; court_name: string; date: string; time: string; format: string; max_players: number }) {
   const text = `Join my game: ${game.title} at ${game.court_name} — ${game.date} ${game.time ? formatTime(game.time) : ""} · ${game.format} · ${game.max_players} players`;
@@ -24,27 +30,8 @@ async function shareGame(game: { title: string; court_name: string; date: string
   }
 }
 
-const C = {
-  bg: "hsl(var(--background))",
-  surface: "hsl(var(--card))",
-  ink: "hsl(var(--foreground))",
-  ink2: "hsl(var(--muted-foreground))",
-  ink3: "hsl(var(--muted-foreground))",
-  hair: "hsl(var(--border))",
-  hair2: "hsl(var(--muted))",
-  green: "oklch(0.68 0.14 150)",
-  greenSoft: "hsl(var(--secondary))",
-  greenInk: "hsl(var(--secondary-foreground))",
-  amber: "oklch(0.78 0.12 75)",
-};
 
 const font = `"Inter", -apple-system, system-ui, sans-serif`;
-
-const ChevIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-    <path d="M9 6l6 6-6 6" stroke={C.ink3} strokeWidth="2" strokeLinecap="round"/>
-  </svg>
-);
 
 function formatGameTime(date: string, time: string) {
   const today = new Date().toISOString().split("T")[0];
@@ -115,8 +102,8 @@ export default function GamesPage() {
               <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>No games scheduled yet</div>
               <div style={{ fontSize: 13, color: C.ink3, marginBottom: 20 }}>Be the first to host a game at this court</div>
               <button onClick={() => navigate("/create-game", { state: { courtId: courtFilterId, mode: "host" } })} style={{
-                background: C.ink, color: "#fff", border: "none",
-                padding: "12px 24px", borderRadius: 99, fontSize: 14, fontWeight: 600,
+                background: C.ink, color: C.onInk, border: "none",
+                padding: "12px 24px", borderRadius: 99, fontSize: 15, fontWeight: 600,
                 cursor: "pointer", fontFamily: font,
               }}>Host a game</button>
             </div>
@@ -163,23 +150,16 @@ export default function GamesPage() {
   return (
     <div style={{ width: "100%", minHeight: "100vh", background: C.bg, fontFamily: font, color: C.ink, overflowY: "auto", paddingBottom: 120 }}>
 
-      {/* Header */}
-      <div style={{ padding: "70px 22px 8px" }}>
-        <div style={{ fontSize: 12, color: C.ink3, fontWeight: 500, letterSpacing: 0.2 }}>ACTIVITY</div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
-          <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: -0.6 }}>What's happening</div>
-          <button
-            onClick={() => navigate("/create-game")}
-            style={{
-              width: 36, height: 36, borderRadius: 99,
-              background: C.ink, border: "none", cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}
-          >
-            <Plus size={16} color="#fff" strokeWidth={2.5} />
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        sticky={false}
+        eyebrow="Activity"
+        title="What's happening"
+        actions={
+          <IconButton label="Create game" variant="solid" size={36} onClick={() => navigate("/create-game")}>
+            <Plus size={16} strokeWidth={2.5} />
+          </IconButton>
+        }
+      />
 
       {/* Segment tabs */}
       <div style={{ padding: "10px 22px 4px", display: "flex", gap: 6 }}>
@@ -188,29 +168,22 @@ export default function GamesPage() {
           { k: "invites", label: "Games", badge: todayGames.length > 0 ? todayGames.length : undefined },
           { k: "friends", label: "Activity" },
         ].map((s) => (
-          <button key={s.k} onClick={() => setTab(s.k)} style={{
-            padding: "8px 14px", borderRadius: 99, border: "none", cursor: "pointer",
-            background: tab === s.k ? C.ink : "#fff",
-            color: tab === s.k ? "#fff" : C.ink2,
-            fontSize: 13, fontWeight: 600,
-            display: "flex", gap: 6, alignItems: "center",
-            boxShadow: tab === s.k ? "none" : `inset 0 0 0 1px ${C.hair}`,
-            fontFamily: font,
-            transition: "background 0.2s, color 0.2s",
-          }}>
-            {s.dot && tab === s.k && (
-              <div className="pulse-dot" style={{ width: 6, height: 6, borderRadius: 99, background: C.green }} />
-            )}
+          <Chip
+            key={s.k}
+            selected={tab === s.k}
+            onClick={() => setTab(s.k)}
+            count={s.badge}
+            icon={
+              s.dot && tab === s.k ? (
+                <div
+                  className="pulse-dot"
+                  style={{ width: 6, height: 6, borderRadius: 99, background: C.green }}
+                />
+              ) : undefined
+            }
+          >
             {s.label}
-            {s.badge !== undefined && s.badge > 0 && (
-              <span style={{
-                fontSize: 10, padding: "1px 6px", borderRadius: 99,
-                background: tab === s.k ? "#fff" : C.ink,
-                color: tab === s.k ? C.ink : "#fff",
-                fontWeight: 700,
-              }}>{s.badge}</span>
-            )}
-          </button>
+          </Chip>
         ))}
       </div>
 
@@ -226,12 +199,12 @@ export default function GamesPage() {
               display: "flex", gap: 14, alignItems: "center",
             }}>
               <div style={{
-                width: 52, height: 52, borderRadius: 14, background: C.greenSoft,
+                width: 52, height: 52, borderRadius: 16, background: C.greenSoft,
                 display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24,
                 flexShrink: 0,
               }}>🏀</div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 600 }}>
+                <div style={{ fontSize: 15, fontWeight: 600 }}>
                   {liveCourts.length > 0
                     ? `${liveCourts.length} court${liveCourts.length > 1 ? "s" : ""} active near you`
                     : "No active courts right now"}
@@ -243,7 +216,7 @@ export default function GamesPage() {
                 </div>
               </div>
               <button onClick={() => navigate("/courts")} style={{
-                fontSize: 12, fontWeight: 600, color: "#fff", background: C.ink,
+                fontSize: 12, fontWeight: 600, color: C.onInk, background: C.ink,
                 border: "none", padding: "8px 14px", borderRadius: 99, cursor: "pointer",
                 flexShrink: 0, fontFamily: font,
               }}>Open map</button>
@@ -280,7 +253,7 @@ export default function GamesPage() {
                       <StaggerItem key={`game-${game.id}`}>
                         <FeedRow
                           icon="📣"
-                          tint="#F5EFE4"
+                          tint={C.amberTint}
                           title={game.title}
                           sub={`${game.court_name} · ${formatTime(game.time)} · ${game.current_players}/${game.max_players} players`}
                           action={spots > 0 ? "Join" : "Full"}
@@ -395,8 +368,8 @@ export default function GamesPage() {
               <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>No games yet</div>
               <div style={{ fontSize: 13, color: C.ink3, marginBottom: 20 }}>Be the first to host a game in your area</div>
               <button onClick={() => navigate("/create-game")} style={{
-                background: C.ink, color: "#fff", border: "none",
-                padding: "12px 24px", borderRadius: 99, fontSize: 14, fontWeight: 600,
+                background: C.ink, color: C.onInk, border: "none",
+                padding: "12px 24px", borderRadius: 99, fontSize: 15, fontWeight: 600,
                 cursor: "pointer", fontFamily: font,
               }}>Host a game</button>
             </div>
@@ -502,13 +475,13 @@ function FeedRow({
 }) {
   return (
     <div onClick={onClick} style={{
-      background: C.surface, borderRadius: 14, padding: 14,
+      background: C.surface, borderRadius: 16, padding: 14,
       border: `1px solid ${C.hair}`, display: "flex", gap: 12, alignItems: "flex-start",
       cursor: onClick ? "pointer" : "default",
     }}>
       <div style={{
         width: 40, height: 40, borderRadius: 12, background: tint,
-        display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18,
+        display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17,
         flexShrink: 0,
       }}>
         {icon ? (
@@ -518,7 +491,7 @@ function FeedRow({
         )}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.3 }}>{title}</div>
+        <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.3 }}>{title}</div>
         <div style={{ fontSize: 12, color: C.ink3, marginTop: 3 }}>{sub}</div>
       </div>
       <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
@@ -573,7 +546,7 @@ function GameListRow({
           <div style={{ fontSize: 12, color: C.ink3, marginTop: 2 }}>{game.court_name}</div>
         </div>
         <span style={{
-          fontSize: 10, padding: "3px 8px", borderRadius: 99,
+          fontSize: 11, padding: "3px 8px", borderRadius: 99,
           background: isFull ? C.hair2 : C.greenSoft,
           color: isFull ? C.ink3 : C.greenInk,
           fontWeight: 600, flexShrink: 0,
@@ -614,7 +587,7 @@ function GameListRow({
             disabled={isHost || (!isJoined && isFull)}
             style={{
               fontSize: 12, fontWeight: 600,
-              color: isJoined ? C.ink : "#fff",
+              color: isJoined ? C.ink : C.onInk,
               background: isHost ? C.hair2 : isJoined ? C.greenSoft : isFull ? C.ink3 : C.ink,
               border: "none", padding: "7px 16px", borderRadius: 99,
               cursor: isHost || (!isJoined && isFull) ? "default" : "pointer", fontFamily: font,

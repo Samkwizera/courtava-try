@@ -1,6 +1,7 @@
-import { ChevronLeft, Camera, User, MapPin, Ruler, Save } from "lucide-react";
+import { Camera, User, MapPin, Ruler, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -169,32 +170,17 @@ export default function EditProfilePage() {
     }
 
     return (
-        <div className="min-h-screen bg-background safe-top pb-24">
-            {/* Header */}
-            <header className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
-                <div className="px-4 py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => navigate(-1)}
-                            className="shrink-0"
-                        >
-                            <ChevronLeft className="w-5 h-5" />
-                        </Button>
-                        <h1 className="text-xl font-bold text-foreground">Edit Profile</h1>
-                    </div>
-                    <Button
-                        onClick={handleSave}
-                        disabled={loading}
-                        size="sm"
-                        className="gap-2"
-                    >
+        <div className="min-h-screen bg-background pb-24">
+            <PageHeader
+                title="Edit Profile"
+                back
+                actions={
+                    <Button onClick={handleSave} disabled={loading} size="sm" className="gap-2">
                         <Save className="w-4 h-4" />
                         Save
                     </Button>
-                </div>
-            </header>
+                }
+            />
 
             <div className="p-4 space-y-6">
                 {/* Profile Photo Section */}

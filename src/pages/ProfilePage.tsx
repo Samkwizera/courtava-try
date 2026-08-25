@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings, LogOut, Edit2 } from "lucide-react";
+import { Settings, LogOut, Edit2, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
@@ -8,28 +8,14 @@ import { useCheckIns } from "@/hooks/useCheckIns";
 import { EditProfileSheet } from "@/components/profile/EditProfileSheet";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
+import { C, SHADOW } from "@/lib/tokens";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { IconButton } from "@/components/ui/IconButton";
 
-const C = {
-  bg: "hsl(var(--background))",
-  surface: "hsl(var(--card))",
-  ink: "hsl(var(--foreground))",
-  ink2: "hsl(var(--muted-foreground))",
-  ink3: "hsl(var(--muted-foreground))",
-  hair: "hsl(var(--border))",
-  hair2: "hsl(var(--muted))",
-  green: "oklch(0.68 0.14 150)",
-  greenSoft: "hsl(var(--secondary))",
-  greenInk: "hsl(var(--secondary-foreground))",
-  red: "oklch(0.66 0.15 25)",
-};
+const ChevIcon = () => <ChevronRight size={14} color={C.ink3} strokeWidth={2} />;
+
 
 const font = `"Inter", -apple-system, system-ui, sans-serif`;
-
-const ChevIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-    <path d="M9 6l6 6-6 6" stroke={C.ink3} strokeWidth="2" strokeLinecap="round"/>
-  </svg>
-);
 
 const SKILL_LEVELS = ["Beginner", "Casual", "Intermediate", "Advanced", "Pro"];
 
@@ -80,29 +66,19 @@ export default function ProfilePage() {
   return (
     <div style={{ width: "100%", minHeight: "100vh", background: C.bg, fontFamily: font, color: C.ink, overflowY: "auto", paddingBottom: 120 }}>
 
-      {/* Top right buttons */}
-      <div style={{ padding: "60px 18px 0", display: "flex", justifyContent: "flex-end", gap: 8 }}>
-        <button
-          onClick={() => setEditOpen(true)}
-          style={{
-            width: 38, height: 38, borderRadius: 99, border: `1px solid ${C.hair}`,
-            background: C.surface, cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}
-        >
-          <Edit2 size={15} color={C.ink2} />
-        </button>
-        <button
-          onClick={() => setSettingsOpen((v) => !v)}
-          style={{
-            width: 38, height: 38, borderRadius: 99, border: `1px solid ${C.hair}`,
-            background: C.surface, cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}
-        >
-          <Settings size={15} color={C.ink2} />
-        </button>
-      </div>
+      <PageHeader
+        sticky={false}
+        actions={
+          <>
+            <IconButton label="Edit profile" onClick={() => setEditOpen(true)}>
+              <Edit2 size={15} />
+            </IconButton>
+            <IconButton label="Settings" onClick={() => setSettingsOpen((v) => !v)}>
+              <Settings size={15} />
+            </IconButton>
+          </>
+        }
+      />
 
       {/* Settings panel */}
       {settingsOpen && (
@@ -112,7 +88,7 @@ export default function ProfilePage() {
             width: "100%", display: "flex", alignItems: "center", padding: "14px 16px", gap: 12,
             border: "none", background: "transparent", cursor: "pointer", fontFamily: font,
           }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(220,60,60,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: C.redTint, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <LogOut size={14} color={C.red} />
             </div>
             <span style={{ flex: 1, fontSize: 15, fontWeight: 500, color: C.red, textAlign: "left" }}>Sign Out</span>
@@ -127,8 +103,8 @@ export default function ProfilePage() {
           width: 88, height: 88, borderRadius: 99, margin: "0 auto",
           background: "linear-gradient(135deg, #D9C9A8, #B5956B)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 28, fontWeight: 700, color: "#fff",
-          border: "3px solid #fff", boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
+          fontSize: 28, fontWeight: 700, color: C.onOverlay,
+          border: `3px solid ${C.surface}`, boxShadow: SHADOW.float,
           overflow: "hidden",
         }}>
           {avatarUrl ? (
@@ -138,7 +114,7 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <div style={{ fontSize: 22, fontWeight: 700, marginTop: 14, letterSpacing: -0.4 }}>
+        <div style={{ fontSize: 20, fontWeight: 700, marginTop: 14, letterSpacing: -0.4 }}>
           {displayName}
         </div>
         <div style={{ fontSize: 13, color: C.ink3, marginTop: 2 }}>@{username}</div>
@@ -174,7 +150,7 @@ export default function ProfilePage() {
             background: C.surface, border: `1px solid ${C.hair}`,
             borderRadius: 16, padding: "14px 10px", textAlign: "center",
           }}>
-            <div style={{ fontSize: 22, fontWeight: 700 }}>{s.v}</div>
+            <div style={{ fontSize: 20, fontWeight: 700 }}>{s.v}</div>
             <div style={{ fontSize: 11, color: C.ink3, marginTop: 2 }}>{s.l}</div>
           </div>
           </StaggerItem>
@@ -189,7 +165,7 @@ export default function ProfilePage() {
           background: C.surface, border: `1px solid ${C.hair}`, borderRadius: 16, padding: 16,
         }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>Skill level</div>
+            <div style={{ fontSize: 15, fontWeight: 600 }}>Skill level</div>
             <div style={{ fontSize: 12, color: C.ink3 }}>{skillLabel}</div>
           </div>
           <div style={{ display: "flex", gap: 5, marginTop: 12 }}>
@@ -201,8 +177,8 @@ export default function ProfilePage() {
             ))}
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
-            <div style={{ fontSize: 10, color: C.ink3 }}>Beginner</div>
-            <div style={{ fontSize: 10, color: C.ink3 }}>Pro</div>
+            <div style={{ fontSize: 11, color: C.ink3 }}>Beginner</div>
+            <div style={{ fontSize: 11, color: C.ink3 }}>Pro</div>
           </div>
         </div>
       </div>
@@ -235,7 +211,7 @@ export default function ProfilePage() {
       {/* Recent games */}
       {recentGames.length > 0 && (
         <ScrollReveal>
-          <div style={{ padding: "20px 22px 4px", fontSize: 14, fontWeight: 600 }}>Recent games</div>
+          <div style={{ padding: "20px 22px 4px", fontSize: 15, fontWeight: 600 }}>Recent games</div>
           <StaggerGroup style={{ padding: "0 14px 0", display: "flex", flexDirection: "column", gap: 6 }}>
             {recentGames.map((game) => (
               <StaggerItem key={game.id}>

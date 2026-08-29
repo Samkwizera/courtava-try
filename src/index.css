@@ -361,6 +361,19 @@
     box-shadow: none;
   }
 
+  .ios-tap:focus-visible,
+  .ios-card-tap:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+
+  @media (hover: hover) {
+    .ios-card-tap:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-float);
+    }
+  }
+
   /* ─── iOS inset grouped list style ─── */
   .ios-group {
     @apply bg-card rounded-2xl overflow-hidden;
@@ -464,6 +477,18 @@
 
   .animate-pulse-soft {
     animation: pulse-soft 2s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pulse, .pulse-dot, .animate-fade-in, .animate-slide-up,
+    .animate-ios-fade-in, .animate-ios-slide-up, .animate-ios-pop-in,
+    .animate-pulse-soft, .animate-loading-bar, .animate-letter-in {
+      animation: none !important;
+    }
+
+    .ios-tap, .ios-card-tap {
+      transition-duration: 0.01ms !important;
+    }
   }
 
   /* ─── Staggered children ─── */

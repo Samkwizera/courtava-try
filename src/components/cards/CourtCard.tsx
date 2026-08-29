@@ -47,8 +47,15 @@ export function CourtCard({
         style={{ border: "0.5px solid hsl(var(--border))" }}
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <MapPin className="w-5 h-5" strokeWidth={2.25} />
+          <div className="relative w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 overflow-hidden">
+            {imageUrl ? (
+              <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <MapPin className="w-5 h-5" strokeWidth={2.25} />
+            )}
+            {playersNow && playersNow > 0 ? (
+              <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-card" />
+            ) : null}
           </div>
 
           <div className="min-w-0 flex-1">
@@ -68,7 +75,7 @@ export function CourtCard({
 
             <div className="mt-2 flex items-center gap-2.5 text-11 text-muted-foreground">
               {playersNow && playersNow > 0 ? (
-                <span className="flex items-center gap-1 text-orange-600 font-medium">
+                <span className="flex items-center gap-1 text-primary font-semibold">
                   <Users className="w-3.5 h-3.5" />
                   {playersNow} playing
                 </span>

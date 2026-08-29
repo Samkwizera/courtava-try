@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useCheckIns, CheckIn } from "@/hooks/useCheckIns";
 import { useNavigate } from "react-router-dom";
+import { haptic } from "@/lib/haptics";
 
 interface CheckInSheetProps {
   open: boolean;
@@ -41,11 +42,13 @@ export function CheckInSheet({
     }
 
     await checkIn(courtId);
+    haptic("success");
     onOpenChange(false);
   };
 
   const handleCheckOut = async () => {
     await checkOut();
+    haptic("selection");
     onOpenChange(false);
   };
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useGames, GameInsert } from "@/hooks/useGames";
@@ -7,6 +7,21 @@ import { useCheckIns } from "@/hooks/useCheckIns";
 import { IosDateTimePicker } from "@/components/ui/IosDrumPicker";
 import { C, RING } from "@/lib/tokens";
 import { OptionCard } from "@/components/ui/OptionCard";
+import {
+  Bell,
+  Check,
+  ChevronLeft,
+  Clock3,
+  Flame,
+  MapPin,
+  Megaphone,
+  Minus,
+  Radio,
+  Search,
+  Trophy,
+  Users,
+  X,
+} from "lucide-react";
 
 
 const font = `"Inter", -apple-system, system-ui, sans-serif`;
@@ -21,49 +36,6 @@ function getHeat(count: number): "high" | "medium" | "low" {
   if (count >= 6) return "high";
   if (count >= 2) return "medium";
   return "low";
-}
-
-function BackIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path d="M15 18L9 12L15 6" stroke={C.ink} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-      <path d="M5 12l4 4 10-10" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-}
-
-function ClockIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="9" stroke={C.ink2} strokeWidth="1.7"/>
-      <path d="M12 7v5l3 2" stroke={C.ink2} strokeWidth="1.7" strokeLinecap="round"/>
-    </svg>
-  );
-}
-
-function UsersIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-      <circle cx="9" cy="9" r="3.5" stroke={C.ink2} strokeWidth="1.6"/>
-      <path d="M2 20c1-3.5 3.5-5 7-5s6 1.5 7 5" stroke={C.ink2} strokeWidth="1.6" strokeLinecap="round"/>
-      <path d="M15 7a3 3 0 1 1 0 6 M17 15c2 .5 4 1.5 5 4" stroke={C.ink2} strokeWidth="1.6" strokeLinecap="round"/>
-    </svg>
-  );
-}
-
-function FlameIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill={C.green}>
-      <path d="M12 2s1 3 3 5 3 3 3 6a6 6 0 1 1-12 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3 0-6 2-10z"/>
-    </svg>
-  );
 }
 
 function formatTime(t: string) {
@@ -103,6 +75,7 @@ export default function CreateGamePage() {
   // Step 1
   const [mode, setMode] = useState<"checkin" | "host">(navState?.mode ?? "checkin");
   const [courtId, setCourtId] = useState(navState?.courtId ?? "");
+  const [courtSearch, setCourtSearch] = useState("");
 
   // Step 2
   const [vibe, setVibe] = useState<"casual" | "pickup" | "compete">("casual");
@@ -114,16 +87,33 @@ export default function CreateGamePage() {
 
   // Step 3
   const [notifyFriends, setNotifyFriends] = useState(true);
+  const [isCheckingIn, setIsCheckingIn] = useState(false);
 
   const selectedCourt = dbCourts.find((c) => c.id === courtId);
-  const courtCheckInCount = checkIns.filter((ci) => ci.court_id === courtId).length;
-  const courtHeat = courtId ? getHeat(courtCheckInCount) : "low";
 
-  const courtsForDisplay = dbCourts.slice(0, 5).map((c) => ({
-    ...c,
-    liveCount: checkIns.filter((ci) => ci.court_id === c.id).length,
-    heat: getHeat(checkIns.filter((ci) => ci.court_id === c.id).length),
-  }));
+  const courtsWithActivity = useMemo(
+    () =>
+      dbCourts.map((court) => {
+        const liveCount = checkIns.filter((ci) => ci.court_id === court.id).length;
+        return { ...court, liveCount, heat: getHeat(liveCount) };
+      }),
+    [dbCourts, checkIns]
+  );
+
+  const courtsForDisplay = useMemo(() => {
+    const query = courtSearch.trim().toLowerCase();
+    return courtsWithActivity
+      .filter((court) => {
+        if (!query) return true;
+        return (
+          court.name.toLowerCase().includes(query) ||
+          court.address.toLowerCase().includes(query) ||
+          court.surface.toLowerCase().includes(query)
+        );
+      })
+      .sort((a, b) => b.liveCount - a.liveCount || a.name.localeCompare(b.name))
+      .slice(0, 8);
+  }, [courtsWithActivity, courtSearch]);
 
   const canProceed = () => {
     if (step === 0) return !!courtId;
@@ -144,8 +134,13 @@ export default function CreateGamePage() {
     setSuccessMode(mode);
 
     if (mode === "checkin") {
-      const result = await doCheckIn(courtId);
-      if (result) setShowSuccess(true);
+      try {
+        setIsCheckingIn(true);
+        const result = await doCheckIn(courtId);
+        if (result) setShowSuccess(true);
+      } finally {
+        setIsCheckingIn(false);
+      }
     } else {
       const { date, time } = getEffectiveDateTime();
       const vibeMap = { casual: "Casual", pickup: "Pickup", compete: "Competitive" };
@@ -178,7 +173,19 @@ export default function CreateGamePage() {
     return (
       <div style={{ minHeight: "100vh", background: C.bg, fontFamily: font, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div style={{ textAlign: "center", maxWidth: 320 }}>
-          <div style={{ fontSize: 56, marginBottom: 16 }}>{successMode === "checkin" ? "✅" : "🎉"}</div>
+          <div style={{
+            width: 72,
+            height: 72,
+            borderRadius: 24,
+            margin: "0 auto 18px",
+            background: C.greenSoft,
+            color: C.greenInk,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}>
+            {successMode === "checkin" ? <Radio size={30} strokeWidth={1.9} /> : <Megaphone size={30} strokeWidth={1.9} />}
+          </div>
           <div style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>
             {successMode === "checkin" ? "Checked in!" : "Game posted!"}
           </div>
@@ -218,7 +225,7 @@ export default function CreateGamePage() {
               alignItems: "center", justifyContent: "center", flexShrink: 0,
             }}
           >
-            <BackIcon />
+            <ChevronLeft size={18} color={C.ink} strokeWidth={2} />
           </button>
           <div style={{ flex: 1, height: 4, background: C.hair, borderRadius: 99, overflow: "hidden" }}>
             <div style={{
@@ -234,7 +241,7 @@ export default function CreateGamePage() {
       {/* Step content */}
       <div style={{ flex: 1, padding: "24px 22px 0", overflowY: "auto", paddingBottom: 220 }}>
 
-        {/* ── STEP 0: Mode + Court ── */}
+        {/* STEP 0: Mode + Court */}
         {step === 0 && (
           <>
             <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: -0.6 }}>What are you up to?</div>
@@ -247,19 +254,67 @@ export default function CreateGamePage() {
                 onClick={() => setMode("checkin")}
                 title="Check in"
                 sub="I'm at a court, shooting around"
-                emoji="🏀"
+                icon={<Radio size={21} strokeWidth={1.9} />}
               />
               <ModeCard
                 active={mode === "host"}
                 onClick={() => setMode("host")}
                 title="Host a game"
                 sub="Open a spot, invite players"
-                emoji="📣"
+                icon={<Megaphone size={21} strokeWidth={1.9} />}
               />
             </div>
 
             {/* Court picker */}
-            <div style={{ marginTop: 24, fontSize: 13, fontWeight: 600, color: C.ink2 }}>Which court?</div>
+            <div style={{ marginTop: 24, display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: C.ink2 }}>Which court?</div>
+              <div style={{ fontSize: 12, color: C.ink3 }}>{dbCourts.length} available</div>
+            </div>
+            <div style={{ position: "relative", marginTop: 10 }}>
+              <Search size={15} color={C.ink3} strokeWidth={1.9} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
+              <input
+                value={courtSearch}
+                onChange={(event) => setCourtSearch(event.target.value)}
+                placeholder="Search by court, area, or surface"
+                style={{
+                  width: "100%",
+                  height: 42,
+                  borderRadius: 14,
+                  border: `1px solid ${C.hair}`,
+                  background: C.surface,
+                  color: C.ink,
+                  outline: "none",
+                  padding: "0 38px",
+                  fontSize: 14,
+                  fontFamily: font,
+                }}
+              />
+              {courtSearch && (
+                <button
+                  type="button"
+                  aria-label="Clear court search"
+                  onClick={() => setCourtSearch("")}
+                  style={{
+                    position: "absolute",
+                    right: 10,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    width: 22,
+                    height: 22,
+                    borderRadius: 99,
+                    border: "none",
+                    background: C.hair2,
+                    color: C.ink3,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                  }}
+                >
+                  <X size={13} />
+                </button>
+              )}
+            </div>
             <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
               {courtsForDisplay.map((c) => {
                 const meta = HEAT_META[c.heat];
@@ -279,11 +334,29 @@ export default function CreateGamePage() {
                         <div style={{ width: 10, height: 10, borderRadius: 99, background: C.ink }} />
                       )}
                     </div>
+                    <div style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 14,
+                      background: C.hair2,
+                      overflow: "hidden",
+                      flexShrink: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: C.green,
+                    }}>
+                      {c.photo_url ? (
+                        <img src={c.photo_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ) : (
+                        <MapPin size={18} strokeWidth={1.9} />
+                      )}
+                    </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 15, fontWeight: 500 }}>{c.name}</div>
                       <div style={{ fontSize: 12, color: C.ink3 }}>
                         {c.address}
-                        {c.liveCount > 0 && ` · ${c.liveCount} here`}
+                        {c.liveCount > 0 && ` / ${c.liveCount} here`}
                       </div>
                     </div>
                     <div style={{ width: 8, height: 8, borderRadius: 99, background: meta.color, flexShrink: 0 }} />
@@ -291,14 +364,18 @@ export default function CreateGamePage() {
                 );
               })}
 
-              {dbCourts.length > 5 && (
-                <button onClick={() => navigate("/courts")} style={{
-                  padding: "10px 14px", borderRadius: 16, border: `1px solid ${C.hair}`,
-                  background: C.surface, fontSize: 13, fontWeight: 500, color: C.ink3,
-                  cursor: "pointer", fontFamily: font, textAlign: "left",
+              {courtsForDisplay.length === 0 && dbCourts.length > 0 && (
+                <div style={{
+                  textAlign: "center",
+                  padding: "24px 16px",
+                  color: C.ink3,
+                  fontSize: 13,
+                  background: C.surface,
+                  border: `1px solid ${C.hair}`,
+                  borderRadius: 16,
                 }}>
-                  See all courts →
-                </button>
+                  No courts match that search.
+                </div>
               )}
 
               {dbCourts.length === 0 && (
@@ -314,7 +391,7 @@ export default function CreateGamePage() {
           </>
         )}
 
-        {/* ── STEP 1: Vibe + When + Players ── */}
+        {/* STEP 1: Vibe + When + Players */}
         {step === 1 && (
           <>
             <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: -0.6 }}>Set the vibe</div>
@@ -325,14 +402,15 @@ export default function CreateGamePage() {
               <div style={{ fontSize: 12, color: C.ink3, fontWeight: 600, letterSpacing: 0.3, textTransform: "uppercase" }}>Vibe</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginTop: 10 }}>
                 {([
-                  { k: "casual", label: "Casual", sub: "Just shooting" },
-                  { k: "pickup", label: "Pickup", sub: "5v5 for fun" },
-                  { k: "compete", label: "Compete", sub: "Bring it" },
+                  { k: "casual", label: "Casual", sub: "Shooting", leading: <Users size={17} strokeWidth={1.9} /> },
+                  { k: "pickup", label: "Pickup", sub: "5v5", leading: <Flame size={17} strokeWidth={1.9} /> },
+                  { k: "compete", label: "Compete", sub: "Serious", leading: <Trophy size={17} strokeWidth={1.9} /> },
                 ] as const).map((v) => (
                   <OptionCard
                     key={v.k}
                     label={v.label}
                     sub={v.sub}
+                    leading={v.leading}
                     selected={vibe === v.k}
                     onClick={() => setVibe(v.k)}
                   />
@@ -353,6 +431,7 @@ export default function CreateGamePage() {
                     <OptionCard
                       label={w.label}
                       tone="green"
+                      leading={<Clock3 size={17} strokeWidth={1.9} />}
                       sub={
                         w.k === "later" && pickedDate && pickedTime
                           ? `${pickedDate} ${formatTime(pickedTime)}`
@@ -373,7 +452,7 @@ export default function CreateGamePage() {
             {mode === "host" && (
               <div style={{ marginTop: 22 }}>
                 <div style={{ fontSize: 12, color: C.ink3, fontWeight: 600, letterSpacing: 0.3, textTransform: "uppercase" }}>
-                  Players · {size} max
+                  Players / {size} max
                 </div>
                 <div style={{
                   marginTop: 12, background: C.surface, border: `1px solid ${C.hair}`,
@@ -381,8 +460,11 @@ export default function CreateGamePage() {
                 }}>
                   <button onClick={() => setSize(Math.max(2, size - 2))} style={{
                     width: 36, height: 36, borderRadius: 12, background: C.hair2, border: "none",
-                    fontSize: 17, fontWeight: 600, cursor: "pointer",
-                  }}>−</button>
+                    cursor: "pointer", color: C.ink,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }} aria-label="Reduce max players">
+                    <Minus size={16} strokeWidth={2.2} />
+                  </button>
                   <div style={{ flex: 1, textAlign: "center" }}>
                     <div style={{ fontSize: 24, fontWeight: 700 }}>{size}</div>
                     <div style={{ fontSize: 11, color: C.ink3 }}>players</div>
@@ -390,7 +472,7 @@ export default function CreateGamePage() {
                   <button onClick={() => setSize(Math.min(20, size + 2))} style={{
                     width: 36, height: 36, borderRadius: 12, background: C.hair2, border: "none",
                     fontSize: 17, fontWeight: 600, cursor: "pointer",
-                  }}>+</button>
+                  }} aria-label="Increase max players">+</button>
                 </div>
               </div>
             )}
@@ -406,7 +488,7 @@ export default function CreateGamePage() {
           </>
         )}
 
-        {/* ── STEP 2: Preview ── */}
+        {/* STEP 2: Preview */}
         {step === 2 && (
           <>
             <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: -0.6 }}>Looking good</div>
@@ -421,9 +503,18 @@ export default function CreateGamePage() {
             }}>
               <div style={{
                 height: 90,
-                background: `linear-gradient(135deg, ${C.greenSoft}, #EDE8D3)`,
-                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 44,
-              }}>🏀</div>
+                background: C.hair2,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                position: "relative",
+                overflow: "hidden",
+              }}>
+                {selectedCourt?.photo_url ? (
+                  <img src={selectedCourt.photo_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  <MapPin size={30} color={C.green} strokeWidth={1.9} />
+                )}
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.02), rgba(0,0,0,0.22))" }} />
+              </div>
               <div style={{ padding: 16 }}>
                 <div style={{ fontSize: 11, color: C.greenInk, fontWeight: 700, letterSpacing: 0.3 }}>
                   {mode === "host" ? "OPEN GAME" : "CHECKED IN"}
@@ -432,13 +523,13 @@ export default function CreateGamePage() {
                   {selectedCourt?.name || "Unknown court"}
                 </div>
                 <div style={{ display: "flex", gap: 16, marginTop: 10, flexWrap: "wrap" }}>
-                  <MetaItem icon={<ClockIcon />} label={
+                  <MetaItem icon={<Clock3 size={14} color={C.ink2} strokeWidth={1.8} />} label={
                     when === "now" ? "Now" : when === "30" ? "In 30 min" : `${pickedDate} ${pickedTime ? formatTime(pickedTime) : ""}`
                   } />
                   {mode === "host" && (
-                    <MetaItem icon={<UsersIcon />} label={`1 of ${size}`} />
+                    <MetaItem icon={<Users size={14} color={C.ink2} strokeWidth={1.8} />} label={`1 of ${size}`} />
                   )}
-                  <MetaItem icon={<FlameIcon />} label={
+                  <MetaItem icon={<Flame size={13} color={C.green} fill={C.green} strokeWidth={0} />} label={
                     vibe === "casual" ? "Casual" : vibe === "pickup" ? "Pickup" : "Competitive"
                   } />
                 </div>
@@ -446,10 +537,12 @@ export default function CreateGamePage() {
             </div>
 
             {/* Notify friends toggle */}
-            <div onClick={() => setNotifyFriends((v) => !v)} style={{
+            <button type="button" onClick={() => setNotifyFriends((v) => !v)} style={{
+              width: "100%",
+              textAlign: "left",
               marginTop: 14, background: C.surface, border: `1px solid ${C.hair}`,
               borderRadius: 16, padding: 14, display: "flex", gap: 12, alignItems: "center",
-              cursor: "pointer",
+              cursor: "pointer", fontFamily: font, color: C.ink,
             }}>
               <div style={{
                 width: 20, height: 20, borderRadius: 8,
@@ -457,10 +550,18 @@ export default function CreateGamePage() {
                 display: "flex", alignItems: "center", justifyContent: "center",
                 flexShrink: 0, transition: "background 0.15s",
               }}>
-                {notifyFriends && <CheckIcon />}
+                {notifyFriends && <Check size={14} color={C.onGreen} strokeWidth={2.4} />}
               </div>
-              <div style={{ flex: 1, fontSize: 13 }}>Notify others nearby</div>
-            </div>
+              <div style={{ flex: 1, fontSize: 13 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 600 }}>
+                  <Bell size={14} strokeWidth={1.9} />
+                  Notify others nearby
+                </div>
+                <div style={{ color: C.ink3, fontSize: 12, marginTop: 2 }}>
+                  Show this in the activity feed for players around the court.
+                </div>
+              </div>
+            </button>
           </>
         )}
       </div>
@@ -472,7 +573,7 @@ export default function CreateGamePage() {
         background: `linear-gradient(to top, ${C.bg} 55%, transparent)`,
       }}>
         <button
-          disabled={!canProceed() || isAdding}
+          disabled={!canProceed() || isAdding || isCheckingIn}
           onClick={() => {
             if (step < 2) setStep(step + 1);
             else handleConfirm();
@@ -488,8 +589,8 @@ export default function CreateGamePage() {
         >
           {step < 2
             ? "Continue"
-            : isAdding
-            ? "Posting..."
+            : isAdding || isCheckingIn
+            ? mode === "host" ? "Posting..." : "Checking in..."
             : mode === "host"
             ? "Post game"
             : "Check in"}
@@ -499,24 +600,28 @@ export default function CreateGamePage() {
   );
 }
 
-function ModeCard({ active, onClick, title, sub, emoji }: {
-  active: boolean; onClick: () => void; title: string; sub: string; emoji: string;
+function ModeCard({ active, onClick, title, sub, icon }: {
+  active: boolean; onClick: () => void; title: string; sub: string; icon: ReactNode;
 }) {
   return (
-    <div onClick={onClick} style={{
+    <button type="button" onClick={onClick} style={{
+      width: "100%",
+      textAlign: "left",
       background: active ? C.ink : C.surface,
       color: active ? C.onInk : C.ink,
       border: `1px solid ${active ? C.ink : C.hair}`,
       borderRadius: 16, padding: 16, cursor: "pointer",
       display: "flex", gap: 14, alignItems: "center",
       transition: "background 0.15s, color 0.15s",
+      fontFamily: font,
     }}>
       <div style={{
         width: 44, height: 44, borderRadius: 12,
         background: active ? "rgba(255,255,255,0.12)" : C.hair2,
-        display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20,
+        color: active ? C.onInk : C.ink2,
+        display: "flex", alignItems: "center", justifyContent: "center",
         flexShrink: 0,
-      }}>{emoji}</div>
+      }}>{icon}</div>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 15, fontWeight: 600 }}>{title}</div>
         <div style={{ fontSize: 12, opacity: active ? 0.7 : 0.6, marginTop: 2 }}>{sub}</div>
@@ -528,11 +633,11 @@ function ModeCard({ active, onClick, title, sub, emoji }: {
       }}>
         {active && <div style={{ width: 10, height: 10, borderRadius: 99, background: C.surface }} />}
       </div>
-    </div>
+    </button>
   );
 }
 
-function MetaItem({ icon, label }: { icon: React.ReactNode; label: string }) {
+function MetaItem({ icon, label }: { icon: ReactNode; label: string }) {
   return (
     <div style={{ display: "flex", gap: 5, alignItems: "center", fontSize: 12, color: C.ink2 }}>
       {icon}<span>{label}</span>

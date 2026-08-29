@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useGames } from "@/hooks/useGames";
+import { type DbGame, useGames } from "@/hooks/useGames";
 import { useCheckIns } from "@/hooks/useCheckIns";
 import { useCourts } from "@/hooks/useCourts";
 import { useAuth } from "@/hooks/useAuth";
-import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarDays, ChevronLeft, CircleDot, Clock3, Flame, MapPin, Megaphone, Plus, Radio, Share2, Trophy, Users } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
@@ -12,11 +12,10 @@ import { C } from "@/lib/tokens";
 import { Chip } from "@/components/ui/Chip";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { IconButton } from "@/components/ui/IconButton";
-
-const ChevIcon = () => <ChevronRight size={14} color={C.ink3} strokeWidth={2} />;
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 async function shareGame(game: { title: string; court_name: string; date: string; time: string; format: string; max_players: number }) {
-  const text = `Join my game: ${game.title} at ${game.court_name} — ${game.date} ${game.time ? formatTime(game.time) : ""} · ${game.format} · ${game.max_players} players`;
+  const text = `Join my game: ${game.title} at ${game.court_name} - ${game.date} ${game.time ? formatTime(game.time) : ""} / ${game.format} / ${game.max_players} players`;
   const url = window.location.origin + "/games";
   if (navigator.share) {
     try {
@@ -36,8 +35,8 @@ const font = `"Inter", -apple-system, system-ui, sans-serif`;
 function formatGameTime(date: string, time: string) {
   const today = new Date().toISOString().split("T")[0];
   const isToday = date === today;
-  if (isToday) return `Today · ${time ? formatTime(time) : ""}`;
-  return `${date} · ${time ? formatTime(time) : ""}`;
+  if (isToday) return `Today - ${time ? formatTime(time) : ""}`;
+  return `${date} - ${time ? formatTime(time) : ""}`;
 }
 
 function formatTime(t: string) {
@@ -51,11 +50,30 @@ function isToday(date: string) {
   return date === new Date().toISOString().split("T")[0];
 }
 
+function EmptyStateIcon({ children, tint = C.hair2 }: { children: ReactNode; tint?: string }) {
+  return (
+    <div style={{
+      width: 56,
+      height: 56,
+      borderRadius: 18,
+      margin: "0 auto 14px",
+      background: tint,
+      color: C.ink2,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    }}>
+      {children}
+    </div>
+  );
+}
+
 export default function GamesPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const courtFilterId = searchParams.get("court");
   const [tab, setTab] = useState("live");
+  const [selectedGame, setSelectedGame] = useState<DbGame | null>(null);
   const { games, isLoading, myParticipantGameIds, joinGame, leaveGame } = useGames();
   const { checkIns } = useCheckIns();
   const { dbCourts } = useCourts();
@@ -65,6 +83,28 @@ export default function GamesPage() {
     if (!user) { navigate("/auth"); return; }
     joinGame(gameId);
   };
+
+  const selectedCourt = selectedGame?.court_id
+    ? dbCourts.find((court) => court.id === selectedGame.court_id)
+    : undefined;
+
+  const gameDetails = (
+    <GameDetailsSheet
+      game={selectedGame}
+      court={selectedCourt}
+      open={Boolean(selectedGame)}
+      isJoined={selectedGame ? myParticipantGameIds.includes(selectedGame.id) : false}
+      isHost={selectedGame ? user?.id === selectedGame.host_id : false}
+      onOpenChange={(open) => { if (!open) setSelectedGame(null); }}
+      onJoin={() => selectedGame && handleJoin(selectedGame.id)}
+      onLeave={() => selectedGame && leaveGame(selectedGame.id)}
+      onCourt={() => {
+        if (!selectedGame?.court_id) return;
+        setSelectedGame(null);
+        navigate(`/courts/${selectedGame.court_id}`);
+      }}
+    />
+  );
 
   if (courtFilterId) {
     const filterCourt = dbCourts.find((c) => c.id === courtFilterId);
@@ -89,7 +129,7 @@ export default function GamesPage() {
             Games at {filterCourt?.name || "this court"}
           </div>
           <div style={{ fontSize: 13, color: C.ink3, marginTop: 4 }}>
-            {isLoading ? "Loading…" : `${courtGames.length} upcoming ${courtGames.length === 1 ? "game" : "games"}`}
+            {isLoading ? "Loading..." : `${courtGames.length} upcoming ${courtGames.length === 1 ? "game" : "games"}`}
           </div>
         </div>
 
@@ -98,7 +138,9 @@ export default function GamesPage() {
             <div style={{ textAlign: "center", padding: 40, color: C.ink3 }}>Loading...</div>
           ) : courtGames.length === 0 ? (
             <div style={{ textAlign: "center", padding: "48px 0" }}>
-              <div style={{ fontSize: 32, marginBottom: 12 }}>🏀</div>
+              <EmptyStateIcon tint={C.greenSoft}>
+                <CalendarDays size={24} strokeWidth={1.9} />
+              </EmptyStateIcon>
               <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>No games scheduled yet</div>
               <div style={{ fontSize: 13, color: C.ink3, marginBottom: 20 }}>Be the first to host a game at this court</div>
               <button onClick={() => navigate("/create-game", { state: { courtId: courtFilterId, mode: "host" } })} style={{
@@ -115,6 +157,7 @@ export default function GamesPage() {
                     game={game}
                     isJoined={myParticipantGameIds.includes(game.id)}
                     isHost={user?.id === game.host_id}
+                    onOpen={() => setSelectedGame(game)}
                     onJoin={() => handleJoin(game.id)}
                     onLeave={() => leaveGame(game.id)}
                   />
@@ -123,6 +166,7 @@ export default function GamesPage() {
             </StaggerGroup>
           )}
         </div>
+        {gameDetails}
       </div>
     );
   }
@@ -202,7 +246,9 @@ export default function GamesPage() {
                 width: 52, height: 52, borderRadius: 16, background: C.greenSoft,
                 display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24,
                 flexShrink: 0,
-              }}>🏀</div>
+              }}>
+                <Radio size={22} color={C.green} strokeWidth={1.9} />
+              </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 15, fontWeight: 600 }}>
                   {liveCourts.length > 0
@@ -211,7 +257,7 @@ export default function GamesPage() {
                 </div>
                 <div style={{ fontSize: 12, color: C.ink3, marginTop: 2 }}>
                   {liveCourts.length > 0
-                    ? liveCourts.slice(0, 3).map((c) => c.name).join(" · ")
+                    ? liveCourts.slice(0, 3).map((c) => c.name).join(" / ")
                     : "Check back later or be the first to check in"}
                 </div>
               </div>
@@ -236,7 +282,7 @@ export default function GamesPage() {
                   {hotCourts.map((court) => (
                     <StaggerItem key={`heat-${court.id}`}>
                       <FeedRow
-                        icon="🔥"
+                        icon={<Flame size={17} fill="currentColor" strokeWidth={0} />}
                         tint={C.greenSoft}
                         title={`${court.name} is heating up`}
                         sub={`${court.liveCount} players just checked in`}
@@ -252,10 +298,10 @@ export default function GamesPage() {
                     return (
                       <StaggerItem key={`game-${game.id}`}>
                         <FeedRow
-                          icon="📣"
+                          icon={<Megaphone size={17} strokeWidth={1.9} />}
                           tint={C.amberTint}
                           title={game.title}
-                          sub={`${game.court_name} · ${formatTime(game.time)} · ${game.current_players}/${game.max_players} players`}
+                          sub={`${game.court_name} / ${formatTime(game.time)} / ${game.current_players}/${game.max_players} players`}
                           action={spots > 0 ? "Join" : "Full"}
                           onAction={goToGame}
                           onClick={goToGame}
@@ -307,10 +353,10 @@ export default function GamesPage() {
                     return (
                       <StaggerItem key={`upcoming-${game.id}`}>
                         <FeedRow
-                          icon="🏀"
+                          icon={<CalendarDays size={17} strokeWidth={1.9} />}
                           tint={C.hair2}
                           title={game.title}
-                          sub={`${game.court_name} · ${formatGameTime(game.date, game.time)}`}
+                          sub={`${game.court_name} / ${formatGameTime(game.date, game.time)}`}
                           action={spots > 0 ? "Join" : "Full"}
                           onAction={goToGame}
                           onClick={goToGame}
@@ -348,7 +394,9 @@ export default function GamesPage() {
             {/* Empty state */}
             {hotCourts.length === 0 && todayGames.length === 0 && otherCheckIns.length === 0 && upcomingGames.length === 0 && newCourts.length === 0 && (
               <div style={{ textAlign: "center", padding: "48px 0" }}>
-                <div style={{ fontSize: 32, marginBottom: 12 }}>🏀</div>
+                <EmptyStateIcon tint={C.greenSoft}>
+                  <Radio size={24} strokeWidth={1.9} />
+                </EmptyStateIcon>
                 <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>No activity yet</div>
                 <div style={{ fontSize: 13, color: C.ink3 }}>Check in at a court or host a game to get started</div>
               </div>
@@ -364,7 +412,9 @@ export default function GamesPage() {
             <div style={{ textAlign: "center", padding: 40, color: C.ink3 }}>Loading...</div>
           ) : games.length === 0 ? (
             <div style={{ textAlign: "center", padding: "48px 0" }}>
-              <div style={{ fontSize: 32, marginBottom: 12 }}>📣</div>
+              <EmptyStateIcon tint={C.amberTint}>
+                <Megaphone size={24} strokeWidth={1.9} />
+              </EmptyStateIcon>
               <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>No games yet</div>
               <div style={{ fontSize: 13, color: C.ink3, marginBottom: 20 }}>Be the first to host a game in your area</div>
               <button onClick={() => navigate("/create-game")} style={{
@@ -385,6 +435,7 @@ export default function GamesPage() {
                           game={game}
                           isJoined={myParticipantGameIds.includes(game.id)}
                           isHost={user?.id === game.host_id}
+                          onOpen={() => setSelectedGame(game)}
                           onJoin={() => handleJoin(game.id)}
                           onLeave={() => leaveGame(game.id)}
                         />
@@ -403,6 +454,7 @@ export default function GamesPage() {
                           game={game}
                           isJoined={myParticipantGameIds.includes(game.id)}
                           isHost={user?.id === game.host_id}
+                          onOpen={() => setSelectedGame(game)}
                           onJoin={() => handleJoin(game.id)}
                           onLeave={() => leaveGame(game.id)}
                         />
@@ -421,7 +473,9 @@ export default function GamesPage() {
         <div style={{ padding: "14px 14px 0" }}>
           {otherCheckIns.length === 0 && (
             <div style={{ textAlign: "center", padding: "48px 0" }}>
-              <div style={{ fontSize: 32, marginBottom: 12 }}>👋</div>
+              <EmptyStateIcon>
+                <Users size={24} strokeWidth={1.9} />
+              </EmptyStateIcon>
               <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>No activity right now</div>
               <div style={{ fontSize: 13, color: C.ink3 }}>When others check in at courts you'll see it here</div>
             </div>
@@ -450,6 +504,7 @@ export default function GamesPage() {
           )}
         </div>
       )}
+      {gameDetails}
     </div>
   );
 }
@@ -464,7 +519,7 @@ function FeedRow({
   onClick,
   onShare,
 }: {
-  icon: string | null;
+  icon: ReactNode | null;
   tint: string;
   title: string;
   sub: string;
@@ -485,9 +540,9 @@ function FeedRow({
         flexShrink: 0,
       }}>
         {icon ? (
-          <span>{icon}</span>
+          icon
         ) : (
-          <div style={{ width: 8, height: 8, borderRadius: 99, background: C.ink3 }} />
+          <CircleDot size={14} color={C.ink3} strokeWidth={1.9} />
         )}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -501,10 +556,7 @@ function FeedRow({
             background: C.surface, cursor: "pointer",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-              <path d="M12 3v13m0-13l-4 4m4-4l4 4M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"
-                stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <Share2 size={13} strokeWidth={1.9} />
           </button>
         )}
         {action && (
@@ -519,16 +571,81 @@ function FeedRow({
   );
 }
 
+function GameDetailsSheet({ game, court, open, isJoined, isHost, onOpenChange, onJoin, onLeave, onCourt }: {
+  game: DbGame | null;
+  court?: { photo_url: string | null; address: string };
+  open: boolean;
+  isJoined: boolean;
+  isHost: boolean;
+  onOpenChange: (open: boolean) => void;
+  onJoin: () => void;
+  onLeave: () => void;
+  onCourt: () => void;
+}) {
+  if (!game) return null;
+  const spots = Math.max(0, game.max_players - game.current_players);
+  const isFull = spots === 0;
+  const progress = Math.min(100, (game.current_players / game.max_players) * 100);
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" className="max-h-[92vh] overflow-y-auto rounded-t-2xl border-x-0 px-0 pb-8 pt-0">
+        <div className="relative h-44 overflow-hidden bg-secondary">
+          {court?.photo_url ? <img src={court.photo_url} alt={game.court_name} className="h-full w-full object-cover" /> : (
+            <div className="flex h-full items-center justify-center bg-emerald-50 text-emerald-700"><MapPin size={34} strokeWidth={1.6} /></div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+          <div className="absolute bottom-4 left-5 right-5 text-white">
+            <div className="mb-2 flex gap-2 text-xs font-semibold">
+              <span className="rounded-full bg-white/20 px-2.5 py-1 backdrop-blur-sm">{game.format}</span>
+              <span className="rounded-full bg-white/20 px-2.5 py-1 backdrop-blur-sm">{game.skill_level}</span>
+            </div>
+            <div className="text-2xl font-bold">{game.title}</div>
+          </div>
+        </div>
+        <div className="px-5 pt-5">
+          <SheetHeader className="sr-only"><SheetTitle>{game.title}</SheetTitle><SheetDescription>Game details and joining options</SheetDescription></SheetHeader>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-5 border-b pb-5">
+            <DetailItem icon={<Clock3 size={17} />} label="When" value={formatGameTime(game.date, game.time)} />
+            <DetailItem icon={<Users size={17} />} label="Players" value={`${game.current_players} of ${game.max_players}`} />
+            <DetailItem icon={<Trophy size={17} />} label="Level" value={game.skill_level} />
+            <DetailItem icon={<Megaphone size={17} />} label="Host" value={game.host_name} />
+          </div>
+          <button type="button" onClick={onCourt} disabled={!game.court_id} className="flex w-full items-center gap-3 border-b py-5 text-left disabled:cursor-default">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><MapPin size={19} /></div>
+            <div className="min-w-0 flex-1"><div className="truncate text-sm font-semibold">{game.court_name}</div><div className="mt-0.5 truncate text-xs text-muted-foreground">{court?.address || "Court details"}</div></div>
+            {game.court_id && <ChevronLeft className="rotate-180 text-muted-foreground" size={18} />}
+          </button>
+          <div className="py-5">
+            <div className="mb-2 flex justify-between text-sm"><span className="font-semibold">Game availability</span><span className={isFull ? "text-muted-foreground" : "text-emerald-700"}>{isFull ? "Game full" : `${spots} ${spots === 1 ? "spot" : "spots"} left`}</span></div>
+            <div className="h-2 overflow-hidden rounded-full bg-secondary"><div className="h-full rounded-full bg-emerald-600" style={{ width: `${progress}%` }} /></div>
+          </div>
+          <div className="flex gap-3">
+            <button type="button" onClick={() => shareGame(game)} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border bg-background" aria-label="Share game"><Share2 size={18} /></button>
+            <button type="button" onClick={isJoined ? onLeave : onJoin} disabled={isHost || (!isJoined && isFull)} className="h-12 flex-1 rounded-full bg-foreground px-5 text-sm font-semibold text-background disabled:bg-muted disabled:text-muted-foreground">{isHost ? "You're hosting" : isJoined ? "Leave game" : isFull ? "Game full" : "Join game"}</button>
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function DetailItem({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
+  return <div className="flex min-w-0 gap-2.5"><div className="mt-0.5 text-muted-foreground">{icon}</div><div className="min-w-0"><div className="text-xs text-muted-foreground">{label}</div><div className="mt-0.5 truncate text-sm font-semibold">{value}</div></div></div>;
+}
+
 function GameListRow({
   game,
   isJoined,
   isHost,
+  onOpen,
   onJoin,
   onLeave,
 }: {
   game: { id: string; title: string; court_name: string; date: string; time: string; format: string; skill_level: string; current_players: number; max_players: number; host_name: string };
   isJoined?: boolean;
   isHost?: boolean;
+  onOpen?: () => void;
   onJoin?: () => void;
   onLeave?: () => void;
 }) {
@@ -536,9 +653,10 @@ function GameListRow({
   const isFull = spots <= 0;
   const canJoin = !isHost && !isJoined && !isFull;
   return (
-    <div style={{
+    <div onClick={onOpen} style={{
       background: C.surface, borderRadius: 16, padding: 14,
       border: `1px solid ${C.hair}`,
+      cursor: onOpen ? "pointer" : "default",
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
         <div>
@@ -554,9 +672,9 @@ function GameListRow({
       </div>
       <div style={{ display: "flex", gap: 12, fontSize: 12, color: C.ink3 }}>
         <span>{formatGameTime(game.date, game.time)}</span>
-        <span>·</span>
+        <span>/</span>
         <span>{game.format}</span>
-        <span>·</span>
+        <span>/</span>
         <span>{game.current_players}/{game.max_players} players</span>
       </div>
       <div style={{ marginTop: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -573,10 +691,7 @@ function GameListRow({
             }}
             title="Share game"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M12 3v13m0-13l-4 4m4-4l4 4M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"
-                stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <Share2 size={14} strokeWidth={1.8} />
           </button>
           <button
             onClick={(e) => {
@@ -592,7 +707,7 @@ function GameListRow({
               border: "none", padding: "7px 16px", borderRadius: 99,
               cursor: isHost || (!isJoined && isFull) ? "default" : "pointer", fontFamily: font,
             }}
-          >{isHost ? "Hosting" : isJoined ? "Joined ✓" : isFull ? "Full" : "Join"}</button>
+          >{isHost ? "Hosting" : isJoined ? "Joined" : isFull ? "Full" : "Join"}</button>
         </div>
       </div>
     </div>

@@ -22,6 +22,9 @@ const PageLoader = () => (
 
 // Lazy-load anything that imports the backend client until we know env exists.
 const AuthProvider = lazy(() => import("@/hooks/useAuth").then((m) => ({ default: m.AuthProvider })));
+const AnalyticsProvider = lazy(() =>
+  import("@/components/AnalyticsProvider").then((m) => ({ default: m.AnalyticsProvider }))
+);
 const AppLayout = lazy(() => import("@/components/layout/AppLayout").then((m) => ({ default: m.AppLayout })));
 const RequireAuth = lazy(() => import("@/components/auth/RequireAuth").then((m) => ({ default: m.RequireAuth })));
 const HomePage = lazy(() => import("@/pages/HomePage"));
@@ -86,6 +89,7 @@ const App = () => {
               <Suspense fallback={<PageLoader />}>
                 <AuthProvider>
                   <BrowserRouter>
+                    <AnalyticsProvider />
                     <Suspense fallback={<PageLoader />}>
                       <Routes>
                       <Route element={<RequireAuth><AppLayout /></RequireAuth>}>

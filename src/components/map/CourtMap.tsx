@@ -35,6 +35,17 @@ const COURT_DOT_LAYER_ID = "court-marker-dots";
 const COURT_BADGE_LAYER_ID = "court-marker-badges";
 const COURT_BADGE_TEXT_LAYER_ID = "court-marker-badge-text";
 
+// Buffered Kigali city boundary, used by both map navigation and search.
+const KIGALI_BOUNDS = { west: 29.90, south: -2.15, east: 30.25, north: -1.80 } as const;
+const KIGALI_MAX_BOUNDS: mapboxgl.LngLatBoundsLike = [
+  [KIGALI_BOUNDS.west, KIGALI_BOUNDS.south],
+  [KIGALI_BOUNDS.east, KIGALI_BOUNDS.north],
+];
+const KIGALI_SEARCH_BBOX = `${KIGALI_BOUNDS.west},${KIGALI_BOUNDS.south},${KIGALI_BOUNDS.east},${KIGALI_BOUNDS.north}`;
+const isInsideKigali = (lat: number, lng: number) =>
+  lng >= KIGALI_BOUNDS.west && lng <= KIGALI_BOUNDS.east &&
+  lat >= KIGALI_BOUNDS.south && lat <= KIGALI_BOUNDS.north;
+
 const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -114,6 +125,8 @@ export function CourtMap({
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const centerLat = center[0];
   const centerLng = center[1];
+  const userIsInKigali = Boolean(userLocation && isInsideKigali(userLocation.lat, userLocation.lng));
+  const kigaliUserLocation = userIsInKigali ? userLocation : null;
 
   // Filter courts for search suggestions
   const courtResults = useMemo(() => {
@@ -138,13 +151,13 @@ export function CourtMap({
       setIsSearchingPlaces(true);
       debounceTimer.current = setTimeout(async () => {
         try {
-          const proximity = userLocation
-            ? `&proximity=${userLocation.lng},${userLocation.lat}`
+          const proximity = kigaliUserLocation
+            ? `&proximity=${kigaliUserLocation.lng},${kigaliUserLocation.lat}`
             : "&proximity=30.0588,-1.9403";
           const res = await fetch(
             `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
               query
-            )}.json?access_token=${mapboxgl.accessToken}&limit=5${proximity}&language=en`
+            )}.json?access_token=${mapboxgl.accessToken}&limit=5${proximity}&bbox=${KIGALI_SEARCH_BBOX}&country=rw&language=en`
           );
           const data = (await res.json()) as MapboxGeocodingResponse;
           const places: PlaceResult[] = (data.features || []).map(
@@ -164,7 +177,7 @@ export function CourtMap({
         }
       }, 350);
     },
-    [userLocation]
+    [kigaliUserLocation]
   );
 
   const handleSearchChange = (value: string) => {
@@ -241,8 +254,8 @@ export function CourtMap({
       const bounds = new mapboxgl.LngLatBounds();
       courts.forEach((court) => bounds.extend([court.lng, court.lat]));
 
-      if (userLocation) {
-        bounds.extend([userLocation.lng, userLocation.lat]);
+      if (kigaliUserLocation) {
+        bounds.extend([kigaliUserLocation.lng, kigaliUserLocation.lat]);
       }
 
       m.fitBounds(bounds, {
@@ -251,7 +264,7 @@ export function CourtMap({
         duration: 700,
       });
     },
-    [courts, userLocation]
+    [courts, kigaliUserLocation]
   );
 
   // ── 1. Initialize map ──
@@ -263,6 +276,8 @@ export function CourtMap({
       style: "mapbox://styles/mapbox/streets-v12",
       center: [initialCenter.current[1], initialCenter.current[0]],
       zoom: initialZoom.current,
+      minZoom: 10.5,
+      maxBounds: KIGALI_MAX_BOUNDS,
       attributionControl: false,
     });
     map.current = m;
@@ -324,8 +339,8 @@ export function CourtMap({
         type: "FeatureCollection" as const,
         features: courts.map((court) => {
           const count = checkIns.filter((c) => c.court_id === court.id).length;
-          const distText = userLocation
-            ? formatDistance(getDistanceKm(userLocation.lat, userLocation.lng, court.lat, court.lng))
+          const distText = kigaliUserLocation
+            ? formatDistance(getDistanceKm(kigaliUserLocation.lat, kigaliUserLocation.lng, court.lat, court.lng))
             : "";
 
           return {
@@ -552,7 +567,7 @@ export function CourtMap({
         m.off("click", COURT_BADGE_TEXT_LAYER_ID, handleBadgeClick);
       }
     };
-  }, [courts, selectedCourtId, checkIns, onCourtSelect, onAvatarClick, userLocation, fitToCourts, resolvedTheme]);
+  }, [courts, selectedCourtId, checkIns, onCourtSelect, onAvatarClick, kigaliUserLocation, fitToCourts, resolvedTheme]);
 
   // ── 3. Fly to new center ──
   useEffect(() => {
@@ -570,7 +585,7 @@ export function CourtMap({
       userMarker.current = null;
     }
 
-    if (!userLocation) return;
+    if (!kigaliUserLocation) return;
 
     const el = document.createElement("div");
     el.style.cssText = `
@@ -582,7 +597,7 @@ export function CourtMap({
     `;
 
     userMarker.current = new mapboxgl.Marker({ element: el, anchor: "center" })
-      .setLngLat([userLocation.lng, userLocation.lat])
+      .setLngLat([kigaliUserLocation.lng, kigaliUserLocation.lat])
       .setPopup(
         new mapboxgl.Popup({ offset: 15 }).setHTML(
           `<div style="padding:4px 2px"><strong style="font-size:12px">You are here</strong></div>`
@@ -594,14 +609,14 @@ export function CourtMap({
     if (courts.length > 0) {
       fitToCourts(m);
     } else {
-      m.flyTo({ center: [userLocation.lng, userLocation.lat], zoom: 14, duration: 1000 });
+      m.flyTo({ center: [kigaliUserLocation.lng, kigaliUserLocation.lat], zoom: 14, duration: 1000 });
     }
 
     return () => {
       userMarker.current?.remove();
       userMarker.current = null;
     };
-  }, [userLocation, courts, fitToCourts]);
+  }, [kigaliUserLocation, courts, fitToCourts]);
 
   useEffect(() => {
     return () => {
@@ -649,7 +664,7 @@ export function CourtMap({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           <input
             type="text"
-            placeholder="Search courts or places..."
+            placeholder="Search places in Kigali..."
             value={mapSearch}
             onChange={(e) => handleSearchChange(e.target.value)}
             onFocus={() => setSearchFocused(true)}
@@ -681,9 +696,9 @@ export function CourtMap({
                 </div>
                 {courtResults.map((court) => {
                   const distText =
-                    userLocation
+                    kigaliUserLocation
                       ? formatDistance(
-                          getDistanceKm(userLocation.lat, userLocation.lng, court.lat, court.lng)
+                          getDistanceKm(kigaliUserLocation.lat, kigaliUserLocation.lng, court.lat, court.lng)
                         )
                       : null;
                   return (
@@ -721,9 +736,9 @@ export function CourtMap({
                 </div>
                 {placeResults.map((place) => {
                   const distText =
-                    userLocation
+                    kigaliUserLocation
                       ? formatDistance(
-                          getDistanceKm(userLocation.lat, userLocation.lng, place.lat, place.lng)
+                          getDistanceKm(kigaliUserLocation.lat, kigaliUserLocation.lng, place.lat, place.lng)
                         )
                       : null;
                   return (
@@ -775,7 +790,7 @@ export function CourtMap({
         >
           <Locate className={`w-4 h-4 shrink-0 ${isLocating ? "animate-pulse" : ""}`} />
           <span className="text-sm font-medium whitespace-nowrap">
-            {isLocating ? "Locating…" : locationEnabled ? "You're on the map" : "See where you are"}
+            {isLocating ? "Locating…" : locationEnabled && !userIsInKigali ? "Outside Kigali" : locationEnabled ? "You're on the map" : "See where you are"}
           </span>
         </button>
       )}

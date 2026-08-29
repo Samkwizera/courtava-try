@@ -2,11 +2,27 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useCourt, useCourts } from "@/hooks/useCourts";
 import { useAuth } from "@/hooks/useAuth";
 import { useCheckIns } from "@/hooks/useCheckIns";
+import { useGames } from "@/hooks/useGames";
+import { formatDistance, getDistanceKm, useUserLocation } from "@/hooks/useUserLocation";
+import { CheckInSheet } from "@/components/courts/CheckInSheet";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
 import { C, RING, SHADOW, FADE_UP } from "@/lib/tokens";
 import { IconButton } from "@/components/ui/IconButton";
-import { ChevronLeft, Share, MapPin, ChevronRight } from "lucide-react";
+import {
+  CalendarDays,
+  Car,
+  ChevronLeft,
+  ChevronRight,
+  Clock3,
+  Droplets,
+  MapPin,
+  Radio,
+  Share,
+  Sun,
+  Users,
+} from "lucide-react";
+import { useState } from "react";
 
 const PinIcon = () => <MapPin size={13} color={C.ink3} strokeWidth={1.8} />;
 const ChevIcon = () => <ChevronRight size={14} color={C.ink3} strokeWidth={2} />;
@@ -24,11 +40,46 @@ const HEAT_META = {
   low:    { color: C.ink3,  ring: RING.neutral,  label: "Quiet" },
 };
 
-function StatCell({ label, value }: { label: string; value: string }) {
+function formatTime(t: string) {
+  const [h, m] = t.split(":");
+  const hour = parseInt(h);
+  const ampm = hour >= 12 ? "PM" : "AM";
+  return `${hour % 12 || 12}:${m} ${ampm}`;
+}
+
+function formatGameDate(date: string, time: string) {
+  const today = new Date().toISOString().split("T")[0];
+  return `${date === today ? "Today" : date} - ${time ? formatTime(time) : ""}`;
+}
+
+function AmenityCell({
+  icon: Icon,
+  label,
+  value,
+  active = true,
+}: {
+  icon: typeof Sun;
+  label: string;
+  value: string;
+  active?: boolean;
+}) {
   return (
-    <div style={{ background: C.surface, border: `1px solid ${C.hair}`, borderRadius: 12, padding: "10px 12px" }}>
-      <div style={{ fontSize: 11, color: C.ink3, fontWeight: 500, letterSpacing: 0.3, textTransform: "uppercase" }}>{label}</div>
-      <div style={{ fontSize: 15, fontWeight: 600, marginTop: 2 }}>{value}</div>
+    <div style={{ background: C.surface, border: `1px solid ${C.hair}`, borderRadius: 12, padding: "12px" }}>
+      <div style={{
+        width: 30,
+        height: 30,
+        borderRadius: 10,
+        background: active ? C.greenSoft : C.hair2,
+        color: active ? C.greenInk : C.ink3,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: 10,
+      }}>
+        <Icon size={15} strokeWidth={1.9} />
+      </div>
+      <div style={{ fontSize: 11, color: C.ink3, fontWeight: 600, letterSpacing: 0.3, textTransform: "uppercase" }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 650, marginTop: 2 }}>{value}</div>
     </div>
   );
 }
@@ -36,7 +87,7 @@ function StatCell({ label, value }: { label: string; value: string }) {
 // Deterministic busy-hours mock data from court id
 function getBusyHours(id: string) {
   const hash = id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  const peak = (hash % 5) + 4; // peak at hour index 4–8 (approx 4pm–8pm)
+  const peak = (hash % 5) + 4; // peak at hour index 4-8 (approx 4pm-8pm)
   return [0.1, 0.15, 0.25, 0.4, 0.6, 0.75, 0.9, 0.7, 0.45, 0.2].map((v, i) => {
     const dist = Math.abs(i - peak);
     return Math.min(1, v + 0.2 * Math.max(0, 2 - dist) * ((hash % 5) / 10));
@@ -49,6 +100,9 @@ export default function CourtDetailsPage() {
   const { user } = useAuth();
   const { dbCourts, isLoading: isCourtsLoading } = useCourts();
   const { checkIns } = useCheckIns();
+  const { games, isLoading: isGamesLoading } = useGames();
+  const { userLocation } = useUserLocation();
+  const [checkInOpen, setCheckInOpen] = useState(false);
 
   const listCourt = dbCourts.find((c) => c.id === id);
   const { court: routeCourt, isLoading: isRouteCourtLoading } = useCourt(listCourt ? undefined : id);
@@ -105,6 +159,14 @@ export default function CourtDetailsPage() {
 
   const surface = court.surface ?? "Outdoor";
   const surfaceLabel = surface.charAt(0).toUpperCase() + surface.slice(1);
+  const distanceText = userLocation
+    ? formatDistance(getDistanceKm(userLocation.lat, userLocation.lng, court.lat, court.lng))
+    : "Enable location";
+  const todayStr = new Date().toISOString().split("T")[0];
+  const courtGames = games
+    .filter((game) => game.court_id === id && game.date >= todayStr)
+    .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+  const nextGame = courtGames[0];
 
   return (
     <div style={{ width: "100%", minHeight: "100vh", background: C.bg, fontFamily: '"Inter", system-ui, sans-serif', color: C.ink, paddingBottom: 200 }}>
@@ -125,6 +187,7 @@ export default function CourtDetailsPage() {
             </svg>
           </>
         )}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.28), rgba(0,0,0,0.04) 42%, rgba(0,0,0,0.36))" }} />
 
         {/* Nav buttons */}
         <div style={{ position: "absolute", top: 58, left: 14, right: 14, display: "flex", justifyContent: "space-between" }}>
@@ -138,38 +201,93 @@ export default function CourtDetailsPage() {
 
         {/* Heat badge */}
         <div style={{
-          position: "absolute", bottom: 16, left: 16,
+          position: "absolute", bottom: 16, left: 16, right: 16,
+          display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 12,
+        }}>
+        <div style={{
           background: C.overlayInk, backdropFilter: "blur(10px)",
           color: C.onOverlay, padding: "6px 12px", borderRadius: 99,
           fontSize: 12, fontWeight: 600, display: "flex", gap: 6, alignItems: "center",
         }}>
           <div className="pulse-dot" style={{ width: 8, height: 8, borderRadius: 99, background: meta.color }} />
-          {playerCount > 0 ? "Court is heating up" : "Court nearby"}
+          {playerCount > 0 ? `${playerCount} playing now` : "Court nearby"}
+        </div>
+        {nextGame && (
+          <div style={{
+            background: C.overlayInk,
+            backdropFilter: "blur(10px)",
+            color: C.onOverlay,
+            padding: "6px 12px",
+            borderRadius: 99,
+            fontSize: 12,
+            fontWeight: 600,
+            display: "flex",
+            gap: 6,
+            alignItems: "center",
+          }}>
+            <CalendarDays size={13} />
+            Next game {formatTime(nextGame.time)}
+          </div>
+        )}
         </div>
       </div>
 
       {/* Main sheet */}
       <div style={{ background: C.bg, marginTop: -20, borderRadius: "24px 24px 0 0", padding: "22px 22px 10px", position: "relative" }}>
 
-        <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: -0.5 }}>{court.name}</div>
+        <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: -0.5, lineHeight: 1.12 }}>{court.name}</div>
         <div style={{ fontSize: 13, color: C.ink3, marginTop: 4, display: "flex", gap: 6, alignItems: "center" }}>
           <PinIcon />
-          {court.address || "Kigali"} · {surfaceLabel}
+          <span>{court.address || "Kigali"}</span>
+        </div>
+        <div style={{ display: "flex", gap: 8, marginTop: 12, overflowX: "auto", paddingBottom: 2 }}>
+          <span style={{ background: C.surface, border: `1px solid ${C.hair}`, borderRadius: 99, padding: "6px 10px", fontSize: 12, fontWeight: 600, color: C.ink2, whiteSpace: "nowrap" }}>
+            {surfaceLabel}
+          </span>
+          <span style={{ background: C.surface, border: `1px solid ${C.hair}`, borderRadius: 99, padding: "6px 10px", fontSize: 12, fontWeight: 600, color: C.ink2, whiteSpace: "nowrap" }}>
+            {distanceText}
+          </span>
+          <span style={{ background: C.surface, border: `1px solid ${C.hair}`, borderRadius: 99, padding: "6px 10px", fontSize: 12, fontWeight: 600, color: C.ink2, whiteSpace: "nowrap" }}>
+            {meta.label}
+          </span>
         </div>
 
         {/* Live player strip */}
         <ScrollReveal>
-        <div style={{ marginTop: 18, background: C.surface, borderRadius: 16, border: `1px solid ${C.hair}`, padding: 14 }}>
+        <div style={{ marginTop: 18, background: C.surface, borderRadius: 16, border: `1px solid ${C.hair}`, padding: 14, boxShadow: SHADOW.card }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              {playerCount > 0 && (
-                <div className="pulse-dot" style={{ width: 8, height: 8, borderRadius: 99, background: C.green }} />
-              )}
+              <div style={{
+                width: 34,
+                height: 34,
+                borderRadius: 12,
+                background: playerCount > 0 ? C.greenSoft : C.hair2,
+                color: playerCount > 0 ? C.greenInk : C.ink3,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}>
+                <Radio size={16} strokeWidth={1.9} />
+              </div>
               <span style={{ fontSize: 13, fontWeight: 600 }}>
                 {playerCount > 0 ? `${playerCount} playing right now` : "No players right now"}
               </span>
             </div>
-            <span style={{ fontSize: 12, color: C.ink3 }}>{surfaceLabel}</span>
+            <button
+              onClick={() => setCheckInOpen(true)}
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                color: C.onGreen,
+                background: C.green,
+                border: "none",
+                padding: "7px 12px",
+                borderRadius: 99,
+                cursor: "pointer",
+              }}
+            >
+              Check in
+            </button>
           </div>
           {avatars.length > 0 && (
             <div style={{ display: "flex", marginTop: 12 }}>
@@ -192,7 +310,9 @@ export default function CourtDetailsPage() {
                 }}>+{extra}</div>
               )}
               <div style={{ flex: 1 }} />
-              <button style={{
+              <button
+                onClick={() => setCheckInOpen(true)}
+                style={{
                 fontSize: 12, fontWeight: 600, color: C.ink2,
                 background: C.hair2, border: "none", padding: "6px 12px", borderRadius: 99, cursor: "pointer",
               }}>See all</button>
@@ -205,7 +325,7 @@ export default function CourtDetailsPage() {
         <ScrollReveal>
         <div style={{ marginTop: 10, background: C.surface, borderRadius: 16, border: `1px solid ${C.hair}`, padding: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <div style={{ fontSize: 15, fontWeight: 600 }}>Usually busy around 6–7 PM</div>
+            <div style={{ fontSize: 15, fontWeight: 600 }}>Usually busy around 6-7 PM</div>
             <div style={{ fontSize: 11, color: C.ink3 }}>Today</div>
           </div>
           <div style={{ display: "flex", gap: 4, alignItems: "flex-end", marginTop: 14, height: 60 }}>
@@ -227,39 +347,112 @@ export default function CourtDetailsPage() {
 
         {/* Stats grid */}
         <ScrollReveal>
-        <StaggerGroup style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginTop: 10 }}>
-          <StaggerItem><StatCell label="Surface" value={surfaceLabel} /></StaggerItem>
-          <StaggerItem><StatCell label="Lights" value={court.lights ? "Yes" : "No"} /></StaggerItem>
-          <StaggerItem><StatCell label="Parking" value={court.parking ? "Yes" : "No"} /></StaggerItem>
+        <StaggerGroup style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, marginTop: 10 }}>
+          <StaggerItem><AmenityCell icon={MapPin} label="Distance" value={distanceText} active={Boolean(userLocation)} /></StaggerItem>
+          <StaggerItem><AmenityCell icon={Sun} label="Lights" value={court.lights ? "Available" : "Not listed"} active={court.lights} /></StaggerItem>
+          <StaggerItem><AmenityCell icon={Droplets} label="Water" value={court.water ? "Available" : "Not listed"} active={court.water} /></StaggerItem>
+          <StaggerItem><AmenityCell icon={Car} label="Parking" value={court.parking ? "Available" : "Not listed"} active={court.parking} /></StaggerItem>
         </StaggerGroup>
         </ScrollReveal>
 
-        {/* Recent games section */}
+        {/* Upcoming games section */}
         <ScrollReveal>
-        <div style={{ marginTop: 20, fontSize: 15, fontWeight: 600 }}>Recent games</div>
+        <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
+          <div style={{ fontSize: 15, fontWeight: 600 }}>Upcoming at this court</div>
+          <div style={{ fontSize: 12, color: C.ink3 }}>
+            {isGamesLoading ? "Loading" : `${courtGames.length} ${courtGames.length === 1 ? "game" : "games"}`}
+          </div>
+        </div>
+
+        {isGamesLoading ? (
+          <div style={{ marginTop: 8, background: C.surface, border: `1px solid ${C.hair}`, borderRadius: 12, padding: 14, color: C.ink3, fontSize: 13 }}>
+            Loading games...
+          </div>
+        ) : courtGames.length === 0 ? (
+          <div style={{ marginTop: 8, background: C.surface, border: `1px solid ${C.hair}`, borderRadius: 16, padding: 16 }}>
+            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+              <div style={{
+                width: 42,
+                height: 42,
+                borderRadius: 14,
+                background: C.greenSoft,
+                color: C.greenInk,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}>
+                <CalendarDays size={18} strokeWidth={1.9} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 650 }}>No games scheduled yet</div>
+                <div style={{ fontSize: 12, color: C.ink3, marginTop: 2 }}>Start one and make this court active.</div>
+              </div>
+              <button
+                onClick={handleHostGame}
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: C.onInk,
+                  background: C.ink,
+                  border: "none",
+                  borderRadius: 99,
+                  padding: "8px 12px",
+                  cursor: "pointer",
+                }}
+              >
+                Host
+              </button>
+            </div>
+          </div>
+        ) : (
         <StaggerGroup style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
-          {[
-            { t: "5v5 pickup · 2 hours ago",       s: "Ended · 12 players" },
-            { t: "Shootaround · yesterday 7 PM",   s: "4 players" },
-          ].map((r, i) => (
-            <StaggerItem key={i}>
+          {courtGames.slice(0, 3).map((game) => (
+            <StaggerItem key={game.id}>
             <div style={{
               background: C.surface, border: `1px solid ${C.hair}`, borderRadius: 12, padding: 12,
-              display: "flex", justifyContent: "space-between", alignItems: "center",
+              display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12,
             }}>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 500 }}>{r.t}</div>
-                <div style={{ fontSize: 11, color: C.ink3, marginTop: 2 }}>{r.s}</div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 650, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{game.title}</div>
+                <div style={{ fontSize: 11, color: C.ink3, marginTop: 3, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <Clock3 size={12} />
+                    {formatGameDate(game.date, game.time)}
+                  </span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <Users size={12} />
+                    {game.current_players}/{game.max_players}
+                  </span>
+                </div>
               </div>
-              <ChevIcon />
+              <button
+                onClick={() => navigate(`/games?court=${id}`)}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 99,
+                  border: `1px solid ${C.hair}`,
+                  background: C.surface,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+                aria-label={`View ${game.title}`}
+              >
+                <ChevIcon />
+              </button>
             </div>
             </StaggerItem>
           ))}
         </StaggerGroup>
+        )}
         </ScrollReveal>
       </div>
 
-      {/* Sticky CTA — sits above the bottom nav (nav: bottom 24 + height 62 = 86px) */}
+      {/* Sticky CTA - sits above the bottom nav (nav: bottom 24 + height 62 = 86px) */}
       <div style={{
         position: "fixed", left: 0, right: 0, bottom: 92, zIndex: 30,
         padding: "14px 16px 14px",
@@ -290,6 +483,14 @@ export default function CourtDetailsPage() {
           {!user ? "Sign in to host" : "Host a game"}
         </button>
       </div>
+
+      <CheckInSheet
+        open={checkInOpen}
+        onOpenChange={setCheckInOpen}
+        courtId={court.id}
+        courtName={court.name}
+        checkedInUsers={courtCheckIns}
+      />
     </div>
   );
 }

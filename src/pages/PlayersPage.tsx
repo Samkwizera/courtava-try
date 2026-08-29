@@ -1,5 +1,5 @@
-import { Search, Filter, MapPin, Plus, Users2 } from "lucide-react";
-import { useState } from "react";
+import { Search, MapPin, Plus, UserSearch, Users2, X } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -70,6 +70,8 @@ export default function PlayersPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("players");
   const [activeFilter, setActiveFilter] = useState("All");
+  const [search, setSearch] = useState("");
+  const [connectedPlayers, setConnectedPlayers] = useState(() => new Set(players.filter((player) => player.isConnected).map((player) => player.name)));
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
 
   const handleCreateClick = () => {
@@ -92,6 +94,28 @@ export default function PlayersPage() {
     joinCommunity,
     leaveCommunity,
   } = useCommunities();
+
+  const visiblePlayers = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return players.filter((player) => {
+      const matchesSkill = activeFilter === "All" || player.skillLevel === activeFilter;
+      const matchesSearch = !query || [player.name, player.location, player.position, ...player.playStyles]
+        .some((value) => value.toLowerCase().includes(query));
+      return matchesSkill && matchesSearch;
+    });
+  }, [activeFilter, search]);
+
+  const visibleCommunities = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return communities;
+    return communities.filter((community) => [community.name, community.description || ""]
+      .some((value) => value.toLowerCase().includes(query)));
+  }, [communities, search]);
+
+  const connectPlayer = (name: string) => {
+    setConnectedPlayers((current) => new Set(current).add(name));
+    toast({ title: "Connected", description: `${name} is now in your player network.` });
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -124,17 +148,17 @@ export default function PlayersPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
                 placeholder={
                   activeTab === "players"
                     ? "Search players..."
                     : "Search communities..."
                 }
-                className="w-full h-10 pl-9 pr-4 rounded-lg bg-muted border border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                className="w-full h-11 pl-9 pr-10 rounded-lg bg-muted border border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
               />
+              {search && <button type="button" onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-label="Clear search"><X className="h-4 w-4" /></button>}
             </div>
-            <Button variant="secondary" size="icon">
-              <Filter className="w-4 h-4" />
-            </Button>
           </div>
 
           {/* Filter chips - only show for players tab */}
@@ -160,19 +184,27 @@ export default function PlayersPage() {
           <>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
               <MapPin className="w-4 h-4" />
-              <span>{players.length} players near you</span>
+              <span>{visiblePlayers.length} {visiblePlayers.length === 1 ? "player" : "players"} near you</span>
             </div>
-            <StaggerGroup className="grid gap-4 sm:grid-cols-2">
-              {players.map((player, i) => (
-                <StaggerItem key={i}>
+            {visiblePlayers.length === 0 ? (
+              <div className="py-14 text-center">
+                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground"><UserSearch className="h-6 w-6" /></div>
+                <div className="font-semibold">No matching players</div>
+                <div className="mt-1 text-sm text-muted-foreground">Try another name, style, or skill level.</div>
+                <Button variant="secondary" size="sm" className="mt-4" onClick={() => { setSearch(""); setActiveFilter("All"); }}>Reset search</Button>
+              </div>
+            ) : <StaggerGroup className="grid gap-3 sm:grid-cols-2">
+              {visiblePlayers.map((player) => (
+                <StaggerItem key={player.name}>
                   <PlayerCard
                     {...player}
-                    onConnect={() => console.log("Connect")}
-                    onMessage={() => console.log("Message")}
+                    isConnected={connectedPlayers.has(player.name)}
+                    onConnect={() => connectPlayer(player.name)}
+                    onMessage={() => toast({ title: "Messages coming soon", description: `${player.name} is already in your network.` })}
                   />
                 </StaggerItem>
               ))}
-            </StaggerGroup>
+            </StaggerGroup>}
           </>
         ) : (
           <>
@@ -182,7 +214,7 @@ export default function PlayersPage() {
                 <span>
                   {communitiesLoading
                     ? "Loading..."
-                    : `${communities.length} communities`}
+                    : `${visibleCommunities.length} communities`}
                 </span>
               </div>
               <Button size="sm" onClick={handleCreateClick}>
@@ -195,20 +227,20 @@ export default function PlayersPage() {
               <div className="text-center py-8 text-muted-foreground">
                 Loading communities...
               </div>
-            ) : communities.length === 0 ? (
+            ) : visibleCommunities.length === 0 ? (
               <div className="text-center py-12">
                 <Users2 className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
                 <p className="text-muted-foreground mb-4">
-                  No communities yet. Be the first to create one!
+                  {search ? "No communities match your search." : "No communities yet. Be the first to create one!"}
                 </p>
-                <Button onClick={handleCreateClick}>
-                  <Plus className="w-4 h-4 mr-1" />
-                  Create Community
+                <Button onClick={search ? () => setSearch("") : handleCreateClick}>
+                  {search ? <X className="w-4 h-4 mr-1" /> : <Plus className="w-4 h-4 mr-1" />}
+                  {search ? "Clear search" : "Create Community"}
                 </Button>
               </div>
             ) : (
               <StaggerGroup className="grid gap-4 sm:grid-cols-2">
-                {communities.map((community) => (
+                {visibleCommunities.map((community) => (
                   <StaggerItem key={community.id}>
                     <CommunityCard
                       id={community.id}

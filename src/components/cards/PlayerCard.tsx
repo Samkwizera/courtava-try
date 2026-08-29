@@ -42,11 +42,11 @@ export function PlayerCard({
   return (
     <div
       onClick={onClick}
-      className="bg-card rounded-lg p-4 border border-border transition-colors hover:bg-muted/50 cursor-pointer"
+      className="bg-card rounded-lg p-4 border border-border transition-colors hover:border-foreground/20 hover:bg-muted/30 cursor-pointer"
     >
       {/* Header with avatar */}
       <div className="flex items-start gap-3 mb-3">
-        <div className="w-14 h-14 rounded-lg bg-secondary flex items-center justify-center overflow-hidden shrink-0">
+        <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center overflow-hidden shrink-0">
           {avatar ? (
             <img src={avatar} alt={name} className="w-full h-full object-cover" />
           ) : (
@@ -69,7 +69,7 @@ export function PlayerCard({
       </div>
 
       {/* Play styles */}
-      <div className="flex flex-wrap gap-1.5 mb-3">
+      <div className="flex flex-wrap gap-1.5 mb-3 min-h-6">
         {playStyles.slice(0, 3).map((style) => (
           <Badge key={style} variant="muted" className="text-xs">
             {style}
@@ -83,7 +83,7 @@ export function PlayerCard({
       </div>
 
       {/* Stats */}
-      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+      <div className="flex items-center gap-4 border-t border-border pt-3 text-sm text-muted-foreground mb-3">
         {gamesPlayed !== undefined && (
           <span>
             <span className="font-semibold text-foreground">{gamesPlayed}</span> games

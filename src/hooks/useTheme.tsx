@@ -13,7 +13,7 @@ interface ThemeContextType {
 const STORAGE_KEY = "courtava-theme";
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: "system",
+  theme: "light",
   resolvedTheme: "light",
   setTheme: () => {},
 });
@@ -25,7 +25,7 @@ function readStoredTheme(): Theme {
   } catch {
     /* localStorage unavailable in private mode */
   }
-  return "system";
+  return "light";
 }
 
 function systemTheme(): ResolvedTheme {

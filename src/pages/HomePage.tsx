@@ -13,7 +13,7 @@ import { C, RING, SHADOW } from "@/lib/tokens";
 import { Chip } from "@/components/ui/Chip";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { IconButton } from "@/components/ui/IconButton";
-import { Search, SlidersHorizontal, ChevronRight, Flame } from "lucide-react";
+import { Search, SlidersHorizontal, ChevronRight, Flame, CalendarDays } from "lucide-react";
 
 const SearchIcon = () => <Search size={16} color={C.ink3} strokeWidth={1.8} />;
 const FilterIcon = () => <SlidersHorizontal size={14} color={C.ink} strokeWidth={1.8} />;
@@ -37,7 +37,7 @@ function formatTime(t: string) {
 function formatGameTime(date: string, time: string) {
   const today = new Date().toISOString().split("T")[0];
   const isToday = date === today;
-  return `${isToday ? "Today" : date} · ${time ? formatTime(time) : ""}`;
+  return `${isToday ? "Today" : date} - ${time ? formatTime(time) : ""}`;
 }
 
 export default function HomePage() {
@@ -216,15 +216,16 @@ export default function HomePage() {
       <ScrollReveal delay={80}>
       <div className="flex gap-2 overflow-x-auto scrollbar-hide" style={{ padding: "18px 22px 6px" }}>
         {[
-          { k: "all",         label: "All" },
-          { k: "hot",         label: "🔥 Hot now" },
-          { k: "casual",      label: "Casual" },
-          { k: "competitive", label: "Competitive" },
+          { k: "all",         label: "All", icon: undefined },
+          { k: "hot",         label: "Hot now", icon: <Flame size={13} fill="currentColor" strokeWidth={0} /> },
+          { k: "casual",      label: "Casual", icon: undefined },
+          { k: "competitive", label: "Competitive", icon: undefined },
         ].map((chip) => (
           <Chip
             key={chip.k}
             selected={activeFilter === chip.k}
             onClick={() => setActiveFilter(chip.k)}
+            icon={chip.icon}
           >
             {chip.label}
           </Chip>
@@ -259,7 +260,9 @@ export default function HomePage() {
                   <div style={{
                     width: 44, height: 44, borderRadius: 12, background: C.hair2,
                     display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20,
-                  }}>🏀</div>
+                  }}>
+                    <CalendarDays size={19} color={C.green} strokeWidth={1.9} />
+                  </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 600, fontSize: 15 }}>{game.title}</div>
                     <div style={{ fontSize: 12, color: C.ink3, marginTop: 3, display: "flex", gap: 8 }}>

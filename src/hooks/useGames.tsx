@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "sonner";
+import { haptic } from "@/lib/haptics";
 
 export interface DbGame {
   id: string;
@@ -77,10 +78,12 @@ export function useGames() {
       return data;
     },
     onSuccess: () => {
+      haptic("success");
       queryClient.invalidateQueries({ queryKey: ["games"] });
       toast.success("Game created successfully!");
     },
     onError: (error) => {
+      haptic("error");
       console.error("Error creating game:", error);
       toast.error("Failed to create game. Please try again.");
     },
@@ -96,11 +99,13 @@ export function useGames() {
       if (error) throw error;
     },
     onSuccess: () => {
+      haptic("success");
       queryClient.invalidateQueries({ queryKey: ["games"] });
       queryClient.invalidateQueries({ queryKey: ["game_participants", user?.id] });
       toast.success("You're in! See you on the court.");
     },
     onError: (error) => {
+      haptic("error");
       console.error("Error joining game:", error);
       toast.error(error instanceof Error ? error.message : "Failed to join game. Please try again.");
     },
@@ -118,11 +123,13 @@ export function useGames() {
       if (error) throw error;
     },
     onSuccess: () => {
+      haptic("selection");
       queryClient.invalidateQueries({ queryKey: ["games"] });
       queryClient.invalidateQueries({ queryKey: ["game_participants", user?.id] });
       toast("You've left the game.");
     },
     onError: (error) => {
+      haptic("error");
       console.error("Error leaving game:", error);
       toast.error(error instanceof Error ? error.message : "Failed to leave game. Please try again.");
     },

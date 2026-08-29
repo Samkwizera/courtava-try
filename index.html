@@ -34,7 +34,7 @@
       /* Apply the stored theme before first paint to avoid a white flash. */
       (function () {
         try {
-          var t = localStorage.getItem("courtava-theme") || "system";
+          var t = localStorage.getItem("courtava-theme") || "light";
           var dark = t === "dark" ||
             (t === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
           document.documentElement.classList.add(dark ? "dark" : "light");

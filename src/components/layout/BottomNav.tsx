@@ -1,29 +1,16 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { Bell, Home, Map, Plus, UserRound, type LucideIcon } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { haptic } from "@/lib/haptics";
-import { C, SHADOW } from "@/lib/tokens";
-
-type Tab = { id: string; to: string; label: string; icon?: LucideIcon; create?: boolean };
-
-const TABS: Tab[] = [
-  { id: "home", to: "/", label: "Home", icon: Home },
-  { id: "courts", to: "/courts", label: "Map", icon: Map },
-  { id: "create", to: "/create-game", label: "Host", create: true },
-  { id: "games", to: "/games", label: "Feed", icon: Bell },
-  { id: "profile", to: "/profile", label: "You", icon: UserRound },
-];
+import { C } from "@/lib/tokens";
+import { getActiveNavId, PRIMARY_NAV_ITEMS, type AppNavItem } from "./navigation";
 
 export function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const reducedMotion = useReducedMotion();
-  const activeId = location.pathname === "/" ? "home"
-    : location.pathname.startsWith("/courts") ? "courts"
-    : location.pathname.startsWith("/games") || location.pathname.startsWith("/create-game") ? "games"
-    : location.pathname.startsWith("/profile") ? "profile" : "";
+  const activeId = getActiveNavId(location.pathname);
 
-  const go = (tab: Tab) => {
+  const go = (tab: AppNavItem) => {
     haptic(tab.create ? "success" : "selection");
     navigate(tab.to);
   };
@@ -35,9 +22,10 @@ export function BottomNav() {
     }}>
       <div className="glass-nav" style={{
         display: "grid", gridTemplateColumns: "repeat(5, 1fr)", borderRadius: 24,
-        border: `1px solid ${C.hair}`, boxShadow: SHADOW.float, height: 64, alignItems: "center",
+        height: 64, alignItems: "center",
       }}>
-        {TABS.map((tab) => {
+        {PRIMARY_NAV_ITEMS.map((tab) => {
+          const Icon = tab.icon;
           if (tab.create) return (
             <motion.button key={tab.id} type="button" aria-label="Host a game" onClick={() => go(tab)}
               whileTap={reducedMotion ? undefined : { scale: 0.88, rotate: -4 }}
@@ -48,13 +36,12 @@ export function BottomNav() {
                 style={{ boxShadow: `0 7px 18px -6px ${C.green}` }}
                 animate={reducedMotion ? undefined : { y: [0, -1, 0] }}
                 transition={{ duration: 2.8, repeat: Infinity, repeatDelay: 2.5 }}>
-                <Plus size={22} strokeWidth={2.5} />
+                <Icon size={22} strokeWidth={2.5} />
               </motion.span>
             </motion.button>
           );
 
           const isActive = activeId === tab.id;
-          const Icon = tab.icon!;
           return (
             <motion.button key={tab.id} type="button" aria-label={tab.label}
               aria-current={isActive ? "page" : undefined} onClick={() => go(tab)}

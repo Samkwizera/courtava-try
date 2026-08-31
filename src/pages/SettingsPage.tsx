@@ -1,36 +1,15 @@
-import {
-  Bell,
-  Lock,
-  Globe,
-  HelpCircle,
-  Shield,
-  LogOut,
-  Trash2,
-  ChevronRight,
-  Palette,
-  Sun,
-  Moon,
-  Smartphone,
-} from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Switch } from "@/components/ui/switch";
+import { Bell, ChevronRight, Globe, HelpCircle, LocateFixed, LogOut, Mail, Moon, Palette, Shield, Smartphone, Sun, Trash2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "@/hooks/use-toast";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { useState } from "react";
+import { useSettings, type UserSettings } from "@/hooks/useSettings";
+import { useTheme, type Theme } from "@/hooks/useTheme";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Section } from "@/components/layout/Section";
-import { useTheme, type Theme } from "@/hooks/useTheme";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const THEME_OPTIONS: { value: Theme; label: string; Icon: typeof Sun }[] = [
   { value: "light", label: "Light", Icon: Sun },
@@ -38,308 +17,127 @@ const THEME_OPTIONS: { value: Theme; label: string; Icon: typeof Sun }[] = [
   { value: "system", label: "Auto", Icon: Smartphone },
 ];
 
+function SettingToggle({ title, description, checked, disabled, onChange }: { title: string; description: string; checked: boolean; disabled?: boolean; onChange: (checked: boolean) => void }) {
+  return <div className="flex items-center justify-between gap-4 p-4">
+    <div className="min-w-0"><p className="font-medium text-foreground">{title}</p><p className="mt-0.5 text-sm text-muted-foreground">{description}</p></div>
+    <Switch checked={checked} disabled={disabled} onCheckedChange={onChange} />
+  </div>;
+}
+
 export default function SettingsPage() {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { settings, saveSettings, isSaving } = useSettings();
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | "unsupported">("unsupported");
+  const [locationPermission, setLocationPermission] = useState<PermissionState | "unsupported">("unsupported");
+  const [busyAction, setBusyAction] = useState<string | null>(null);
 
-  const [notifications, setNotifications] = useState({
-    checkIns: true,
-    newGames: true,
-    messages: false,
-    communities: true,
-  });
+  useEffect(() => {
+    if ("Notification" in window) setNotificationPermission(Notification.permission);
+    if (navigator.permissions) navigator.permissions.query({ name: "geolocation" }).then((status) => {
+      setLocationPermission(status.state);
+      status.onchange = () => setLocationPermission(status.state);
+    }).catch(() => setLocationPermission("unsupported"));
+  }, []);
 
-  const handleNotificationToggle = (key: keyof typeof notifications) => {
-    setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
-    toast({
-      title: "Notification Settings Updated",
-      description: "Your preferences have been saved",
-    });
-  };
-
-  const handleSignOut = async () => {
+  const update = async (patch: Partial<UserSettings>) => {
     try {
-      await signOut();
-      toast({
-        title: "Signed Out",
-        description: "You have been successfully signed out",
-      });
-      navigate("/auth");
+      await saveSettings({ ...settings, ...patch });
+      toast.success("Settings saved");
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to sign out. Please try again.",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Could not save settings");
     }
   };
 
-  const handleDeleteAccount = () => {
-    toast({
-      title: "Account Deletion",
-      description: "This feature will be available soon",
-      variant: "destructive",
-    });
+  const updateNotification = async (key: keyof Pick<UserSettings, "notify_nearby_check_ins" | "notify_new_games" | "notify_communities" | "court_reminders" | "game_reminders">, enabled: boolean) => {
+    if (enabled && "Notification" in window && Notification.permission !== "granted") {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+      if (permission !== "granted") {
+        toast.error("Allow notifications in your browser to enable reminders");
+        return;
+      }
+    }
+    await update({ [key]: enabled });
   };
 
-  return (
-    <div className="min-h-screen bg-background pb-24">
-      <PageHeader title="Settings" back />
+  const updateLocation = async (enabled: boolean) => {
+    if (!enabled) {
+      await update({ location_enabled: false });
+      return;
+    }
+    if (!navigator.geolocation) {
+      toast.error("Location is not supported on this device");
+      return;
+    }
+    setBusyAction("location");
+    navigator.geolocation.getCurrentPosition(async () => {
+      setLocationPermission("granted");
+      await update({ location_enabled: true });
+      setBusyAction(null);
+    }, (error) => {
+      setLocationPermission(error.code === error.PERMISSION_DENIED ? "denied" : "prompt");
+      toast.error(error.code === error.PERMISSION_DENIED ? "Enable location in your browser settings" : "Could not access your location");
+      setBusyAction(null);
+    }, { enableHighAccuracy: true, timeout: 10000 });
+  };
 
-      <div className="p-4">
-        {/* Notifications Section */}
-        <Section label="Notifications" grouped>
-            <div className="flex items-center justify-between p-4">
-              <div className="flex items-center gap-3">
-                <Bell className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="font-medium text-foreground">Check-ins</p>
-                  <p className="text-sm text-muted-foreground">
-                    When players check in nearby
-                  </p>
-                </div>
-              </div>
-              <Switch
-                checked={notifications.checkIns}
-                onCheckedChange={() => handleNotificationToggle("checkIns")}
-              />
-            </div>
-            <div className="flex items-center justify-between p-4">
-              <div className="flex items-center gap-3">
-                <Bell className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="font-medium text-foreground">New Games</p>
-                  <p className="text-sm text-muted-foreground">
-                    Game invitations and updates
-                  </p>
-                </div>
-              </div>
-              <Switch
-                checked={notifications.newGames}
-                onCheckedChange={() => handleNotificationToggle("newGames")}
-              />
-            </div>
-            <div className="flex items-center justify-between p-4">
-              <div className="flex items-center gap-3">
-                <Bell className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="font-medium text-foreground">Messages</p>
-                  <p className="text-sm text-muted-foreground">
-                    Direct messages from players
-                  </p>
-                </div>
-              </div>
-              <Switch
-                checked={notifications.messages}
-                onCheckedChange={() => handleNotificationToggle("messages")}
-              />
-            </div>
-            <div className="flex items-center justify-between p-4">
-              <div className="flex items-center gap-3">
-                <Bell className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="font-medium text-foreground">Communities</p>
-                  <p className="text-sm text-muted-foreground">
-                    Community activity and events
-                  </p>
-                </div>
-              </div>
-              <Switch
-                checked={notifications.communities}
-                onCheckedChange={() => handleNotificationToggle("communities")}
-              />
-            </div>
-        </Section>
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth", { replace: true });
+  };
 
-        {/* Appearance Section */}
-        <Section label="Appearance" grouped>
-            <div className="flex items-center gap-3 p-4">
-              <Palette className="w-5 h-5 text-primary shrink-0" />
-              <div className="min-w-0">
-                <p className="font-medium text-foreground">Theme</p>
-                <p className="text-sm text-muted-foreground">
-                  Match your device or pick one
-                </p>
-              </div>
-            </div>
-            <div
-              role="radiogroup"
-              aria-label="Theme"
-              className="flex gap-2 px-4 pb-4"
-            >
-              {THEME_OPTIONS.map(({ value, label, Icon }) => {
-                const active = theme === value;
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    role="radio"
-                    aria-checked={active}
-                    onClick={() => setTheme(value)}
-                    className={`ios-tap flex-1 flex flex-col items-center gap-1.5 rounded-xl border py-3 transition-colors ${
-                      active
-                        ? "border-primary bg-secondary text-secondary-foreground"
-                        : "border-border bg-background text-muted-foreground hover:bg-muted/50"
-                    }`}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span className="text-13 font-semibold">{label}</span>
-                  </button>
-                );
-              })}
-            </div>
-        </Section>
+  const deleteAccount = async () => {
+    setBusyAction("delete");
+    const { error } = await supabase.rpc("delete_own_account");
+    if (error) {
+      setBusyAction(null);
+      toast.error(error.message.includes("function") ? "Apply the local settings migration before deleting accounts" : error.message);
+      return;
+    }
+    await supabase.auth.signOut();
+    navigate("/auth", { replace: true });
+  };
 
-        {/* Privacy & Security Section */}
-        <Section label="Privacy & Security" grouped>
-            <button
-              type="button"
-              onClick={() =>
-                toast({
-                  title: "Privacy Settings",
-                  description: "Coming soon!",
-                })
-              }
-              className="w-full flex items-center justify-between p-4 hover:bg-secondary/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <Shield className="w-5 h-5 text-primary" />
-                <p className="font-medium text-foreground">Privacy</p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                toast({
-                  title: "Change Password",
-                  description: "Coming soon!",
-                })
-              }
-              className="w-full flex items-center justify-between p-4 hover:bg-secondary/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <Lock className="w-5 h-5 text-primary" />
-                <p className="font-medium text-foreground">Change Password</p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </button>
-        </Section>
+  return <div className="min-h-[100dvh] bg-background pb-28">
+    <PageHeader title="Settings" back="/profile" />
+    <div className="mx-auto w-full max-w-2xl p-4">
+      <Section label="Account" grouped>
+        <div className="flex items-center gap-3 p-4"><Mail className="h-5 w-5 shrink-0 text-primary" /><div className="min-w-0"><p className="font-medium">Email</p><p className="truncate text-sm text-muted-foreground">{user?.email || "No email available"}</p></div></div>
+      </Section>
 
-        {/* General Section */}
-        <Section label="General" grouped>
-            <button
-              type="button"
-              onClick={() =>
-                toast({
-                  title: "Language",
-                  description: "Coming soon!",
-                })
-              }
-              className="w-full flex items-center justify-between p-4 hover:bg-secondary/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <Globe className="w-5 h-5 text-primary" />
-                <div className="text-left">
-                  <p className="font-medium text-foreground">Language</p>
-                  <p className="text-sm text-muted-foreground">English</p>
-                </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                toast({
-                  title: "Help & Support",
-                  description: "Coming soon!",
-                })
-              }
-              className="w-full flex items-center justify-between p-4 hover:bg-secondary/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <HelpCircle className="w-5 h-5 text-primary" />
-                <p className="font-medium text-foreground">Help & Support</p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </button>
-        </Section>
+      <Section label="Notifications" grouped>
+        <div className="flex items-center gap-3 p-4"><Bell className="h-5 w-5 text-primary" /><div><p className="font-medium">Browser permission</p><p className="text-sm capitalize text-muted-foreground">{notificationPermission}</p></div></div>
+        <SettingToggle title="Nearby check-ins" description="When players become active nearby" checked={settings.notify_nearby_check_ins} disabled={isSaving} onChange={(value) => updateNotification("notify_nearby_check_ins", value)} />
+        <SettingToggle title="New games" description="New games and important updates" checked={settings.notify_new_games} disabled={isSaving} onChange={(value) => updateNotification("notify_new_games", value)} />
+        <SettingToggle title="Community activity" description="Updates from your basketball communities" checked={settings.notify_communities} disabled={isSaving} onChange={(value) => updateNotification("notify_communities", value)} />
+        <SettingToggle title="Court reminders" description="Activity reminders for followed courts" checked={settings.court_reminders} disabled={isSaving} onChange={(value) => updateNotification("court_reminders", value)} />
+        <SettingToggle title="Game reminders" description="Reminders for games you joined or host" checked={settings.game_reminders} disabled={isSaving} onChange={(value) => updateNotification("game_reminders", value)} />
+      </Section>
 
-        {/* Account Actions Section */}
-        <Section label="Account" grouped>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <button
-                  type="button"
-                  className="w-full flex items-center justify-between p-4 hover:bg-secondary/50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <LogOut className="w-5 h-5 text-orange-500" />
-                    <p className="font-medium text-foreground">Sign Out</p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                </button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Sign Out</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to sign out? You'll need to sign in
-                    again to access your account.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleSignOut}>
-                    Sign Out
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+      <Section label="Location" grouped>
+        <div className="flex items-center gap-3 p-4"><LocateFixed className="h-5 w-5 text-primary" /><div><p className="font-medium">Location permission</p><p className="text-sm capitalize text-muted-foreground">{locationPermission}</p></div></div>
+        <SettingToggle title="Use my location" description="Show distance and nearby court activity" checked={settings.location_enabled} disabled={isSaving || busyAction === "location"} onChange={updateLocation} />
+      </Section>
 
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <button
-                  type="button"
-                  className="w-full flex items-center justify-between p-4 hover:bg-destructive/10 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <Trash2 className="w-5 h-5 text-destructive" />
-                    <p className="font-medium text-destructive">
-                      Delete Account
-                    </p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                </button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Account</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete
-                    your account and remove all your data from our servers.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleDeleteAccount}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  >
-                    Delete Account
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-        </Section>
+      <Section label="Appearance" grouped>
+        <div className="flex items-center gap-3 p-4"><Palette className="h-5 w-5 text-primary" /><div><p className="font-medium">Theme</p><p className="text-sm text-muted-foreground">Match your device or choose a mode</p></div></div>
+        <div role="radiogroup" aria-label="Theme" className="flex gap-2 px-4 pb-4">{THEME_OPTIONS.map(({ value, label, Icon }) => <button key={value} type="button" role="radio" aria-checked={theme === value} onClick={() => setTheme(value)} className={`ios-tap flex flex-1 flex-col items-center gap-1.5 rounded-xl border py-3 ${theme === value ? "border-primary bg-secondary text-secondary-foreground" : "border-border bg-background text-muted-foreground"}`}><Icon className="h-5 w-5" /><span className="text-[13px] font-semibold">{label}</span></button>)}</div>
+      </Section>
 
-        {/* App Info */}
-        <div className="text-center text-sm text-muted-foreground py-4">
-          <p>CourtAva v1.0.0</p>
-          <p className="mt-1">© 2026 CourtAva. All rights reserved.</p>
-        </div>
-      </div>
+      <Section label="Privacy and help" grouped>
+        <button type="button" onClick={() => navigate("/privacy")} className="ios-tap flex w-full items-center justify-between p-4 text-left hover:bg-muted/40"><span className="flex items-center gap-3"><Shield className="h-5 w-5 text-primary" /><span className="font-medium">Privacy policy</span></span><ChevronRight className="h-5 w-5 text-muted-foreground" /></button>
+        <button type="button" onClick={() => navigate("/terms")} className="ios-tap flex w-full items-center justify-between p-4 text-left hover:bg-muted/40"><span className="flex items-center gap-3"><Globe className="h-5 w-5 text-primary" /><span className="font-medium">Terms of use</span></span><ChevronRight className="h-5 w-5 text-muted-foreground" /></button>
+        <button type="button" onClick={() => navigate("/support")} className="ios-tap flex w-full items-center justify-between p-4 text-left hover:bg-muted/40"><span className="flex items-center gap-3"><HelpCircle className="h-5 w-5 text-primary" /><span className="font-medium">Help and support</span></span><ChevronRight className="h-5 w-5 text-muted-foreground" /></button>
+      </Section>
+
+      <Section label="Session" grouped>
+        <AlertDialog><AlertDialogTrigger asChild><button type="button" className="ios-tap flex w-full items-center justify-between p-4 text-left hover:bg-muted/40"><span className="flex items-center gap-3"><LogOut className="h-5 w-5 text-amber-600" /><span className="font-medium">Sign out</span></span><ChevronRight className="h-5 w-5 text-muted-foreground" /></button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Sign out?</AlertDialogTitle><AlertDialogDescription>You will need to sign in again to access your account.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleSignOut}>Sign out</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+        <AlertDialog><AlertDialogTrigger asChild><button type="button" className="ios-tap flex w-full items-center justify-between p-4 text-left hover:bg-destructive/10"><span className="flex items-center gap-3"><Trash2 className="h-5 w-5 text-destructive" /><span className="font-medium text-destructive">Delete account</span></span><ChevronRight className="h-5 w-5 text-muted-foreground" /></button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Permanently delete your account?</AlertDialogTitle><AlertDialogDescription>Your profile, hosted games, participation, check-ins, and communities will be removed. This cannot be undone.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction disabled={busyAction === "delete"} onClick={deleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete permanently</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+      </Section>
+
+      <div className="py-3 text-center text-xs text-muted-foreground"><p>Courtava v{__APP_VERSION__}</p><p className="mt-1">© {new Date().getFullYear()} Courtava. All rights reserved.</p></div>
     </div>
-  );
+  </div>;
 }

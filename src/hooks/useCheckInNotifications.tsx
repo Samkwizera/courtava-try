@@ -3,12 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "sonner";
 
-export function useCheckInNotifications(myCourtId: string | null) {
+export function useCheckInNotifications(myCourtId: string | null, enabled = true) {
   const { user } = useAuth();
   const notifiedIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    if (!user || !myCourtId) return;
+    if (!user || !myCourtId || !enabled) return;
 
     const channel = supabase
       .channel("check_in_notifications")
@@ -49,6 +49,14 @@ export function useCheckInNotifications(myCourtId: string | null) {
           toast.success(`${displayName} just checked in at your court! 🏀`, {
             duration: 5000,
           });
+
+          if ("Notification" in window && Notification.permission === "granted") {
+            new Notification("Courtava check-in", {
+              body: `${displayName} just checked in at your court.`,
+              icon: "/pwa-192x192.png",
+              tag: `check-in-${newCheckIn.id}`,
+            });
+          }
         }
       )
       .subscribe();
@@ -56,5 +64,5 @@ export function useCheckInNotifications(myCourtId: string | null) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, myCourtId]);
+  }, [enabled, user, myCourtId]);
 }

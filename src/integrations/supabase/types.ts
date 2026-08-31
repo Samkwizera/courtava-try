@@ -311,6 +311,59 @@ export type Database = {
           },
         ]
       }
+      issue_reports: {
+        Row: {
+          app_version: string | null
+          category: string
+          created_at: string
+          description: string
+          id: string
+          page_path: string | null
+          reporter_email: string | null
+          status: string
+          subject: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          app_version?: string | null
+          category: string
+          created_at?: string
+          description: string
+          id?: string
+          page_path?: string | null
+          reporter_email?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          app_version?: string | null
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          page_path?: string | null
+          reporter_email?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issue_reports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           availability: string[] | null
@@ -356,12 +409,59 @@ export type Database = {
         }
         Relationships: []
       }
+      user_settings: {
+        Row: {
+          court_reminders: boolean
+          created_at: string
+          game_reminders: boolean
+          location_enabled: boolean
+          notify_communities: boolean
+          notify_nearby_check_ins: boolean
+          notify_new_games: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          court_reminders?: boolean
+          created_at?: string
+          game_reminders?: boolean
+          location_enabled?: boolean
+          notify_communities?: boolean
+          notify_nearby_check_ins?: boolean
+          notify_new_games?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          court_reminders?: boolean
+          created_at?: string
+          game_reminders?: boolean
+          location_enabled?: boolean
+          notify_communities?: boolean
+          notify_nearby_check_ins?: boolean
+          notify_new_games?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      delete_own_account: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

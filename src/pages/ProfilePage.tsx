@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings, LogOut, Edit2, ChevronRight } from "lucide-react";
+import { Settings, Edit2, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
@@ -21,17 +21,11 @@ const SKILL_LEVELS = ["Beginner", "Casual", "Intermediate", "Advanced", "Pro"];
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { profile, isLoading, updateProfile, isUpdating } = useProfile();
   const { games, myParticipantGameIds } = useGames();
   const { checkIns } = useCheckIns();
   const [editOpen, setEditOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/auth");
-  };
 
   const displayName = profile?.display_name || user?.email?.split("@")[0] || "Player";
   const username = displayName.toLowerCase().replace(/\s+/g, "");
@@ -73,28 +67,12 @@ export default function ProfilePage() {
             <IconButton label="Edit profile" onClick={() => setEditOpen(true)}>
               <Edit2 size={15} />
             </IconButton>
-            <IconButton label="Settings" onClick={() => setSettingsOpen((v) => !v)}>
+            <IconButton label="Settings" onClick={() => navigate("/settings")}>
               <Settings size={15} />
             </IconButton>
           </>
         }
       />
-
-      {/* Settings panel */}
-      {settingsOpen && (
-        <div style={{ margin: "12px 16px 0", background: C.surface, borderRadius: 16, border: `1px solid ${C.hair}`, overflow: "hidden" }}>
-          {/* Sign out */}
-          <button onClick={handleSignOut} style={{
-            width: "100%", display: "flex", alignItems: "center", padding: "14px 16px", gap: 12,
-            border: "none", background: "transparent", cursor: "pointer", fontFamily: font,
-          }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: C.redTint, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <LogOut size={14} color={C.red} />
-            </div>
-            <span style={{ flex: 1, fontSize: 15, fontWeight: 500, color: C.red, textAlign: "left" }}>Sign Out</span>
-          </button>
-        </div>
-      )}
 
       {/* Avatar + identity */}
       <ScrollReveal>

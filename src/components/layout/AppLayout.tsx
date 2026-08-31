@@ -1,5 +1,6 @@
 import { Outlet, Navigate } from "react-router-dom";
 import { BottomNav } from "./BottomNav";
+import { DesktopSidebar } from "./DesktopSidebar";
 import { CheckInNotifier } from "@/components/CheckInNotifier";
 import { useAuth } from "@/hooks/useAuth";
 import { isOnboardingDone } from "@/lib/onboarding";
@@ -13,12 +14,15 @@ export function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-[100dvh] bg-background">
       <CheckInNotifier />
-      <main className="pb-28">
+      <DesktopSidebar />
+      <main className="min-h-[100dvh] pb-28 lg:ml-28 lg:pb-0">
         <Outlet />
       </main>
-      <BottomNav />
+      <div className="lg:hidden">
+        <BottomNav />
+      </div>
     </div>
   );
 }

@@ -33,6 +33,9 @@ const GamesPage = lazy(() => import("@/pages/GamesPage"));
 const CreateGamePage = lazy(() => import("@/pages/CreateGamePage"));
 const PlayersPage = lazy(() => import("@/pages/PlayersPage"));
 const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
+const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
+const ReportIssuePage = lazy(() => import("@/pages/ReportIssuePage"));
+const InfoPage = lazy(() => import("@/pages/InfoPage"));
 const OnboardingPage = lazy(() => import("@/pages/OnboardingPage"));
 const InstallPage = lazy(() => import("@/pages/InstallPage"));
 const AuthPage = lazy(() => import("@/pages/AuthPage"));
@@ -99,14 +102,19 @@ const App = () => {
                         <Route path="/games" element={<GamesPage />} />
                         <Route path="/create-game" element={<CreateGamePage />} />
                         <Route path="/players" element={<PlayersPage />} />
-                        <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/report-issue" element={<ReportIssuePage />} />
+          <Route path="/support" element={<InfoPage />} />
                       </Route>
                       <Route element={<RequireAuth />}>
                         <Route path="/onboarding" element={<OnboardingPage />} />
                       </Route>
                       <Route path="/auth" element={<AuthPage />} />
                       <Route path="/reset-password" element={<ResetPasswordPage />} />
-                      <Route path="/install" element={<InstallPage />} />
+        <Route path="/install" element={<InstallPage />} />
+        <Route path="/privacy" element={<InfoPage />} />
+        <Route path="/terms" element={<InfoPage />} />
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                         <Route path="*" element={<NotFound />} />
                       </Routes>

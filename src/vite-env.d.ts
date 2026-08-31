@@ -1,5 +1,7 @@
 /// <reference types="vite/client" />
 
+declare const __APP_VERSION__: string;
+
 interface ImportMetaEnv {
   readonly VITE_MAPBOX_ACCESS_TOKEN: string;
   readonly VITE_SUPABASE_PROJECT_ID: string;

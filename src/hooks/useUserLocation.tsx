@@ -1,5 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
+import { useSettings } from "@/hooks/useSettings";
 
 interface UserLocation {
   lat: number;
@@ -7,6 +8,7 @@ interface UserLocation {
 }
 
 export function useUserLocation() {
+  const { settings, saveSettings } = useSettings();
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [locationEnabled, setLocationEnabled] = useState(false);
@@ -28,6 +30,7 @@ export function useUserLocation() {
         setUserLocation(loc);
         setLocationEnabled(true);
         setIsLocating(false);
+        void saveSettings({ ...settings, location_enabled: true });
         toast.success("Location found!");
       },
       (error) => {
@@ -52,12 +55,20 @@ export function useUserLocation() {
         maximumAge: 60000,
       }
     );
-  }, []);
+  }, [saveSettings, settings]);
 
   const disableLocation = useCallback(() => {
     setUserLocation(null);
     setLocationEnabled(false);
-  }, []);
+    void saveSettings({ ...settings, location_enabled: false });
+  }, [saveSettings, settings]);
+
+  useEffect(() => {
+    if (!settings.location_enabled || !navigator.permissions || userLocation || isLocating) return;
+    navigator.permissions.query({ name: "geolocation" }).then((permission) => {
+      if (permission.state === "granted") requestLocation();
+    }).catch(() => undefined);
+  }, [isLocating, requestLocation, settings.location_enabled, userLocation]);
 
   return {
     userLocation,

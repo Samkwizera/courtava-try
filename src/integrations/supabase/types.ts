@@ -375,7 +375,7 @@ export type Database = {
           id: string
           location: string | null
           play_styles: string[] | null
-          position: string | null
+          position: string[] | null
           skill_level: string | null
           updated_at: string
         }
@@ -389,7 +389,7 @@ export type Database = {
           id: string
           location?: string | null
           play_styles?: string[] | null
-          position?: string | null
+          position?: string[] | null
           skill_level?: string | null
           updated_at?: string
         }
@@ -403,7 +403,7 @@ export type Database = {
           id?: string
           location?: string | null
           play_styles?: string[] | null
-          position?: string | null
+          position?: string[] | null
           skill_level?: string | null
           updated_at?: string
         }

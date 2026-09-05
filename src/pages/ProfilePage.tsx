@@ -170,7 +170,7 @@ export default function ProfilePage() {
         }}>
           {[
             { l: "Sport", v: "Basketball" },
-            { l: "Position", v: profile?.position || "—" },
+            { l: "Positions", v: profile?.position?.join(", ") || "—" },
             { l: "Preferred vibe", v: profile?.play_styles?.join(", ") || "—" },
             { l: "Availability", v: profile?.availability?.join(", ") || "—" },
           ].map((r, i, a) => (

@@ -9,7 +9,7 @@ export interface Profile {
   avatar_url: string | null;
   bio: string | null;
   skill_level: string | null;
-  position: string | null;
+  position: string[] | null;
   play_styles: string[] | null;
   availability: string[] | null;
   created_at: string;
@@ -20,7 +20,7 @@ export interface ProfileUpdate {
   display_name?: string | null;
   bio?: string | null;
   skill_level?: string | null;
-  position?: string | null;
+  position?: string[] | null;
   play_styles?: string[] | null;
   availability?: string[] | null;
 }

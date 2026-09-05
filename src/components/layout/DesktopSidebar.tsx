@@ -16,7 +16,7 @@ function SidebarLink({ item, active }: { item: AppNavItem; active: boolean }) {
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary-foreground/15">
           <Icon size={19} strokeWidth={2.3} />
         </span>
-        <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none">
+        <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover:opacity-100 motion-reduce:transition-none">
           {item.label} a game
         </span>
       </Link>
@@ -37,7 +37,7 @@ function SidebarLink({ item, active }: { item: AppNavItem; active: boolean }) {
       <span className="flex h-8 w-8 shrink-0 items-center justify-center">
         <Icon size={20} strokeWidth={active ? 2.2 : 1.8} />
       </span>
-      <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none">
+      <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover:opacity-100 motion-reduce:transition-none">
         {item.label}
       </span>
     </Link>
@@ -49,7 +49,7 @@ export function DesktopSidebar() {
   const activeId = getActiveNavId(location.pathname);
 
   return (
-    <aside className="group fixed bottom-4 left-4 top-4 z-40 hidden w-20 flex-col overflow-hidden rounded-3xl border border-sidebar-border bg-sidebar px-3 py-5 text-sidebar-foreground shadow-float transition-[width] duration-300 ease-out hover:w-60 focus-within:w-60 motion-reduce:transition-none lg:flex">
+    <aside className="group fixed bottom-4 left-4 top-4 z-50 hidden w-20 flex-col overflow-hidden rounded-3xl border border-sidebar-border bg-sidebar px-3 py-5 text-sidebar-foreground shadow-float transition-[width] duration-300 ease-out hover:w-60 motion-reduce:transition-none lg:flex">
       <Link
         to="/"
         aria-label="Courtava home"
@@ -58,7 +58,7 @@ export function DesktopSidebar() {
         <span className="flex h-9 w-9 shrink-0 overflow-hidden rounded-xl border border-sidebar-border bg-white">
           <img src={courtavaLogo} alt="" className="h-full w-full object-cover" />
         </span>
-        <span className="whitespace-nowrap text-xl font-extrabold tracking-[-0.03em] text-foreground opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none">
+        <span className="whitespace-nowrap text-xl font-extrabold tracking-[-0.03em] text-foreground opacity-0 transition-opacity duration-200 group-hover:opacity-100 motion-reduce:transition-none">
           Courtava
         </span>
       </Link>

@@ -36,7 +36,7 @@ export function EditProfileSheet({
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [skillLevel, setSkillLevel] = useState("");
-  const [position, setPosition] = useState("");
+  const [positions, setPositions] = useState<string[]>([]);
   const [playStyles, setPlayStyles] = useState<string[]>([]);
   const [availability, setAvailability] = useState<string[]>([]);
 
@@ -45,7 +45,7 @@ export function EditProfileSheet({
       setDisplayName(profile.display_name || "");
       setBio(profile.bio || "");
       setSkillLevel(profile.skill_level || "");
-      setPosition(profile.position || "");
+      setPositions(profile.position || []);
       setPlayStyles(profile.play_styles || []);
       setAvailability(profile.availability || []);
     }
@@ -63,7 +63,7 @@ export function EditProfileSheet({
       display_name: displayName.trim(),
       bio: bio.trim() || null,
       skill_level: skillLevel || null,
-      position: position || null,
+      position: positions.length > 0 ? positions : null,
       play_styles: playStyles.length > 0 ? playStyles : null,
       availability: availability.length > 0 ? availability : null,
     });
@@ -145,7 +145,15 @@ export function EditProfileSheet({
             <div style={sectionLabel}>Position</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               {POSITIONS.map((p) => (
-                <div key={p} style={chipStyle(position === p)} onClick={() => setPosition(p === position ? "" : p)}>
+                <div
+                  key={p}
+                  style={chipStyle(positions.includes(p))}
+                  onClick={() => setPositions((current) => {
+                    if (current.includes(p)) return current.filter((item) => item !== p);
+                    if (p === "Any position") return [p];
+                    return [...current.filter((item) => item !== "Any position"), p];
+                  })}
+                >
                   {p}
                 </div>
               ))}

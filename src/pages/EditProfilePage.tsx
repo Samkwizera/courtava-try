@@ -52,12 +52,12 @@ export default function EditProfilePage() {
     const [formData, setFormData] = useState({
         displayName: "",
         location: "",
-        position: "",
         skillLevel: "",
         height: "",
         bio: "",
     });
 
+    const [selectedPositions, setSelectedPositions] = useState<string[]>([]);
     const [selectedPlayStyles, setSelectedPlayStyles] = useState<string[]>([]);
     const [selectedDays, setSelectedDays] = useState<string[]>([]);
 
@@ -79,11 +79,11 @@ export default function EditProfilePage() {
                     setFormData({
                         displayName: data.display_name || "",
                         location: data.location || "",
-                        position: data.position || "",
                         skillLevel: data.skill_level || "",
                         height: data.height || "",
                         bio: data.bio || "",
                     });
+                    setSelectedPositions(data.position || []);
                     setSelectedPlayStyles(data.play_styles || []);
                     setSelectedDays(data.availability || []);
                 }
@@ -112,6 +112,14 @@ export default function EditProfilePage() {
         );
     };
 
+    const togglePosition = (position: string) => {
+        setSelectedPositions((current) => {
+            if (current.includes(position)) return current.filter((item) => item !== position);
+            if (position === "Any position") return [position];
+            return [...current.filter((item) => item !== "Any position"), position];
+        });
+    };
+
     const toggleDay = (day: string) => {
         setSelectedDays((prev) =>
             prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
@@ -129,7 +137,7 @@ export default function EditProfilePage() {
                     display_name: formData.displayName,
                     location: formData.location,
                     bio: formData.bio,
-                    position: formData.position,
+                    position: selectedPositions,
                     skill_level: formData.skillLevel,
                     height: formData.height,
                     play_styles: selectedPlayStyles,
@@ -273,26 +281,24 @@ export default function EditProfilePage() {
                     </h2>
 
                     <div className="space-y-2">
-                        <Label htmlFor="position" className="text-foreground">
-                            Position
-                        </Label>
-                        <Select
-                            value={formData.position}
-                            onValueChange={(value) =>
-                                setFormData((prev) => ({ ...prev, position: value }))
-                            }
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select your position" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {POSITIONS.map((position) => (
-                                    <SelectItem key={position} value={position}>
-                                        {position}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <Label className="text-foreground">Positions</Label>
+                        <div className="flex flex-wrap gap-2">
+                            {POSITIONS.map((position) => (
+                                <button
+                                    key={position}
+                                    type="button"
+                                    aria-pressed={selectedPositions.includes(position)}
+                                    onClick={() => togglePosition(position)}
+                                    className={`rounded-full border px-3 py-2 text-sm font-medium ${
+                                        selectedPositions.includes(position)
+                                            ? "border-primary bg-primary text-primary-foreground"
+                                            : "border-border bg-card text-foreground"
+                                    }`}
+                                >
+                                    {position}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                     <div className="space-y-2">
